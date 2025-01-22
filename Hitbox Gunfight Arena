@@ -1,0 +1,158 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault |  Gunfight Arena",
+    Icon = 12345678901, -- Replace with a diamond icon ID
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Variables  
+local espEnabled = false
+local hitboxEnabled = false
+
+-- Function to apply hitbox modifications
+local function adjustHitbox(character)
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = character.HumanoidRootPart
+        rootPart.Size = Vector3.new(9, 9, 9) -- Expand hitbox size
+        rootPart.Transparency = 0.5 -- Debug visibility
+        rootPart.CanCollide = false -- Disable collisions
+    end
+end
+
+-- Function to add ESP to a character based on team
+local function addESP(character, isTeammate)
+    if character and character:FindFirstChild("Head") then
+        if not character:FindFirstChild("ESP_Highlight") then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "ESP_Highlight"
+            highlight.Adornee = character
+
+            -- Set colors based on whether the player is a teammate
+            if isTeammate then
+                highlight.FillColor = Color3.new(0, 0, 0) -- Black for teammates
+            else
+                highlight.FillColor = Color3.new(1, 0, 0) -- Red for opponents
+            end
+
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.Parent = character
+        end
+    end
+end
+
+-- Function to determine if a player is a teammate
+local function isTeammate(player)
+    local localPlayer = game.Players.LocalPlayer
+    return player.Team == localPlayer.Team -- True if same team, false otherwise
+end
+
+-- Function to monitor a single player for ESP and Hitbox
+local function monitorPlayer(player)
+    local localPlayer = game.Players.LocalPlayer
+
+    -- Skip if the player is the local player
+    if player == localPlayer then return end
+
+    -- Add ESP to the current character
+    if espEnabled and player.Character then
+        addESP(player.Character, isTeammate(player))
+    end
+
+    -- Add ESP when the character respawns
+    player.CharacterAdded:Connect(function(character)
+        if espEnabled then
+            addESP(character, isTeammate(player))
+        end
+    end)
+
+    -- Apply hitbox to opponents only
+    if hitboxEnabled and not isTeammate(player) and player.Character then
+        adjustHitbox(player.Character)
+    end
+
+    -- Apply hitbox on respawn for opponents only
+    player.CharacterAdded:Connect(function(character)
+        if hitboxEnabled and not isTeammate(player) then
+            adjustHitbox(character)
+        end
+    end)
+end
+
+-- Monitor all existing players
+for _, player in pairs(game.Players:GetPlayers()) do
+    monitorPlayer(player)
+end
+
+-- Monitor new players joining
+game.Players.PlayerAdded:Connect(function(player)
+    monitorPlayer(player)
+end)
+
+-- Create the main tab for your script
+local mainTab = Window:CreateTab("Main", 4483362458)
+
+-- Toggle for enabling/disabling ESP
+mainTab:CreateToggle({
+    Name = "Enable ESP",
+    CurrentValue = false, -- Default is off
+    Flag = "espToggle",
+    Callback = function(value)
+        espEnabled = value
+        if espEnabled then
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player.Character then
+                    addESP(player.Character, isTeammate(player))
+                end
+            end
+        else
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("ESP_Highlight") then
+                    player.Character.ESP_Highlight:Destroy()
+                end
+            end
+        end
+    end
+})
+
+-- Toggle for enabling/disabling Hitbox
+mainTab:CreateToggle({
+    Name = "Enable Hitbox",
+    CurrentValue = false, -- Default is off
+    Flag = "hitboxToggle",
+    Callback = function(value)
+        hitboxEnabled = value
+        if hitboxEnabled then
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if not isTeammate(player) and player.Character then
+                    adjustHitbox(player.Character)
+                end
+            end
+        else
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local rootPart = player.Character.HumanoidRootPart
+                    rootPart.Size = Vector3.new(2, 2, 1) -- Reset to default size
+                    rootPart.Transparency = 0 -- Reset visibility
+                    rootPart.CanCollide = true -- Enable collisions
+                end
+            end
+        end
+    end
+})
+
+-- Credits Tab
+local CreditsTab = Window:CreateTab("✨ Credits", "info")
+local CreatorSection = CreditsTab:CreateSection("👑 Creator")
+CreditsTab:CreateLabel("🛠️ COMBO_WICK - Discord: world_star_hacker")
+local CoDevSection = CreditsTab:CreateSection("🤝 Co-Developer")
+CreditsTab:CreateLabel("💡 None - Discord: None")
+local DiscordSection = CreditsTab:CreateSection("🌐 Discord Server")
+CreditsTab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
+CreditsTab:CreateButton({
+   Name = "📋 Copy Discord Link",
+   Callback = function()
+      setclipboard("discord.com/invite/mwTHaCKzhw")
+   end,
+})
