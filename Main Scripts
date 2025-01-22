@@ -4,7 +4,7 @@ local gameId = game.PlaceId
 -- Example of game-specific scripts
 local scriptURLs = {
     [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Game 1
-    [987654321] = "https://raw.githubusercontent.com/yourusername/yourrepository/branch/script2.lua",  -- Game 2
+    [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Game 2
 }
 
 -- Default script if no match
