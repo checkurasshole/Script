@@ -1,0 +1,17 @@
+-- This is the game ID
+local gameId = game.PlaceId
+
+-- Example of game-specific scripts
+local scriptURLs = {
+    [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Game 1
+    [987654321] = "https://raw.githubusercontent.com/yourusername/yourrepository/branch/script2.lua",  -- Game 2
+}
+
+-- Default script if no match
+local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
+
+-- Determine which script to load based on the current game
+local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
+
+-- Load the selected script
+loadstring(game:HttpGet(scriptToLoad))()
