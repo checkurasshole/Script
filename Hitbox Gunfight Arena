@@ -62,10 +62,9 @@ local function monitorPlayer(player)
 
     -- Add ESP when the character respawns
     player.CharacterAdded:Connect(function(character)
-        if espEnabled then
-            addESP(character, isTeammate(player))
-        end
-    end)
+        addESP(character, isTeammate(player))
+    end
+end)
 
     -- Apply hitbox to opponents only
     if hitboxEnabled and not isTeammate(player) and player.Character then
@@ -82,12 +81,38 @@ end
 
 -- Monitor all existing players
 for _, player in pairs(game.Players:GetPlayers()) do
-    monitorPlayer(player)
+    if player ~= game.Players.LocalPlayer then
+        monitorPlayer(player)
+    end
 end
 
 -- Monitor new players joining
 game.Players.PlayerAdded:Connect(function(player)
-    monitorPlayer(player)
+    if player ~= game.Players.LocalPlayer then
+        monitorPlayer(player)
+    end
+end)
+
+-- Continuously check for any missed players or characters
+task.spawn(function()
+    while task.wait(1) do
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character then
+                addESP(player.Character, isTeammate(player))
+            end
+        end
+    end
+end)
+
+-- Continuously check for any missed players or characters
+task.spawn(function()
+    while task.wait(1) do
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Team ~= game.Players.LocalPlayer.Team and player.Character then
+                adjustHitbox(player.Character)
+            end
+        end
+    end
 end)
 
 -- Create the main tab for your script
