@@ -14,7 +14,7 @@ local function collectSpecificItem()
     for _, item in pairs(workspace:GetDescendants()) do
         -- Only target parts named "Coin" or "PickupItem" with a size of (4, 4, 4) and color red
         if item:IsA("BasePart") then
-            if (item.Name == "Brain" or item.Name == "Block" or item.Name == "WIn") then
+            if (item.Name == "Worm" or item.Name == "Slug" or item.Name == "Green Cricket" or item.Name == "Fly" or item.Name == "Pink Worm") then
                 if item.Size == Vector3.new(17.576156616210938, 1, 14.186959266662598) and item.BrickColor == BrickColor.new("Lime green") then
                     touchPart(item)
                 end
@@ -23,18 +23,19 @@ local function collectSpecificItem()
     end
 end
 
--- Run the collection function
-collectSpecificItem()
-
 -- Function to find and collect specific items2
 local function collectSpecificItem2()
     for _, item in pairs(workspace:GetDescendants()) do
         -- Only target parts named "Coin" or "PickupItem"
-        if item:IsA("BasePart") and (item.Name == "Brain" or item.Name == "WIn") then
+        if item:IsA("BasePart") and (item.Name == "Worm" or item.Name == "Spider" or item.Name == "White Spider" or item.Name == "Purple Slug" or item.Name == "Pink Worm" or item.Name == "Fly") then
             touchPart(item)
         end
     end
 end
 
--- Run the collection function2
-collectSpecificItem2()
+-- Main loop to continually run the collection functions
+while true do
+    collectSpecificItem()
+    collectSpecificItem2()
+    task.wait(0.4) -- Delay to prevent excessive resource usage
+end
