@@ -1,6 +1,6 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
-    Name = "ComboChronicle Vault |  Gunfight Arena",
+    Name = "ComboChronicle Vault | ESP & Hitbox",
     Icon = 12345678901, -- Replace with a diamond icon ID
     LoadingTitle = "Loading ComboChronicle Vault ❖",
     LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
@@ -62,9 +62,10 @@ local function monitorPlayer(player)
 
     -- Add ESP when the character respawns
     player.CharacterAdded:Connect(function(character)
-        addESP(character, isTeammate(player))
-    end
-end)
+        if espEnabled then
+            addESP(character, isTeammate(player))
+        end
+    end)
 
     -- Apply hitbox to opponents only
     if hitboxEnabled and not isTeammate(player) and player.Character then
@@ -81,38 +82,12 @@ end
 
 -- Monitor all existing players
 for _, player in pairs(game.Players:GetPlayers()) do
-    if player ~= game.Players.LocalPlayer then
-        monitorPlayer(player)
-    end
+    monitorPlayer(player)
 end
 
 -- Monitor new players joining
 game.Players.PlayerAdded:Connect(function(player)
-    if player ~= game.Players.LocalPlayer then
-        monitorPlayer(player)
-    end
-end)
-
--- Continuously check for any missed players or characters
-task.spawn(function()
-    while task.wait(1) do
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player.Character then
-                addESP(player.Character, isTeammate(player))
-            end
-        end
-    end
-end)
-
--- Continuously check for any missed players or characters
-task.spawn(function()
-    while task.wait(1) do
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer and player.Team ~= game.Players.LocalPlayer.Team and player.Character then
-                adjustHitbox(player.Character)
-            end
-        end
-    end
+    monitorPlayer(player)
 end)
 
 -- Create the main tab for your script
