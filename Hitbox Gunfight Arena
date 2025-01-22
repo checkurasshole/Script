@@ -1,17 +1,17 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
-    Name = "ComboChronicle Vault | ESP & Hitbox",
+    Name = "ComboChronicle Vault | Gunfight Arena",
     Icon = 12345678901, -- Replace with a diamond icon ID
     LoadingTitle = "Loading ComboChronicle Vault ❖",
     LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
     Theme = "Ocean"
 })
 
--- Variables  
+-- Variables
 local espEnabled = false
 local hitboxEnabled = false
 
--- Function to apply hitbox modifications
+-- Function to apply hitbox modifications (Original)
 local function adjustHitbox(character)
     if character and character:FindFirstChild("HumanoidRootPart") then
         local rootPart = character.HumanoidRootPart
@@ -21,7 +21,49 @@ local function adjustHitbox(character)
     end
 end
 
--- Function to add ESP to a character based on team
+-- Function to monitor a player (Original)
+local function monitorPlayer(player)
+    -- Check if player is on the same team
+    local localPlayer = game.Players.LocalPlayer
+    if player.Team == localPlayer.Team then return end
+
+    -- Apply hitbox to existing character
+    if player.Character then
+        adjustHitbox(player.Character)
+    end
+
+    -- Listen for respawns
+    player.CharacterAdded:Connect(function(character)
+        adjustHitbox(character)
+    end)
+end
+
+-- Monitor all players currently in the game (Original)
+for _, player in pairs(game.Players:GetPlayers()) do
+    if player ~= game.Players.LocalPlayer then
+        monitorPlayer(player)
+    end
+end
+
+-- Monitor new players joining (Original)
+game.Players.PlayerAdded:Connect(function(player)
+    if player ~= game.Players.LocalPlayer then
+        monitorPlayer(player)
+    end
+end)
+
+-- Continuously check for any missed players or characters (Original)
+task.spawn(function()
+    while task.wait(1) do
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Team ~= game.Players.LocalPlayer.Team and player.Character then
+                adjustHitbox(player.Character)
+            end
+        end
+    end
+end)
+
+-- Function to add ESP to a character based on team (Original)
 local function addESP(character, isTeammate)
     if character and character:FindFirstChild("Head") then
         if not character:FindFirstChild("ESP_Highlight") then
@@ -42,14 +84,14 @@ local function addESP(character, isTeammate)
     end
 end
 
--- Function to determine if a player is a teammate
+-- Function to determine if a player is a teammate (Original)
 local function isTeammate(player)
     local localPlayer = game.Players.LocalPlayer
     return player.Team == localPlayer.Team -- True if same team, false otherwise
 end
 
--- Function to monitor a single player for ESP and Hitbox
-local function monitorPlayer(player)
+-- Function to monitor a single player for ESP and Hitbox (Original)
+local function monitorPlayerForESP(player)
     local localPlayer = game.Players.LocalPlayer
 
     -- Skip if the player is the local player
@@ -60,40 +102,42 @@ local function monitorPlayer(player)
         addESP(player.Character, isTeammate(player))
     end
 
-    -- Add ESP when the character respawns
+    -- Add ESP and hitbox when the character respawns
     player.CharacterAdded:Connect(function(character)
         if espEnabled then
             addESP(character, isTeammate(player))
         end
-    end)
-
-    -- Apply hitbox to opponents only
-    if hitboxEnabled and not isTeammate(player) and player.Character then
-        adjustHitbox(player.Character)
-    end
-
-    -- Apply hitbox on respawn for opponents only
-    player.CharacterAdded:Connect(function(character)
         if hitboxEnabled and not isTeammate(player) then
             adjustHitbox(character)
         end
     end)
 end
 
--- Monitor all existing players
+-- Monitor all existing players for ESP and hitbox (Original)
 for _, player in pairs(game.Players:GetPlayers()) do
-    monitorPlayer(player)
+    monitorPlayerForESP(player)
 end
 
--- Monitor new players joining
+-- Monitor new players joining (Original)
 game.Players.PlayerAdded:Connect(function(player)
-    monitorPlayer(player)
+    monitorPlayerForESP(player)
+end)
+
+-- Continuously check for any missed players or characters
+task.spawn(function()
+    while task.wait(1) do
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character then
+                addESP(player.Character, isTeammate(player))
+            end
+        end
+    end
 end)
 
 -- Create the main tab for your script
 local mainTab = Window:CreateTab("Main", 4483362458)
 
--- Toggle for enabling/disabling ESP
+-- Toggle for enabling/disabling ESP (Original)
 mainTab:CreateToggle({
     Name = "Enable ESP",
     CurrentValue = false, -- Default is off
@@ -116,7 +160,7 @@ mainTab:CreateToggle({
     end
 })
 
--- Toggle for enabling/disabling Hitbox
+-- Toggle for enabling/disabling Hitbox (Original)
 mainTab:CreateToggle({
     Name = "Enable Hitbox",
     CurrentValue = false, -- Default is off
