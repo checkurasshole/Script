@@ -1,0 +1,40 @@
+-- Function to fire touch interest on a specific part
+local function touchPart(part)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    -- Simulate a touch on the specific part
+    firetouchinterest(humanoidRootPart, part, 0) -- Start touch
+    firetouchinterest(humanoidRootPart, part, 1) -- End touch
+end
+
+-- Function to find and collect specific items based on multiple criteria
+local function collectSpecificItem()
+    for _, item in pairs(workspace:GetDescendants()) do
+        -- Only target parts named "Coin" or "PickupItem" with a size of (4, 4, 4) and color red
+        if item:IsA("BasePart") then
+            if (item.Name == "Brain" or item.Name == "Block" or item.Name == "WIn") then
+                if item.Size == Vector3.new(17.576156616210938, 1, 14.186959266662598) and item.BrickColor == BrickColor.new("Lime green") then
+                    touchPart(item)
+                end
+            end
+        end
+    end
+end
+
+-- Run the collection function
+collectSpecificItem()
+
+-- Function to find and collect specific items2
+local function collectSpecificItem2()
+    for _, item in pairs(workspace:GetDescendants()) do
+        -- Only target parts named "Coin" or "PickupItem"
+        if item:IsA("BasePart") and (item.Name == "Brain" or item.Name == "WIn") then
+            touchPart(item)
+        end
+    end
+end
+
+-- Run the collection function2
+collectSpecificItem2()
