@@ -6,3 +6,18 @@ local Window = Rayfield:CreateWindow({
    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line", -- Using a different cross symbol that might work
    Theme = "Ocean"
 })
+
+-- Credits Tab
+local CreditsTab = Window:CreateTab("✨ Credits", "info")
+local CreatorSection = CreditsTab:CreateSection("👑 Creator")
+CreditsTab:CreateLabel("🛠️ COMBO_WICK - Discord: world_star_hacker")
+local CoDevSection = CreditsTab:CreateSection("🤝 Co-Developer")
+CreditsTab:CreateLabel("💡 None - Discord: None")
+local DiscordSection = CreditsTab:CreateSection("🌐 Discord Server")
+CreditsTab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
+CreditsTab:CreateButton({
+   Name = "📋 Copy Discord Link",
+   Callback = function()
+      setclipboard("discord.com/invite/mwTHaCKzhw")
+   end,
+})
