@@ -1,4 +1,4 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+dsclocal Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "ComboChronicle Vault | ⚔️ Universal Scripts",
    Icon = 12345678901, -- Replace with a diamond icon ID
