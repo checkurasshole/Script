@@ -1,0 +1,8 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+   Name = "ComboChronicle Vault | ⚔️ Slash Mobs Simulator",
+   Icon = 12345678901, -- Replace with a diamond icon ID
+   LoadingTitle = "Loading ComboChronicle Vault ❖", -- Regular symbol that should display
+   LoadingSubtitle = "By COMBO_WICK | Bang.E.Line", -- Using a different cross symbol that might work
+   Theme = "Ocean"
+})
