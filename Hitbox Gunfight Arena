@@ -123,17 +123,6 @@ game.Players.PlayerAdded:Connect(function(player)
     monitorPlayerForESP(player)
 end)
 
--- Continuously check for any missed players or characters
-task.spawn(function()
-    while task.wait(1) do
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player.Character then
-                addESP(player.Character, isTeammate(player))
-            end
-        end
-    end
-end)
-
 -- Create the main tab for your script
 local mainTab = Window:CreateTab("Main", 4483362458)
 
