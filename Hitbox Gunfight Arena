@@ -137,6 +137,8 @@ end)
 -- Create the main tab for your script
 local mainTab = Window:CreateTab("Main", 4483362458)
 
+local Label = mainTab:CreateLabel("NOTE: For some reason, it doesnt work good as how it should be working on some executors except solara. Trying to fix tht", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
+
 -- Toggle for enabling/disabling ESP (Original)
 mainTab:CreateToggle({
     Name = "Enable ESP",
