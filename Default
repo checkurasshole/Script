@@ -16,8 +16,9 @@ CreditsTab:CreateLabel("💡 None - Discord: None")
 local DiscordSection = CreditsTab:CreateSection("🌐 Discord Server")
 CreditsTab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
 CreditsTab:CreateButton({
-   Name = "📋 Copy Discord Link",
+   Name = "📋 Copy Discord Link/Youtube",
    Callback = function()
-      setclipboard("discord.com/invite/mwTHaCKzhw")
+      local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+      setclipboard(links)
    end,
 })
