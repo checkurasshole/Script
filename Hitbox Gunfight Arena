@@ -1,15 +1,23 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "ComboChronicle Vault | Gunfight Arena",
-    Icon = 12345678901, -- Replace with a diamond icon ID
+    Icon = 12345678901, --  diamond icon ID? 
     LoadingTitle = "Loading ComboChronicle Vault ❖",
     LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
     Theme = "Ocean"
 })
 
+-- Toggles
+local aimbotEnabled = false
+local autoLockEnabled = false
+local trickshotMode = false
+
 -- Variables
 local espEnabled = false
 local hitboxEnabled = false
+local fovRadius = 100
+local aimPart = "Head" -- Options: "Head", "Torso", "Random"
+local smoothingFactor = 5 -- Higher = slower and smoother aiming
 
 -- Function to apply hitbox modifications (Original)
 local function adjustHitbox(character)
@@ -134,7 +142,61 @@ task.spawn(function()
     end
 end)
 
--- Create the main tab for your script
+-- Helper Functions
+local function getClosestEnemyTarget()
+    local localPlayer = game.Players.LocalPlayer
+    local mouse = localPlayer:GetMouse()
+    local closestDistance = fovRadius
+    local closestPlayer = nil
+
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild(aimPart) then
+            local targetPart = player.Character[aimPart]
+
+            -- Make sure it's an enemy, not a teammate (using Team-based checks)
+            if player.Team ~= localPlayer.Team then
+                local screenPosition, onScreen = workspace.CurrentCamera:WorldToScreenPoint(targetPart.Position)
+
+                if onScreen then
+                    local distance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestPlayer = targetPart
+                    end
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+local function aimAtTarget(target)
+    if target then
+        local camera = workspace.CurrentCamera
+        local targetPosition = target.Position
+        local currentPosition = camera.CFrame.Position
+
+        local direction = (targetPosition - currentPosition).Unit
+        local newCFrame = CFrame.new(currentPosition, currentPosition + direction)
+
+        camera.CFrame = camera.CFrame:Lerp(newCFrame, 1 / smoothingFactor)
+    end
+end
+
+-- Main Aimbot Functionality
+local function aimbotLoop()
+    while task.wait() do
+        if aimbotEnabled then
+            local target = getClosestEnemyTarget()
+            aimAtTarget(target)
+        end
+    end
+end
+
+task.spawn(aimbotLoop)
+
+-- Main Tab1
 local mainTab = Window:CreateTab("Main", 4483362458)
 
 local Label = mainTab:CreateLabel("NOTE: For some reason, it doesnt work good as how it should be working on some executors except solara. Trying to fix tht", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
@@ -197,8 +259,65 @@ CreditsTab:CreateLabel("💡 None - Discord: None")
 local DiscordSection = CreditsTab:CreateSection("🌐 Discord Server")
 CreditsTab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
 CreditsTab:CreateButton({
-   Name = "📋 Copy Discord Link",
+   Name = "📋 Copy Discord Link/Youtube",
    Callback = function()
-      setclipboard("discord.com/invite/mwTHaCKzhw")
+      local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+      setclipboard(links)
    end,
+})
+
+-- GUI Elements
+local MainTab = Window:CreateTab("Aimbot+", 12345678)
+
+MainTab:CreateToggle({
+    Name = "Enable Aimbot",
+    CurrentValue = false,
+    Callback = function(value)
+        aimbotEnabled = value
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Enable Auto-Lock",
+    CurrentValue = false,
+    Callback = function(value)
+        autoLockEnabled = value
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Enable Trickshot Mode",
+    CurrentValue = false,
+    Callback = function(value)
+        trickshotMode = value
+    end,
+})
+
+MainTab:CreateSlider({
+    Name = "FOV Radius",
+    Min = 50,
+    Max = 300,
+    CurrentValue = fovRadius,
+    Callback = function(value)
+        fovRadius = value
+    end,
+})
+
+MainTab:CreateDropdown({
+    Name = "Target Bone",
+    Options = {"Head", "Torso", "Random"},
+    CurrentOption = aimPart,
+    Callback = function(option)
+        aimPart = option
+    end,
+})
+
+MainTab:CreateSlider({
+    Name = "Smoothing Factor",
+    Min = 1,
+    Max = 10,
+    CurrentValue = smoothingFactor,
+    Callback = function(value)
+        smoothingFactor = value
+    end,
 })
