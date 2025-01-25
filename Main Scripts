@@ -1,18 +1,13 @@
-local function _0xobf(_1, _2) return string.char((_1:byte() - _2) % 256) end
-local function _decode(_obf, _key)
-    local _result, _len = "", #_key
-    for _i = 1, #_obf do
-        _result = _result .. _0xobf(_obf:sub(_i, _i), _key:byte((_i - 1) % _len + 1))
-    end
-    return _result
-end
-local _enc = "195 206 187 202 214 195 220 195 199 212 219 197 197 203 211 220 204 219 198 195 196 208 216 201 209 194 213 221 219 208 209 203 219 220 220 196 217 209 204"
-local _key = "ComplexKey"
-local _decoded = _decode((_enc:gsub("%d+", function(_n) return string.char(tonumber(_n)) end)), _key)
+local gameId = game.PlaceId
 
-local _load, _game = loadstring, game
-local _ids = { [18209375211] = _decode("214 208 196 211 213 206 208 207", _key), [14518422161] = _decode("213 219 201 217 211", _key), [155615604] = _decode("217 200 213 219", _key) }
-local _default = _decode("220 214 208 203 207 201 207 214 206 208", _key)
+local scriptURLs = {
+    [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Game 1
+    [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Game 2
+    [155615604] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",  -- Game 3
+}
 
-local _url = _ids[_game.PlaceId] or _default
-_load(_game:HttpGet(_url))()
+local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
+
+local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
+
+loadstring(game:HttpGet(scriptToLoad))()
