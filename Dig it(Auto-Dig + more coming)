@@ -1,0 +1,94 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Digging Automation",
+    Icon = 12345678901, -- Replace with an appropriate icon ID
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Script functionality
+local game = game
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+local character = localPlayer.Character
+local runService = game:GetService("RunService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Automation logic for digging piles
+runService.RenderStepped:Connect(function()
+    character = localPlayer.Character
+    if character:FindFirstChildWhichIsA("Tool") and string.find(string.lower(character:FindFirstChildWhichIsA("Tool").Name), "shovel") then
+        for _, v in workspace.TreasurePiles:GetChildren() do
+            if v:GetAttribute("Owner") == localPlayer.UserId then
+                replicatedStorage.Source.Network.RemoteEvents.Digging:FireServer({
+                    ["Command"] = "IsInArea",
+                    ["TargetPileIndex"] = v:GetAttribute("PileIndex"),
+                    ["State"] = true
+                })
+                replicatedStorage.Source.Network.RemoteFunctions.Digging:InvokeServer({
+                    ["Command"] = "DigPile",
+                    ["TargetPileIndex"] = v:GetAttribute("PileIndex")
+                })
+            end
+        end
+        replicatedStorage.Source.Network.RemoteFunctions.Digging:InvokeServer({
+            ["Command"] = "CreatePile"
+        })
+    end
+end)
+
+-- Create a tab for automation toggle
+local mainTab = Window:CreateTab("Main", 4483362458) -- Replace with appropriate icon ID
+
+local Label = mainTab:CreateLabel("NOTE: This was open-sourced, so I just used it mine. Updates coming soon", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
+
+
+mainTab:CreateToggle({
+    Name = "Enable Digging Automation",
+    CurrentValue = true, -- Default is on
+    Flag = "diggingAutomationToggle",
+    Callback = function(value)
+        if value then
+            runService:BindToRenderStep("DiggingAutomation", Enum.RenderPriority.Character.Value, function()
+                character = localPlayer.Character
+                if character:FindFirstChildWhichIsA("Tool") and string.find(string.lower(character:FindFirstChildWhichIsA("Tool").Name), "shovel") then
+                    for _, v in workspace.TreasurePiles:GetChildren() do
+                        if v:GetAttribute("Owner") == localPlayer.UserId then
+                            replicatedStorage.Source.Network.RemoteEvents.Digging:FireServer({
+                                ["Command"] = "IsInArea",
+                                ["TargetPileIndex"] = v:GetAttribute("PileIndex"),
+                                ["State"] = true
+                            })
+                            replicatedStorage.Source.Network.RemoteFunctions.Digging:InvokeServer({
+                                ["Command"] = "DigPile",
+                                ["TargetPileIndex"] = v:GetAttribute("PileIndex")
+                            })
+                        end
+                    end
+                    replicatedStorage.Source.Network.RemoteFunctions.Digging:InvokeServer({
+                        ["Command"] = "CreatePile"
+                    })
+                end
+            end)
+        else
+            runService:UnbindFromRenderStep("DiggingAutomation")
+        end
+    end
+})
+
+-- Credits Tab
+local CreditsTab = Window:CreateTab("✨ Credits", "info")
+local CreatorSection = CreditsTab:CreateSection("👑 Creator")
+CreditsTab:CreateLabel("🛠️ COMBO_WICK - Discord: world_star_hacker")
+local CoDevSection = CreditsTab:CreateSection("🤝 Co-Developer")
+CreditsTab:CreateLabel("💡 None - Discord: None")
+local DiscordSection = CreditsTab:CreateSection("🌐 Discord Server")
+CreditsTab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
+CreditsTab:CreateButton({
+   Name = "📋 Copy Discord Link/Youtube",
+   Callback = function()
+      local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+      setclipboard(links)
+   end,
+})
