@@ -40,3 +40,12 @@ local KeyInput = Tab:CreateInput({
         end
     end
 })
+
+local Tab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
+local Tab:CreateButton({
+   Name = "📋 Copy Discord Link/Youtube",
+   Callback = function()
+      local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+      setclipboard(links)
+   end,
+})
