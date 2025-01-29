@@ -1,6 +1,6 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local keyRequired = "YourSecretKeyHere" -- Change this to your actual keyyy
+local keyRequired = "YourSecretKeyHere" -- Change this to your actual keyyyy
 local scriptURLs = {
     ["StateOfAnarchy"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",
     ["TeleportBehindPlayer"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"
