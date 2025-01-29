@@ -1,12 +1,13 @@
+local keyRequired = "YourSecretKeyHere" -- Change this to your actual key
+
 local scriptURLs = {
     ["StateOfAnarchy"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",
     ["TeleportBehindPlayer"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"
 }
 
-
 local function loadScripts()
     local scriptsToLoad = {
-        "StateOfAnarchy",  -- You can adjust this to any condition you need
+        "StateOfAnarchy",
         "TeleportBehindPlayer"
     }
 
@@ -20,5 +21,25 @@ local function loadScripts()
     end
 end
 
--- Run the loader
-loadScripts()
+-- Key System
+local function requestKey()
+    local userInput = tostring(game:GetService("Players").LocalPlayer:RequestInput({
+        Title = "🔑 Enter Key",
+        Text = "Get the key from our Discord!\n\n(It's copied to your clipboard)",
+        Type = "TextBox",
+        Callback = function(input)
+            return input
+        end
+    }))
+
+    return userInput
+end
+
+setclipboard(discord.gg/fTKCe8AP) -- Automatically copy key to clipboard
+
+local userKey = requestKey()
+if userKey == keyRequired then
+    loadScripts() -- Load scripts if the key is correct
+else
+    game.Players.LocalPlayer:Kick("❌ Incorrect Key! Get the correct one from our Discord.")
+end
