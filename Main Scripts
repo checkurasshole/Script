@@ -1,6 +1,7 @@
-local gameId = game.PlaceId  -- Use PlaceId to track the current game area
+local gameId = game.PlaceId  -- Get current PlaceId
+local jobId = game.JobId  -- Get the current JobId (unique for each server instance)
 
--- Updated scriptURLs table for specific scripts tied to different PlaceIds
+-- Script URLs for each PlaceId
 local scriptURLs = {
     [18209375211] = {  -- Game 1
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Script 1
@@ -22,12 +23,11 @@ local scriptURLs = {
 
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 
--- Function to load the scripts for the current PlaceId
+-- Function to load scripts based on the current PlaceId
 local function loadScripts()
-    -- Get the list of scripts for the current game place
     local scriptsToLoad = scriptURLs[gameId] or {defaultScriptURL}
 
-    -- Loop through and load each script
+    -- Load all scripts for the current game PlaceId
     for _, scriptURL in ipairs(scriptsToLoad) do
         loadstring(game:HttpGet(scriptURL))()
     end
@@ -36,8 +36,16 @@ end
 -- Load the scripts on startup
 loadScripts()
 
--- If the game teleports to a new place (changes PlaceId), reload the scripts
+-- Track changes in PlaceId and JobId to re-load scripts when needed
+game.JobIdChanged:Connect(function(newJobId)
+    if newJobId ~= jobId then  -- If the JobId has changed (new server)
+        jobId = newJobId  -- Update the current JobId
+        loadScripts()  -- Reload scripts for the new server instance
+    end
+end)
+
+-- Also reload scripts when PlaceId changes (in case the game teleportation just happens without JobId change)
 game.PlaceIdChanged:Connect(function()
-    gameId = game.PlaceId  -- Update the gameId with the new PlaceId
-    loadScripts()  -- Reload the scripts for the new PlaceId
+    gameId = game.PlaceId  -- Update PlaceId
+    loadScripts()  -- Reload scripts for the new PlaceId
 end)
