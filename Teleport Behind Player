@@ -1,86 +1,12 @@
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+--[[
+ .____                  ________ ___.    _____                           __                
+ |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
+ |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
+ |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
+ |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
+         \/          \/         \/    \/                \/     \/     \/                   
+          \_Welcome to LuaObfuscator.com   (Alpha 0.10.8) ~  Much Love, Ferib 
 
--- GUI setup
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-local MainFrame = Instance.new("Frame", ScreenGui)
-local UIListLayout = Instance.new("UIListLayout", MainFrame)
-local ScrollFrame = Instance.new("ScrollingFrame", MainFrame)
+]]--
 
--- Styling the GUI
-ScreenGui.Name = "PlayerTeleportGui"
-MainFrame.Size = UDim2.new(0, 250, 0, 300)  -- Adjusted size as per your request
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -150)
-MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
-MainFrame.Active = true
-MainFrame.Draggable = true
-
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 5)
-
--- Scrollable frame for the player list
-ScrollFrame.Size = UDim2.new(1, 0, 0, 250)  -- Scrollable area of the list
-ScrollFrame.Position = UDim2.new(0, 0, 0, 30)  -- Place the list under the title
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-ScrollFrame.ScrollBarThickness = 10
-ScrollFrame.BackgroundTransparency = 1
-ScrollFrame.Parent = MainFrame
-
--- Add a title to the GUI
-local Title = Instance.new("TextLabel", MainFrame)
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Title.BorderSizePixel = 0
-Title.Text = "Player Teleport"
-Title.TextColor3 = Color3.new(1, 1, 1)
-Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 18
-
--- Function to teleport behind a player
-local function teleportBehindPlayer(player)
-    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local targetPos = player.Character.HumanoidRootPart.Position
-        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPos - player.Character.HumanoidRootPart.CFrame.LookVector * 3)
-    end
-end
-
--- Create buttons for each player in the list
-local function refreshPlayerList()
-    -- Clear existing buttons
-    for _, child in pairs(ScrollFrame:GetChildren()) do
-        if child:IsA("TextButton") then
-            child:Destroy()
-        end
-    end
-
-    -- Add a button for each player in the game
-    local totalHeight = 0
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            local PlayerButton = Instance.new("TextButton", ScrollFrame)
-            PlayerButton.Size = UDim2.new(1, 0, 0, 30)
-            PlayerButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            PlayerButton.Text = player.Name
-            PlayerButton.TextColor3 = Color3.new(1, 1, 1)
-            PlayerButton.Font = Enum.Font.SourceSans
-            PlayerButton.TextSize = 16
-            PlayerButton.Position = UDim2.new(0, 0, 0, totalHeight)
-
-            PlayerButton.MouseButton1Click:Connect(function()
-                teleportBehindPlayer(player)
-            end)
-
-            totalHeight = totalHeight + 35  -- Adjust button spacing
-        end
-    end
-
-    -- Update the canvas size to match the total height of buttons
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
-end
-
--- Refresh player list initially and when players join/leave
-refreshPlayerList()
-Players.PlayerAdded:Connect(refreshPlayerList)
-Players.PlayerRemoving:Connect(refreshPlayerList)
+local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;local function v7(v42,v43) local v44={};for v48=1, #v42 do v6(v44,v0(v4(v1(v2(v42,v48,v48 + 1 )),v1(v2(v43,1 + (v48% #v43) ,1 + (v48% #v43) + 1 )))%256 ));end return v5(v44);end local v8=game:GetService(v7("\225\207\218\60\227\169\212","\126\177\163\187\69\134\219\167"));local v9=v8.LocalPlayer;local v10=Instance.new(v7("\16\206\56\192\249\45\234\63\204","\156\67\173\74\165"),game.CoreGui);local v11=Instance.new(v7("\18\165\72\27\185","\38\84\215\41\118\220\70"),v10);local v12=Instance.new(v7("\101\63\14\27\237\68\58\35\11\241\69\2","\158\48\118\66\114"),v11);local v13=Instance.new(v7("\152\39\2\57\127\169\242\165\35\54\36\114\168\254","\155\203\68\112\86\19\197"),v11);v10.Name=v7("\118\209\55\229\69\106\209\253\74\216\38\243\82\108\194\237\79","\152\38\189\86\156\32\24\133");v11.Size=UDim2.new(0 + 0 ,1041 -(368 + 423) ,0 -0 ,300);v11.Position=UDim2.new(18.5 -(10 + 8) , -125,0.5 -0 , -150);v11.BackgroundColor3=Color3.fromRGB(482 -(416 + 26) ,40,40);v11.BorderSizePixel=0;v11.ClipsDescendants=true;v11.Active=true;v11.Draggable=true;v12.SortOrder=Enum.SortOrder.LayoutOrder;v12.Padding=UDim.new(0,5);v13.Size=UDim2.new(3 -2 ,0 + 0 ,0,442 -192 );v13.Position=UDim2.new(438 -(145 + 293) ,430 -(44 + 386) ,1486 -(998 + 488) ,30);v13.CanvasSize=UDim2.new(0 + 0 ,0 + 0 ,772 -(201 + 571) ,1138 -(116 + 1022) );v13.ScrollBarThickness=41 -31 ;v13.BackgroundTransparency=1 + 0 ;v13.Parent=v11;local v31=Instance.new(v7("\200\82\191\82\208\86\165\67\240","\38\156\55\199"),v11);v31.Size=UDim2.new(1,0 -0 ,0,30);v31.BackgroundColor3=Color3.fromRGB(106 -76 ,889 -(814 + 45) ,73 -43 );v31.BorderSizePixel=0 + 0 ;v31.Text=v7("\152\113\125\49\22\102\186\119\173\113\121\56\28\102\238","\35\200\29\28\72\115\20\154");v31.TextColor3=Color3.new(1 + 0 ,886 -(261 + 624) ,1 -0 );v31.Font=Enum.Font.SourceSansBold;v31.TextSize=1098 -(1020 + 60) ;local function v40(v45) if (v45 and v45.Character and v45.Character:FindFirstChild(v7("\49\170\220\222\131\35\61\29\141\222\208\153\28\53\11\171","\84\121\223\177\191\237\76"))) then local v49=1423 -(630 + 793) ;local v50;while true do if (v49==(0 -0)) then v50=v45.Character.HumanoidRootPart.Position;v9.Character.HumanoidRootPart.CFrame=CFrame.new(v50-(v45.Character.HumanoidRootPart.CFrame.LookVector * (14 -11)) );break;end end end end local function v41() local v46=0;local v47;while true do if (v46==(1 + 0)) then for v52,v53 in pairs(v8:GetPlayers()) do if (v53~=v9) then local v58=0 -0 ;local v59;while true do if (v58==(1749 -(760 + 987))) then v59.TextColor3=Color3.new(1914 -(1789 + 124) ,767 -(745 + 21) ,1 + 0 );v59.Font=Enum.Font.SourceSans;v58=7 -4 ;end if (v58==(0 -0)) then v59=Instance.new(v7("\125\71\24\49\107\87\20\49\70\76","\69\41\34\96"),v13);v59.Size=UDim2.new(1 + 0 ,0,0,30);v58=1 + 0 ;end if ((1059 -(87 + 968))==v58) then v59.MouseButton1Click:Connect(function() v40(v53);end);v47=v47 + (154 -119) ;break;end if (v58==(3 + 0)) then v59.TextSize=36 -20 ;v59.Position=UDim2.new(1413 -(447 + 966) ,0 -0 ,1817 -(1703 + 114) ,v47);v58=705 -(376 + 325) ;end if (v58==(1 -0)) then v59.BackgroundColor3=Color3.fromRGB(50,153 -103 ,15 + 35 );v59.Text=v53.Name;v58=4 -2 ;end end end end v13.CanvasSize=UDim2.new(14 -(9 + 5) ,376 -(85 + 291) ,1265 -(243 + 1022) ,v47);break;end if (v46==(0 -0)) then for v54,v55 in pairs(v13:GetChildren()) do if v55:IsA(v7("\143\83\209\180\24\69\36\213\180\88","\161\219\54\169\192\90\48\80")) then v55:Destroy();end end v47=0 + 0 ;v46=1181 -(1123 + 57) ;end end end v41();v8.PlayerAdded:Connect(v41);v8.PlayerRemoving:Connect(v41);
