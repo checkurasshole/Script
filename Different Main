@@ -1,0 +1,29 @@
+-- Define your script URLs for each game
+local scriptURLs = {
+    ["StateOfAnarchy"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",
+    ["TeleportBehindPlayer"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"
+}
+
+-- You can define a condition to check which script to load
+-- For example, based on game ID or your own conditions
+
+local function loadScripts()
+    -- Define the scripts you want to load
+    local scriptsToLoad = {
+        "StateOfAnarchy",  -- You can adjust this to any condition you need
+        "TeleportBehindPlayer"
+    }
+
+    -- Load the selected scripts
+    for _, scriptName in pairs(scriptsToLoad) do
+        local scriptURL = scriptURLs[scriptName]
+        if scriptURL then
+            loadstring(game:HttpGet(scriptURL))()
+        else
+            warn("Script URL for " .. scriptName .. " not found!")
+        end
+    end
+end
+
+-- Run the loader
+loadScripts()
