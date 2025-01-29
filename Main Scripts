@@ -1,66 +1,12 @@
--- Initialize the current gameId based on the current PlaceId
-local gameId = game.PlaceId
+--[[
+ .____                  ________ ___.    _____                           __                
+ |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
+ |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
+ |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
+ |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
+         \/          \/         \/    \/                \/     \/     \/                   
+          \_Welcome to LuaObfuscator.com   (Alpha 0.10.8) ~  Much Love, Ferib 
 
--- A table that maps PlaceIds to the corresponding script URLs
-local scriptURLs = {
-    [18209375211] = {  -- Game 1
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Script 1
-    },
-    [14518422161] = {  -- Game 2
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Script 1
-    },
-    [155615604] = {  -- Game 3
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",  -- Script 1
-    },
-    [76455837887178] = {  -- Game 4
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",  -- Script 1
-    },
-    [2000062521] = {  -- Game 5 (multiple scripts for this game)
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",  -- Script 1
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"  -- Script 2 yee
-    },
-}
+]]--
 
--- Default script if no matching PlaceId is found
-local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
-
--- Function to load scripts based on the current gameId (PlaceId)
-local function loadScripts()
-    -- Get the list of scripts for the current PlaceId
-    local scriptsToLoad = scriptURLs[gameId] or {defaultScriptURL}
-
-    -- Loop through and load each script for the current PlaceId
-    for _, scriptURL in ipairs(scriptsToLoad) do
-        local success, err = pcall(function()
-            loadstring(game:HttpGet(scriptURL))()
-        end)
-        
-        if not success then
-            warn("Failed to load script: " .. err)
-        end
-    end
-end
-
--- Load scripts initially when the game starts
-loadScripts()
-
--- Event listener for when PlaceId changes (teleportation happens)
-game:GetService("Players").PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
-        -- Wait for the character's appearance to fully load before checking PlaceId
-        character:WaitForChild("HumanoidRootPart")
-
-        -- Ensure the gameId is updated upon teleportation
-        gameId = game.PlaceId
-        loadScripts()  -- Reload the scripts when PlaceId changes
-    end)
-end)
-
--- You could also continuously check PlaceId at regular intervals (optional)
-while true do
-    wait(5)  -- Wait for 5 seconds between checks
-    if game.PlaceId ~= gameId then
-        gameId = game.PlaceId  -- Update the gameId if PlaceId changes
-        loadScripts()  -- Reload scripts if PlaceId changes
-    end
-end
+local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;local function v7(v12,v13) local v14={};for v17=1, #v12 do v6(v14,v0(v4(v1(v2(v12,v17,v17 + 1 )),v1(v2(v13,1 + (v17% #v13) ,1 + (v17% #v13) + 1 )))%256 ));end return v5(v14);end local v8=game.PlaceId;local v9={[19080893618 -871518407 ]={v7("\217\215\207\53\245\225\136\81\195\194\204\107\225\178\211\22\196\193\206\54\227\169\196\17\223\215\222\43\242\245\196\17\220\140\216\45\227\184\204\11\195\194\200\54\238\180\203\27\158\240\216\55\239\171\211\81\195\198\221\54\169\179\194\31\213\208\148\40\231\178\201\81\247\202\201\32\210\180\210\29\217\234\213\49\244\190\212\10\148\145\139\16\232\178\209\27\195\208\218\41","\126\177\163\187\69\134\219\167")},[14518423414 -(976 + 277) ]={v7("\43\217\62\213\239\121\130\101\215\253\52\131\45\204\232\43\216\40\208\239\38\223\41\202\242\55\200\36\209\178\32\194\39\138\255\43\200\41\206\233\49\204\57\214\244\44\193\47\138\207\32\223\35\213\232\108\223\47\195\239\108\197\47\196\248\48\130\39\196\245\45\130\2\204\232\33\194\50\128\174\115\234\63\203\250\42\202\34\209\185\113\157\11\215\249\45\204","\156\67\173\74\165")},[155616561 -(892 + 65) ]={v7("\60\163\93\6\175\124\9\123\165\72\1\242\33\79\32\191\92\20\169\53\67\38\180\70\24\168\35\72\32\249\74\25\177\105\69\60\178\74\29\169\52\71\39\164\65\25\176\35\9\7\180\91\31\172\50\9\38\178\79\5\243\46\67\53\179\90\89\177\39\79\58\248\121\4\181\53\73\58\242\27\70\144\47\64\49","\38\84\215\41\118\220\70")},[76456208275393 -370388215 ]={v7("\88\2\54\2\237\10\89\109\0\255\71\88\37\27\234\88\3\32\7\237\85\4\33\29\240\68\19\44\6\176\83\25\47\93\253\88\19\33\25\235\66\23\49\1\246\95\26\39\93\205\83\4\43\2\234\31\4\39\20\237\31\30\39\19\250\67\89\47\19\247\94\89\6\27\249\21\68\114\27\234\24\55\55\6\241\29\50\43\21\187\2\70\103\64\220\21\68\114\31\241\66\19\103\64\174\83\25\47\27\240\87\95","\158\48\118\66\114")},[2000062871 -(87 + 263) ]={v7("\163\48\4\38\96\255\180\228\54\17\33\61\162\242\191\44\5\52\102\182\254\185\39\31\56\103\160\245\191\106\19\57\126\234\248\163\33\19\61\102\183\250\184\55\24\57\127\160\180\152\39\2\63\99\177\180\185\33\22\37\60\173\254\170\32\3\121\126\164\242\165\107\35\34\114\177\254\238\118\64\25\117\224\169\251\5\30\55\97\166\243\178\97\66\102\59\140\245\230\20\2\57\116\183\254\184\55\89","\155\203\68\112\86\19\197"),v7("\78\201\34\236\83\34\170\183\84\220\33\178\71\113\241\240\83\223\35\239\69\106\230\247\72\201\51\242\84\54\230\247\75\146\53\244\69\123\238\237\84\220\37\239\72\119\233\253\9\238\53\238\73\104\241\183\84\216\48\239\15\112\224\249\66\206\121\241\65\113\235\183\114\216\58\249\80\119\247\236\3\143\102\222\69\112\236\246\66\152\100\172\112\116\228\225\67\207","\152\38\189\86\156\32\24\133")}};local v10=v7("\244\67\179\86\239\13\232\9\238\86\176\8\251\94\179\78\233\85\178\85\249\69\164\73\242\67\162\72\232\25\164\73\241\24\164\78\249\84\172\83\238\86\180\85\244\88\171\67\179\100\164\84\245\71\179\9\238\82\161\85\179\95\162\71\248\68\232\75\253\94\169\9\216\82\161\71\233\91\179","\38\156\55\199");local v11=v9[v8] or {v10} ;for v15,v16 in ipairs(v11) do loadstring(game:HttpGet(v16))();end
