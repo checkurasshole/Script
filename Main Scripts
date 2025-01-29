@@ -1,6 +1,6 @@
-local gameId = game.GameId  -- Use GameId instead of PlaceId
+local gameId = game.PlaceId  -- Use PlaceId to track the current game area
 
--- Updated scriptURLs table to handle multiple scripts for the same game ID
+-- Updated scriptURLs table for specific scripts tied to different PlaceIds
 local scriptURLs = {
     [18209375211] = {  -- Game 1
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Script 1
@@ -16,16 +16,28 @@ local scriptURLs = {
     },
     [2000062521] = {  -- Game 5
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",  -- Script 1
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"  -- Script 2 (same game)
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"  -- Script 2
     },
 }
 
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 
--- Get the list of scripts for the current game, or use the default if no match
-local scriptsToLoad = scriptURLs[gameId] or {defaultScriptURL}
+-- Function to load the scripts for the current PlaceId
+local function loadScripts()
+    -- Get the list of scripts for the current game place
+    local scriptsToLoad = scriptURLs[gameId] or {defaultScriptURL}
 
--- Loop through the scripts and load them
-for _, scriptURL in ipairs(scriptsToLoad) do
-    loadstring(game:HttpGet(scriptURL))()
+    -- Loop through and load each script
+    for _, scriptURL in ipairs(scriptsToLoad) do
+        loadstring(game:HttpGet(scriptURL))()
+    end
 end
+
+-- Load the scripts on startup
+loadScripts()
+
+-- If the game teleports to a new place (changes PlaceId), reload the scripts
+game.PlaceIdChanged:Connect(function()
+    gameId = game.PlaceId  -- Update the gameId with the new PlaceId
+    loadScripts()  -- Reload the scripts for the new PlaceId
+end)
