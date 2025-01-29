@@ -1,7 +1,7 @@
--- Define the gameId based on the current PlaceId
+-- Initialize the current gameId based on the current PlaceId
 local gameId = game.PlaceId
 
--- A table that maps PlaceIds to their respective script URLs
+-- A table that maps PlaceIds to the corresponding script URLs
 local scriptURLs = {
     [18209375211] = {  -- Game 1
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Script 1
@@ -21,15 +21,15 @@ local scriptURLs = {
     },
 }
 
--- Default script to load if no PlaceId matches
+-- Default script if no matching PlaceId is found
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 
--- Function to load the relevant scripts
+-- Function to load scripts based on the current gameId (PlaceId)
 local function loadScripts()
-    -- Fetch the scripts for the current PlaceId or fallback to default script
+    -- Get the list of scripts for the current PlaceId
     local scriptsToLoad = scriptURLs[gameId] or {defaultScriptURL}
 
-    -- Loop through each script and load it
+    -- Loop through and load each script for the current PlaceId
     for _, scriptURL in ipairs(scriptsToLoad) do
         local success, err = pcall(function()
             loadstring(game:HttpGet(scriptURL))()
@@ -41,31 +41,26 @@ local function loadScripts()
     end
 end
 
--- Load the main script and game-specific scripts initially
-loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Main%20Scripts"))()
-
--- Load scripts based on the current PlaceId
+-- Load scripts initially when the game starts
 loadScripts()
 
--- Event listener for when PlaceId changes (i.e., the player teleports to a new server)
+-- Event listener for when PlaceId changes (teleportation happens)
 game:GetService("Players").PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function(character)
-        -- Wait for the character to fully load
+        -- Wait for the character's appearance to fully load before checking PlaceId
         character:WaitForChild("HumanoidRootPart")
 
-        -- Check if PlaceId has changed and load the correct scripts accordingly
-        if game.PlaceId ~= gameId then
-            gameId = game.PlaceId
-            loadScripts()  -- Reload scripts when PlaceId changes
-        end
+        -- Ensure the gameId is updated upon teleportation
+        gameId = game.PlaceId
+        loadScripts()  -- Reload the scripts when PlaceId changes
     end)
 end)
 
--- Optionally, continuously check for PlaceId changes (can be removed if you prefer event-based only)
+-- You could also continuously check PlaceId at regular intervals (optional)
 while true do
-    wait(5)  -- Check every 5 seconds (or adjust this delay as needed)
+    wait(5)  -- Wait for 5 seconds between checks
     if game.PlaceId ~= gameId then
-        gameId = game.PlaceId
-        loadScripts()  -- Reload scripts if PlaceId has changed
+        gameId = game.PlaceId  -- Update the gameId if PlaceId changes
+        loadScripts()  -- Reload scripts if PlaceId changes
     end
 end
