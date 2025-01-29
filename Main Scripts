@@ -17,7 +17,7 @@ local scriptURLs = {
     },
     [2000062521] = {  -- Game 5 (multiple scripts for this game)
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",  -- Script 1
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"  -- Script 2
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"  -- Script 2 yee
     },
 }
 
