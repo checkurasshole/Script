@@ -1,33 +1,31 @@
 local gameId = game.PlaceId
 
--- Updated scriptURLs table with unique keys for each script
+-- Updated scriptURLs table to handle multiple scripts for the same game ID
 local scriptURLs = {
-    [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Game 1
-    [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Game 2
-    [155615604] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",  -- Game 3
-    [76455837887178] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",  -- Game 4
-    [2000062521] = {  -- Game 5 with two scripts
+    [18209375211] = {  -- Game 1
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Script 1
+    },
+    [14518422161] = {  -- Game 2
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Script 1
+    },
+    [155615604] = {  -- Game 3
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",  -- Script 1
+    },
+    [76455837887178] = {  -- Game 4
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",  -- Script 1
+    },
+    [2000062521] = {  -- Game 5
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",  -- Script 1
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"  -- Script 2
-    }
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"  -- Script 2 (same game)
+    },
 }
 
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 
-local scriptToLoad
+-- Get the list of scripts for the current game, or use the default if no match
+local scriptsToLoad = scriptURLs[gameId] or {defaultScriptURL}
 
-
-if scriptURLs[gameId] then
-    
-    if type(scriptURLs[gameId]) == "table" then
-        scriptToLoad = scriptURLs[gameId][1]  
-    else
-        scriptToLoad = scriptURLs[gameId] 
-    end
-else
-    
-    scriptToLoad = defaultScriptURL
+-- Loop through the scripts and load them
+for _, scriptURL in ipairs(scriptsToLoad) do
+    loadstring(game:HttpGet(scriptURL))()
 end
-
-
-loadstring(game:HttpGet(scriptToLoad))()
