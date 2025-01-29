@@ -1,45 +1,42 @@
-local keyRequired = "YourSecretKeyHere" -- Change this to your actual key
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+local keyRequired = "YourSecretKeyHere" -- Change this to your actual key
 local scriptURLs = {
     ["StateOfAnarchy"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",
     ["TeleportBehindPlayer"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"
 }
 
 local function loadScripts()
-    local scriptsToLoad = {
-        "StateOfAnarchy",
-        "TeleportBehindPlayer"
-    }
-
-    for _, scriptName in pairs(scriptsToLoad) do
-        local scriptURL = scriptURLs[scriptName]
-        if scriptURL then
-            loadstring(game:HttpGet(scriptURL))()
-        else
-            warn("Script URL for " .. scriptName .. " not found!")
-        end
+    for scriptName, scriptURL in pairs(scriptURLs) do
+        loadstring(game:HttpGet(scriptURL))()
     end
 end
 
--- Key System
-local function requestKey()
-    local userInput = tostring(game:GetService("Players").LocalPlayer:RequestInput({
-        Title = "🔑 Enter Key",
-        Text = "Get the key from our Discord!\n\n(It's copied to your clipboard)",
-        Type = "TextBox",
-        Callback = function(input)
-            return input
+-- Rayfield GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | State Of Anarchy",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+local Tab = Window:CreateTab("Key System", 4483362458)
+
+local KeyInput = Tab:CreateInput({
+    Name = "Enter Key",
+    PlaceholderText = "Type the key here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(input)
+        if input == keyRequired then
+            Rayfield:Destroy() -- Close the GUI
+            loadScripts() -- Load scripts if the key is correct
+        else
+            Rayfield:Notify({
+                Title = "❌ Incorrect Key",
+                Content = "Join the Discord to get the correct key!",
+                Duration = 5,
+                Image = 4483362458 -- Optional: Replace with an image ID
+            })
         end
-    }))
-
-    return userInput
-end
-
-setclipboard(discord.gg/fTKCe8AP) -- Automatically copy key to clipboard
-
-local userKey = requestKey()
-if userKey == keyRequired then
-    loadScripts() -- Load scripts if the key is correct
-else
-    game.Players.LocalPlayer:Kick("❌ Incorrect Key! Get the correct one from our Discord.")
-end
+    end
+})
