@@ -1,16 +1,33 @@
 local gameId = game.PlaceId
 
+-- Updated scriptURLs table with unique keys for each script
 local scriptURLs = {
     [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Game 1
     [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Game 2
     [155615604] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",  -- Game 3
     [76455837887178] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",  -- Game 4
-    [2000062521] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",  -- Game 5
-    [2000062521] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player",  -- Game 5/6 yh
+    [2000062521] = {  -- Game 5 with two scripts
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",  -- Script 1
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"  -- Script 2
+    }
 }
 
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 
-local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
+local scriptToLoad
+
+
+if scriptURLs[gameId] then
+    
+    if type(scriptURLs[gameId]) == "table" then
+        scriptToLoad = scriptURLs[gameId][1]  
+    else
+        scriptToLoad = scriptURLs[gameId] 
+    end
+else
+    
+    scriptToLoad = defaultScriptURL
+end
+
 
 loadstring(game:HttpGet(scriptToLoad))()
