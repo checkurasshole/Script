@@ -1,7 +1,7 @@
-local gameId = game.PlaceId  -- Get current PlaceId
-local jobId = game.JobId  -- Get the current JobId (unique for each server instance)
+-- Define the gameId based on the current PlaceId
+local gameId = game.PlaceId
 
--- Script URLs for each PlaceId
+-- A table that maps PlaceIds to their respective script URLs
 local scriptURLs = {
     [18209375211] = {  -- Game 1
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Script 1
@@ -15,37 +15,57 @@ local scriptURLs = {
     [76455837887178] = {  -- Game 4
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",  -- Script 1
     },
-    [2000062521] = {  -- Game 5
+    [2000062521] = {  -- Game 5 (multiple scripts for this game)
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",  -- Script 1
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"  -- Script 2
     },
 }
 
+-- Default script to load if no PlaceId matches
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 
--- Function to load scripts based on the current PlaceId
+-- Function to load the relevant scripts
 local function loadScripts()
+    -- Fetch the scripts for the current PlaceId or fallback to default script
     local scriptsToLoad = scriptURLs[gameId] or {defaultScriptURL}
 
-    -- Load all scripts for the current game PlaceId
+    -- Loop through each script and load it
     for _, scriptURL in ipairs(scriptsToLoad) do
-        loadstring(game:HttpGet(scriptURL))()
+        local success, err = pcall(function()
+            loadstring(game:HttpGet(scriptURL))()
+        end)
+        
+        if not success then
+            warn("Failed to load script: " .. err)
+        end
     end
 end
 
--- Load the scripts on startup
+-- Load the main script and game-specific scripts initially
+loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Main%20Scripts"))()
+
+-- Load scripts based on the current PlaceId
 loadScripts()
 
--- Track changes in PlaceId and JobId to re-load scripts when needed
-game.JobIdChanged:Connect(function(newJobId)
-    if newJobId ~= jobId then  -- If the JobId has changed (new server)
-        jobId = newJobId  -- Update the current JobId
-        loadScripts()  -- Reload scripts for the new server instance
-    end
+-- Event listener for when PlaceId changes (i.e., the player teleports to a new server)
+game:GetService("Players").PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        -- Wait for the character to fully load
+        character:WaitForChild("HumanoidRootPart")
+
+        -- Check if PlaceId has changed and load the correct scripts accordingly
+        if game.PlaceId ~= gameId then
+            gameId = game.PlaceId
+            loadScripts()  -- Reload scripts when PlaceId changes
+        end
+    end)
 end)
 
--- Also reload scripts when PlaceId changes (in case the game teleportation just happens without JobId change)
-game.PlaceIdChanged:Connect(function()
-    gameId = game.PlaceId  -- Update PlaceId
-    loadScripts()  -- Reload scripts for the new PlaceId
-end)
+-- Optionally, continuously check for PlaceId changes (can be removed if you prefer event-based only)
+while true do
+    wait(5)  -- Check every 5 seconds (or adjust this delay as needed)
+    if game.PlaceId ~= gameId then
+        gameId = game.PlaceId
+        loadScripts()  -- Reload scripts if PlaceId has changed
+    end
+end
