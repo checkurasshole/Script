@@ -1,0 +1,86 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- GUI setup
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local MainFrame = Instance.new("Frame", ScreenGui)
+local UIListLayout = Instance.new("UIListLayout", MainFrame)
+local ScrollFrame = Instance.new("ScrollingFrame", MainFrame)
+
+-- Styling the GUI
+ScreenGui.Name = "PlayerTeleportGui"
+MainFrame.Size = UDim2.new(0, 250, 0, 300)  -- Adjusted size as per your request
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -150)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 5)
+
+-- Scrollable frame for the player list
+ScrollFrame.Size = UDim2.new(1, 0, 0, 250)  -- Scrollable area of the list
+ScrollFrame.Position = UDim2.new(0, 0, 0, 30)  -- Place the list under the title
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollFrame.ScrollBarThickness = 10
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.Parent = MainFrame
+
+-- Add a title to the GUI
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Title.BorderSizePixel = 0
+Title.Text = "Player Teleport"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 18
+
+-- Function to teleport behind a player
+local function teleportBehindPlayer(player)
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local targetPos = player.Character.HumanoidRootPart.Position
+        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPos - player.Character.HumanoidRootPart.CFrame.LookVector * 3)
+    end
+end
+
+-- Create buttons for each player in the list
+local function refreshPlayerList()
+    -- Clear existing buttons
+    for _, child in pairs(ScrollFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+
+    -- Add a button for each player in the game
+    local totalHeight = 0
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local PlayerButton = Instance.new("TextButton", ScrollFrame)
+            PlayerButton.Size = UDim2.new(1, 0, 0, 30)
+            PlayerButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            PlayerButton.Text = player.Name
+            PlayerButton.TextColor3 = Color3.new(1, 1, 1)
+            PlayerButton.Font = Enum.Font.SourceSans
+            PlayerButton.TextSize = 16
+            PlayerButton.Position = UDim2.new(0, 0, 0, totalHeight)
+
+            PlayerButton.MouseButton1Click:Connect(function()
+                teleportBehindPlayer(player)
+            end)
+
+            totalHeight = totalHeight + 35  -- Adjust button spacing
+        end
+    end
+
+    -- Update the canvas size to match the total height of buttons
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+end
+
+-- Refresh player list initially and when players join/leave
+refreshPlayerList()
+Players.PlayerAdded:Connect(refreshPlayerList)
+Players.PlayerRemoving:Connect(refreshPlayerList)
