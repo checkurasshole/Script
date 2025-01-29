@@ -43,7 +43,7 @@ KeyTab:CreateInput({
     end
 })
 
--- Button to Copy Discord/YouTube Links
+-- Button to Copy Discord/YouTube Links YHHHHH
 KeyTab:CreateButton({
     Name = "📋 Copy Discord Link/YouTube",
     Callback = function()
