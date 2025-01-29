@@ -11,4 +11,15 @@ local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Scrip
 
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
 
-loadstring(game:HttpGet(scriptToLoad))()
+-- Optional: Log which script will be loaded
+print("Loading script for game ID: " .. tostring(gameId))
+print("Script URL: " .. scriptToLoad)
+
+-- Load the script
+local success, err = pcall(function()
+    loadstring(game:HttpGet(scriptToLoad))()
+end)
+
+if not success then
+    warn("Error loading script: " .. err)
+end
