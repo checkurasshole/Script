@@ -1,5 +1,6 @@
-local gameId = game.PlaceId
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+local keyRequired = "YourSecretKeyHere" -- Change this to your actual key
 local scriptURLs = {
     [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Game 1
     [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Game 2
@@ -8,18 +9,58 @@ local scriptURLs = {
 }
 
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
-
+local gameId = game.PlaceId
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
 
--- Optional: Log which script will be loaded
-print("Loading script for game ID: " .. tostring(gameId))
-print("Script URL: " .. scriptToLoad)
+-- GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Game Loader",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
 
--- Load the script
-local success, err = pcall(function()
-    loadstring(game:HttpGet(scriptToLoad))()
-end)
+-- Key and Credits Tab
+local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
 
-if not success then
-    warn("Error loading script: " .. err)
-end
+KeyTab:CreateInput({
+    Name = "Enter Key",
+    PlaceholderText = "Type the key here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(input)
+        if input == keyRequired then
+            Rayfield:Destroy() -- Close the GUI
+            print("Loading script for game ID: " .. tostring(gameId))
+            print("Script URL: " .. scriptToLoad)
+            
+            local success, err = pcall(function()
+                loadstring(game:HttpGet(scriptToLoad))()
+            end)
+            
+            if not success then
+                warn("Error loading script: " .. err)
+            end
+        else
+            Rayfield:Notify({
+                Title = "❌ Incorrect Key",
+                Content = "Join the Discord to get the correct key!",
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+KeyTab:CreateButton({
+    Name = "📋 Copy Discord Link/YouTube",
+    Callback = function()
+        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+        setclipboard(links)
+        Rayfield:Notify({
+            Title = "✅ Links Copied",
+            Content = "Discord and YouTube links have been copied to your clipboard!",
+            Duration = 5,
+            Image = 4483362458
+        })
+    end,
+})
