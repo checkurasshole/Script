@@ -1,0 +1,291 @@
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+-- Constants
+local DISPLAY_DISTANCE = 1000 -- Maximum distance to show ESP
+local UPDATE_INTERVAL = 0.1 -- How often to update ESP info (seconds)
+local LOCAL_PLAYER = Players.LocalPlayer
+local TEAM_COLORS = {
+    Enemy = Color3.fromRGB(255, 0, 0),    -- Red
+    Friendly = Color3.fromRGB(0, 255, 0)  -- Green
+}
+
+-- Configuration
+local Config = {
+    Enabled = true,
+    ShowName = true,
+    ShowHealth = true,
+    ShowDistance = true,
+    ShowTeam = true,
+    ShowBoxes = true,
+    ShowTracers = true,
+    RainbowMode = false,
+    MaxDistance = DISPLAY_DISTANCE,
+    TextSize = 14,
+    TextFont = Enum.Font.Code,
+    BoxesEnabled = true,
+    TracersEnabled = true,
+    HighlightEnabled = true
+}
+
+-- Utility Functions
+local Utility = {
+    -- Calculate distance between two Vector3 positions
+    GetDistance = function(position1, position2)
+        return (position1 - position2).Magnitude
+    end,
+    
+    -- Format distance to be more readable
+    FormatDistance = function(distance)
+        return string.format("%.1f", distance)
+    end,
+    
+    -- Get health percentage and color
+    GetHealthData = function(humanoid)
+        local health = humanoid.Health
+        local maxHealth = humanoid.MaxHealth
+        local percentage = (health / maxHealth) * 100
+        
+        -- Color gradient from red to green based on health
+        local color = Color3.fromRGB(
+            255 * (1 - health / maxHealth),
+            255 * (health / maxHealth),
+            0
+        )
+        
+        return {
+            Percentage = percentage,
+            Color = color,
+            Text = string.format("%.0f/%.0f HP", health, maxHealth)
+        }
+    end,
+    
+    -- Check if a player is on the same team
+    IsTeamMate = function(player)
+        if player.Team and LOCAL_PLAYER.Team then
+            return player.Team == LOCAL_PLAYER.Team
+        end
+        return false
+    end,
+    
+    -- Generate rainbow color
+    RainbowColor = function()
+        local time = tick() * 2
+        return Color3.fromHSV(time % 1, 1, 1)
+    end
+}
+
+-- ESP Class
+local ESP = {
+    Objects = {},
+    Connections = {}
+}
+
+-- Initialize ESP for a player
+function ESP:CreatePlayerESP(player)
+    if player == LOCAL_PLAYER then return end
+    
+    -- Create highlight
+    local highlight = Instance.new("Highlight")
+    highlight.Name = player.Name .. "_ESP"
+    highlight.FillColor = TEAM_COLORS.Enemy
+    highlight.OutlineColor = Color3.new(1, 1, 1)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Adornee = player.Character
+    highlight.Parent = CoreGui
+    
+    -- Create ESP text container
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = player.Name .. "_Info"
+    billboardGui.AlwaysOnTop = true
+    billboardGui.Size = UDim2.new(0, 200, 0, 100)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.Parent = CoreGui
+    
+    -- Create text labels
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Name = "NameLabel"
+    nameLabel.Size = UDim2.new(1, 0, 0, 20)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.new(1, 1, 1)
+    nameLabel.TextSize = Config.TextSize
+    nameLabel.Font = Config.TextFont
+    nameLabel.Parent = billboardGui
+    
+    local healthLabel = Instance.new("TextLabel")
+    healthLabel.Name = "HealthLabel"
+    healthLabel.Size = UDim2.new(1, 0, 0, 20)
+    healthLabel.Position = UDim2.new(0, 0, 0, 20)
+    healthLabel.BackgroundTransparency = 1
+    healthLabel.TextColor3 = Color3.new(1, 1, 1)
+    healthLabel.TextSize = Config.TextSize
+    healthLabel.Font = Config.TextFont
+    healthLabel.Parent = billboardGui
+    
+    local distanceLabel = Instance.new("TextLabel")
+    distanceLabel.Name = "DistanceLabel"
+    distanceLabel.Size = UDim2.new(1, 0, 0, 20)
+    distanceLabel.Position = UDim2.new(0, 0, 0, 40)
+    distanceLabel.BackgroundTransparency = 1
+    distanceLabel.TextColor3 = Color3.new(1, 1, 1)
+    distanceLabel.TextSize = Config.TextSize
+    distanceLabel.Font = Config.TextFont
+    distanceLabel.Parent = billboardGui
+    
+    -- Store ESP objects
+    self.Objects[player] = {
+        Highlight = highlight,
+        BillboardGui = billboardGui,
+        Labels = {
+            Name = nameLabel,
+            Health = healthLabel,
+            Distance = distanceLabel
+        }
+    }
+    
+    -- Update ESP
+    local function updateESP()
+        if not Config.Enabled then return end
+        if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+        
+        local character = player.Character
+        local humanoid = character:FindFirstChild("Humanoid")
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        
+        if not humanoid or not rootPart then return end
+        
+        -- Calculate distance
+        local distance = Utility.GetDistance(
+            LOCAL_PLAYER.Character and LOCAL_PLAYER.Character:FindFirstChild("HumanoidRootPart") and 
+            LOCAL_PLAYER.Character.HumanoidRootPart.Position or Vector3.new(),
+            rootPart.Position
+        )
+        
+        -- Check if within display range
+        if distance > Config.MaxDistance then
+            billboardGui.Enabled = false
+            highlight.Enabled = false
+            return
+        end
+        
+        -- Update visibility
+        billboardGui.Enabled = true
+        highlight.Enabled = true
+        billboardGui.Adornee = rootPart
+        
+        -- Update highlight colors
+        if Config.RainbowMode then
+            highlight.FillColor = Utility.RainbowColor()
+        else
+            highlight.FillColor = Utility.IsTeamMate(player) and TEAM_COLORS.Friendly or TEAM_COLORS.Enemy
+        end
+        
+        -- Update health data
+        local healthData = Utility.GetHealthData(humanoid)
+        
+        -- Update labels
+        if Config.ShowName then
+            nameLabel.Text = player.Name
+            nameLabel.Visible = true
+        else
+            nameLabel.Visible = false
+        end
+        
+        if Config.ShowHealth then
+            healthLabel.Text = healthData.Text
+            healthLabel.TextColor3 = healthData.Color
+            healthLabel.Visible = true
+        else
+            healthLabel.Visible = false
+        end
+        
+        if Config.ShowDistance then
+            distanceLabel.Text = Utility.FormatDistance(distance) .. " studs"
+            distanceLabel.Visible = true
+        else
+            distanceLabel.Visible = false
+        end
+    end
+    
+    -- Connect update function
+    local connection = RunService.RenderStepped:Connect(updateESP)
+    self.Connections[player] = connection
+end
+
+-- Remove ESP for a player
+function ESP:RemovePlayerESP(player)
+    local espData = self.Objects[player]
+    if espData then
+        if espData.Highlight then espData.Highlight:Destroy() end
+        if espData.BillboardGui then espData.BillboardGui:Destroy() end
+    end
+    
+    local connection = self.Connections[player]
+    if connection then
+        connection:Disconnect()
+        self.Connections[player] = nil
+    end
+    
+    self.Objects[player] = nil
+end
+
+-- Initialize ESP system
+function ESP:Init()
+    -- Setup ESP for existing players
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LOCAL_PLAYER then
+            self:CreatePlayerESP(player)
+        end
+    end
+    
+    -- Handle new players
+    Players.PlayerAdded:Connect(function(player)
+        self:CreatePlayerESP(player)
+    end)
+    
+    -- Handle players leaving
+    Players.PlayerRemoving:Connect(function(player)
+        self:RemovePlayerESP(player)
+    end)
+    
+    -- Toggle ESP with Right Control key
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.RightControl then
+            Config.Enabled = not Config.Enabled
+            
+            -- Update visibility of all ESP elements
+            for _, espData in pairs(self.Objects) do
+                if espData.Highlight then
+                    espData.Highlight.Enabled = Config.Enabled
+                end
+                if espData.BillboardGui then
+                    espData.BillboardGui.Enabled = Config.Enabled
+                end
+            end
+        end
+    end)
+end
+
+-- Cleanup function
+function ESP:Cleanup()
+    for player, _ in pairs(self.Objects) do
+        self:RemovePlayerESP(player)
+    end
+    
+    for _, connection in pairs(self.Connections) do
+        connection:Disconnect()
+    end
+end
+
+-- Initialize the ESP system
+ESP:Init()
+
+-- Cleanup on script end
+game:BindToClose(function()
+    ESP:Cleanup()
+end)
