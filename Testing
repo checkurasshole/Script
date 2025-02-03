@@ -1,38 +1,30 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Game-Specific Scripts (Only Run in Certain Games)
 local allowedGames = {
-    [17045823120] = { 
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/RP", 
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp" 
+    [17045823120] = {
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/RP",
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp"
     },
-    [9876543210] = { 
-        "https://raw.githubusercontent.com/example/example/main/AnotherScript.lua", 
-        "https://raw.githubusercontent.com/example/example/main/ExtraFeature.lua" 
+    [1234567890] = {
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/AnotherScript"
     }
-}
-
--- Global Scripts (Work in Any Game)
-local globalScripts = {
-    "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",
-    "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"
 }
 
 local keyRequired = "YourSecretKeyHere"
 
 local function loadScripts(gameId)
-    -- Load global scripts first
-    for _, scriptURL in pairs(globalScripts) do
-        loadstring(game:HttpGet(scriptURL))()
-    end
-
-    -- Load game-specific scripts if the game is listed
     local scriptsToLoad = allowedGames[gameId]
     if scriptsToLoad then
-        for _, scriptURL in pairs(scriptsToLoad) do
+        for _, scriptURL in ipairs(scriptsToLoad) do
             loadstring(game:HttpGet(scriptURL))()
         end
     end
+end
+
+-- **Check if Game ID is Allowed**
+if not allowedGames[game.PlaceId] then
+    game.Players.LocalPlayer:Kick("This script is not allowed in this game.")
+    return
 end
 
 -- Rayfield GUI Setup
@@ -54,7 +46,7 @@ KeyTab:CreateInput({
     Callback = function(input)
         if input == keyRequired then
             Rayfield:Destroy()
-            loadScripts(game.PlaceId)
+            loadScripts(game.PlaceId) -- Load all scripts for the given game
         else
             Rayfield:Notify({
                 Title = "❌ Incorrect Key",
