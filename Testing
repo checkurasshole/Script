@@ -16,7 +16,18 @@ local function loadScripts(gameId)
     local scriptsToLoad = allowedGames[gameId]
     if scriptsToLoad then
         for _, scriptURL in ipairs(scriptsToLoad) do
-            loadstring(game:HttpGet(scriptURL))()
+            local success, response = pcall(function()
+                return game:HttpGet(scriptURL)
+            end)
+
+            if success and response then
+                local runSuccess, err = pcall(loadstring(response))
+                if not runSuccess then
+                    warn("Failed to execute script:", err)
+                end
+            else
+                warn("Failed to load script from:", scriptURL)
+            end
         end
     end
 end
