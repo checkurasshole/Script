@@ -1,6 +1,6 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local keyRequired = "YourSecretKeyHere" -- Change this to your actual keyyy
+local keyRequired = "YourSecretKeyHere" -- Change this to your actual key
 local scriptURLs = {
     ["TESTtingg"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TESTtingg",
     ["TeleportBehindPlayer"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player",
@@ -9,7 +9,18 @@ local scriptURLs = {
 
 local function loadScripts()
     for scriptName, scriptURL in pairs(scriptURLs) do
-        loadstring(game:HttpGet(scriptURL))()
+        local success, response = pcall(function()
+            return game:HttpGet(scriptURL)
+        end)
+
+        if success and response and response ~= "" then
+            local runSuccess, err = pcall(loadstring(response))
+            if not runSuccess then
+                warn("Failed to execute script:", err)
+            end
+        else
+            warn("Failed to load script from:", scriptURL)
+        end
     end
 end
 
@@ -31,20 +42,24 @@ KeyTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     Callback = function(input)
         if input == keyRequired then
-            Rayfield:Destroy() -- Close the GUI
             loadScripts() -- Load scripts if the key is correct
+            Rayfield:Notify({
+                Title = "✅ Key Accepted",
+                Content = "Scripts are loading...",
+                Duration = 3
+            })
         else
             Rayfield:Notify({
                 Title = "❌ Incorrect Key",
                 Content = "Join the Discord to get the correct key!",
                 Duration = 5,
-                Image = 4483362458 -- Optional: Replace with an image ID
+                Image = 4483362458
             })
         end
     end
 })
 
--- Button to Copy Discord/YouTube Links YHHHHH
+-- Button to Copy Discord/YouTube Links
 KeyTab:CreateButton({
     Name = "📋 Copy Discord Link/YouTube",
     Callback = function()
@@ -54,7 +69,7 @@ KeyTab:CreateButton({
             Title = "✅ Links Copied",
             Content = "Discord and YouTube links have been copied to your clipboard!",
             Duration = 5,
-            Image = 4483362458 -- Optional: Replace with an image ID
+            Image = 4483362458
         })
     end,
 })
