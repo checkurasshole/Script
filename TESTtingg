@@ -1,0 +1,484 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | State Of Anarchy",
+    Icon = 12345678901, --  diamond icon ID? 
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Toggles
+local aimbotEnabled = false
+local autoLockEnabled = false
+local trickshotMode = false
+
+-- Store death and kill position variables
+local lastDeathPosition = nil
+local lastKillPosition = nil
+local teleportDistance = 10  -- Distance in front of the local player to teleport others
+local teleporting = false  -- Toggle for continuous teleportation
+local checkInterval = 0.5  -- Time between teleportation checks (reduce this value if you need faster checks)
+
+local espEnabled = false  -- Toggle for ESP
+local hitboxEnabled = false
+local fovRadius = 100
+local aimPart = "Head" -- Options: "Head", "Torso", "Random"
+local smoothingFactor = 5 -- Higher = slower and smoother aiming 
+
+-- Helper function to check if a player is a teammate
+local function isTeammate(player)
+    local localPlayer = game.Players.LocalPlayer
+    return player.Team == localPlayer.Team
+end
+
+-- Function to teleport to a specified position
+local function teleportToPosition(position)
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(position)
+    end
+end
+
+-- Function to store death position
+local function onDeath(character)
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        lastDeathPosition = character.HumanoidRootPart.Position
+    end
+end
+
+-- Function to store the position of the player you killed
+local function onPlayerKilled(killer, victim)
+    if killer == game.Players.LocalPlayer and victim.Character then
+        if victim.Character:FindFirstChild("HumanoidRootPart") then
+            lastKillPosition = victim.Character.HumanoidRootPart.Position
+        end
+    end
+end
+
+-- Function to teleport to the last death position
+local function teleportToDeathPosition()
+    if lastDeathPosition then
+        teleportToPosition(lastDeathPosition)
+    else
+        warn("No death position recorded")
+    end
+end
+
+-- Function to teleport to the last player kill position
+local function teleportToKillPosition()
+    if lastKillPosition then
+        teleportToPosition(lastKillPosition)
+    else
+        warn("No kill position recorded")
+    end
+end
+
+-- Connect functions to the necessary events
+
+-- Listen for your death
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    humanoid.Died:Connect(function()
+        onDeath(character)  -- Store death position when you die
+    end)
+end)
+
+-- Listen for when a player kills another player
+game.Players.PlayerAdded:Connect(function(player)
+    if player ~= game.Players.LocalPlayer then
+        player.CharacterAdded:Connect(function(character)
+            local humanoid = character:WaitForChild("Humanoid")
+            humanoid.Died:Connect(function()
+                onPlayerKilled(game.Players.LocalPlayer, player)  -- Store kill position when you kill someone
+            end)
+        end)
+    end
+end)
+
+-- ESP Logic
+local function addESP(character)
+    if character and character:FindFirstChild("Head") then
+        if not character:FindFirstChild("ESP_Highlight") then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "ESP_Highlight"
+            highlight.Adornee = character
+            highlight.FillColor = Color3.new(0, 1, 0) -- Green color
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.Parent = character
+        end
+    end
+end
+
+local function removeESP(character)
+    local highlight = character:FindFirstChild("ESP_Highlight")
+    if highlight then
+        highlight:Destroy()
+    end
+end
+
+-- Function to teleport players
+local function teleportMovingPlayers()
+    local localPlayer = game.Players.LocalPlayer
+    local character = localPlayer.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = character.HumanoidRootPart
+        local camera = workspace.CurrentCamera
+        local cameraDirection = camera.CFrame.LookVector
+        local cameraPosition = camera.CFrame.Position
+        
+        -- Loop through all players and teleport them if they're moving and not on the same team
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player ~= localPlayer and player.Team ~= localPlayer.Team then
+                local targetCharacter = player.Character
+                local humanoid = targetCharacter:FindFirstChild("Humanoid")
+                local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+                
+                -- Ensure the player has a humanoid and is moving
+                if targetRootPart and humanoid and humanoid.MoveDirection.magnitude > 0 then
+                    -- Calculate the new position directly in front of the local player
+                    local newPosition = cameraPosition + cameraDirection * teleportDistance
+                    
+                    -- Use Raycast to check and correct the Y position (for grounding)
+                    local ray = Ray.new(newPosition, Vector3.new(0, -10, 0))  -- Check downwards for ground
+                    local hit, hitPosition = workspace:FindPartOnRay(ray, targetCharacter)
+                    
+                    -- Set the new position of the player
+                    if hit then
+                        targetRootPart.CFrame = CFrame.new(hitPosition.X, hitPosition.Y, hitPosition.Z)
+                    else
+                        -- Default position if no ground found
+                        targetRootPart.CFrame = CFrame.new(newPosition)
+                    end
+                    
+                    -- Remove any BodyGyros or other constraints that may interfere with player interaction
+                    for _, v in pairs(targetCharacter:GetChildren()) do
+                        if v:IsA("BodyGyro") or v:IsA("BodyPosition") then
+                            v:Destroy()
+                        end
+                    end
+
+                    -- Prevent them from being teleported back to their original position
+                    targetCharacter:MoveTo(hitPosition or newPosition)
+                    
+                    -- Anchor the player to prevent floating
+                    targetRootPart.Anchored = true
+                    
+                    -- Allow the player to interact (e.g., get damaged or killed) after teleporting
+                    if humanoid then
+                        humanoid.PlatformStand = false  -- Ensure the humanoid is not locked in place
+                    end
+
+                    -- Ensure collision is enabled for the player after teleportation
+                    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+                end
+            end
+        end
+    end
+end
+
+-- Monitor all existing players for ESP
+local function monitorPlayer(player)
+    -- Add ESP to the current character
+    if player.Character then
+        addESP(player.Character)
+    end
+
+    -- Add ESP when the character respawns
+    player.CharacterAdded:Connect(function(character)
+        addESP(character)
+    end)
+end
+
+-- Monitor new players joining
+game.Players.PlayerAdded:Connect(function(player)
+    if player ~= game.Players.LocalPlayer then
+        monitorPlayer(player)
+    end
+end)
+
+-- Function to apply hitbox modifications
+local function adjustHitbox(character)
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = character.HumanoidRootPart
+        rootPart.Size = Vector3.new(9, 9, 9) -- Expand hitbox size
+        rootPart.Transparency = 0.5 -- Debug visibility
+        rootPart.CanCollide = false -- Disable collisions
+    end
+end
+
+-- Function to monitor a player for hitbox
+local function monitorPlayerHitbox(player)
+    -- Check if player is on the same team
+    local localPlayer = game.Players.LocalPlayer
+    if player.Team == localPlayer.Team then return end
+
+    -- Apply hitbox to existing character
+    if player.Character then
+        adjustHitbox(player.Character)
+    end
+
+    -- Listen for respawns
+    player.CharacterAdded:Connect(function(character)
+        adjustHitbox(character)
+    end)
+end
+
+-- Monitor all players currently in the game for hitbox
+for _, player in pairs(game.Players:GetPlayers()) do
+    if player ~= game.Players.LocalPlayer then
+        monitorPlayerHitbox(player)
+    end
+end
+
+-- Continuously check for any missed players or characters (Original)
+task.spawn(function()
+    while task.wait(1) do
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Team ~= game.Players.LocalPlayer.Team and player.Character then
+                adjustHitbox(player.Character)
+            end
+        end
+    end
+end)
+
+-- Helper Functions
+local function getClosestEnemyTarget()
+    local localPlayer = game.Players.LocalPlayer
+    local mouse = localPlayer:GetMouse()
+    local closestDistance = fovRadius
+    local closestPlayer = nil
+
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild(aimPart) then
+            local targetPart = player.Character[aimPart]
+
+            -- Make sure it's an enemy, not a teammate (using Team-based checks)
+            if player.Team ~= localPlayer.Team then
+                local screenPosition, onScreen = workspace.CurrentCamera:WorldToScreenPoint(targetPart.Position)
+
+                if onScreen then
+                    local distance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestPlayer = targetPart
+                    end
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+local function aimAtTarget(target)
+    if target then
+        local camera = workspace.CurrentCamera
+        local targetPosition = target.Position
+        local currentPosition = camera.CFrame.Position
+
+        local direction = (targetPosition - currentPosition).Unit
+        local newCFrame = CFrame.new(currentPosition, currentPosition + direction)
+
+        camera.CFrame = camera.CFrame:Lerp(newCFrame, 1 / smoothingFactor)
+    end
+end
+
+-- Main Aimbot Functionality
+local function aimbotLoop()
+    while task.wait() do
+        if aimbotEnabled then
+            local target = getClosestEnemyTarget()
+            aimAtTarget(target)
+        end
+    end
+end
+
+task.spawn(aimbotLoop)
+
+-- Create Main Tab
+local mainTab = Window:CreateTab("Main - Updates might come", 4483362458)
+
+-- Teleport Buttons
+mainTab:CreateButton({
+    Name = "Teleport to Last Death Position(bugged ngl)",
+    Callback = function()
+        teleportToDeathPosition()
+    end,
+})
+
+mainTab:CreateButton({
+    Name = "Teleport to Last Killed Player's Position(bugged too ngl...i aint perfect bud)",
+    Callback = function()
+        teleportToKillPosition()
+    end,
+})
+
+-- Teleport Toggle
+mainTab:CreateToggle({
+    Name = "Teleport Every Player One Place(Kill-All; make sure to turn on/off quick...CANT KILL THEM IN VEHCILES)",
+    CurrentValue = teleporting,
+    Callback = function(value)
+        teleporting = value
+        if teleporting then
+            -- Start teleportation checks with a delay
+            while teleporting do
+                teleportMovingPlayers()
+                wait(checkInterval)  -- Reduced check frequency
+            end
+        end
+    end,
+})
+
+-- ESP Toggle
+mainTab:CreateToggle({
+    Name = "Toggle ESP(Do it MANUALLY lmao)",
+    CurrentValue = espEnabled,
+    Callback = function(value)
+        espEnabled = value
+        -- Enable or disable ESP for all players
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character then
+                if espEnabled then
+                    addESP(player.Character)
+                else
+                    removeESP(player.Character)
+                end
+            end
+            player.CharacterAdded:Connect(function(character)
+                if espEnabled then
+                    addESP(character)
+                else
+                    removeESP(character)
+                end
+            end)
+        end
+    end
+})
+
+-- Hitbox Toggle
+mainTab:CreateToggle({
+    Name = "Enable Hitbox",
+    CurrentValue = false, -- Default is off
+    Callback = function(value)
+        hitboxEnabled = value
+        if hitboxEnabled then
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if not isTeammate(player) and player.Character then
+                    adjustHitbox(player.Character)
+                end
+            end
+        else
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local rootPart = player.Character.HumanoidRootPart
+                    rootPart.Size = Vector3.new(2, 2, 1) -- Reset to default size
+                    rootPart.Transparency = 0 -- Reset visibility
+                    rootPart.CanCollide = true -- Enable collisions
+                end
+            end
+        end
+    end
+})
+
+-- GUI Elements
+local MainTab = Window:CreateTab("Aimbot+", 12345678)
+
+-- Aimbot Toggles and Settings
+MainTab:CreateToggle({
+    Name = "Enable Aimbot",
+    CurrentValue = false,
+    Callback = function(value)
+        aimbotEnabled = value
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Enable Auto-Lock",
+    CurrentValue = false,
+    Callback = function(value)
+        autoLockEnabled = value
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Enable Trickshot Mode",
+    CurrentValue = false,
+    Callback = function(value)
+        trickshotMode = value
+    end,
+})
+
+
+MainTab:CreateSlider({
+    Name = "FOV Radius",
+    Min = 50,
+    Max = 300,
+    CurrentValue = fovRadius,
+    Callback = function(value)
+        fovRadius = value
+    end,
+})
+
+MainTab:CreateDropdown({
+    Name = "Target Bone",
+    Options = {"Head", "Torso", "Random"},
+    CurrentOption = aimPart,
+    Callback = function(option)
+        aimPart = option
+    end,
+})
+
+MainTab:CreateSlider({
+    Name = "Smoothing Factor",
+    Min = 1,
+    Max = 10,
+    CurrentValue = smoothingFactor,
+    Callback = function(value)
+        smoothingFactor = value
+    end,
+})
+
+-- Continuous Position Update Loop
+task.spawn(function()
+    while task.wait(1) do
+        -- Continuously check if death or kill positions need updating
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            -- Ensure the last death position is updated every time you respawn
+            if player.Character.Humanoid.Health <= 0 then
+                onDeath(player.Character)  -- Update death position if character dies
+            end
+
+            -- Ensure the kill position is updated when a player dies
+            for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                if otherPlayer.Character and otherPlayer.Character.Humanoid.Health <= 0 then
+                    onPlayerKilled(player, otherPlayer)  -- Update kill position when you kill another player
+                end
+            end
+        end
+    end
+end)
+
+-- Continuously check for any missed players or characters for ESP
+task.spawn(function()
+    while task.wait(1) do
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character then
+                if espEnabled then
+                    addESP(player.Character)
+                else
+                    removeESP(player.Character)
+                end
+            end
+        end
+    end
+end)
+
+-- Continuously monitor for teleportation
+game:GetService("RunService").Heartbeat:Connect(function()
+    if teleporting then
+        teleportMovingPlayers()
+    end
+end)
+
+ 
