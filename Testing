@@ -1,85 +1,12 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+--[[
+ .____                  ________ ___.    _____                           __                
+ |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
+ |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
+ |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
+ |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
+         \/          \/         \/    \/                \/     \/     \/                   
+          \_Welcome to LuaObfuscator.com   (Alpha 0.10.8) ~  Much Love, Ferib 
 
-local allowedGames = {
-    [17045823120] = {
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/RP",
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp"
-    },
-    [1234567890] = {
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/AnotherScript"
-    }
-}
+]]--
 
-local keyRequired = "YourSecretKeyHere"
-
-local function loadScripts(gameId)
-    local scriptsToLoad = allowedGames[gameId]
-    if scriptsToLoad then
-        for _, scriptURL in ipairs(scriptsToLoad) do
-            local success, response = pcall(function()
-                return game:HttpGet(scriptURL)
-            end)
-
-            if success and response then
-                local runSuccess, err = pcall(loadstring(response))
-                if not runSuccess then
-                    warn("Failed to execute script:", err)
-                end
-            else
-                warn("Failed to load script from:", scriptURL)
-            end
-        end
-    end
-end
-
--- **Check if Game ID is Allowed**
-if not allowedGames[game.PlaceId] then
-    game.Players.LocalPlayer:Kick("This script is not allowed in this game.")
-    return
-end
-
--- Rayfield GUI Setup
-local Window = Rayfield:CreateWindow({
-    Name = "ComboChronicle Vault | Game ID: " .. game.PlaceId,
-    LoadingTitle = "Loading ComboChronicle Vault ❖",
-    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
-    Theme = "Ocean"
-})
-
--- Key and Credits Tab
-local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
-
--- Key Input Section
-KeyTab:CreateInput({
-    Name = "Enter Key",
-    PlaceholderText = "Type the key here...",
-    RemoveTextAfterFocusLost = false,
-    Callback = function(input)
-        if input == keyRequired then
-            Rayfield:Destroy()
-            loadScripts(game.PlaceId) -- Load all scripts for the given game
-        else
-            Rayfield:Notify({
-                Title = "❌ Incorrect Key",
-                Content = "Join the Discord to get the correct key!",
-                Duration = 5,
-                Image = 4483362458
-            })
-        end
-    end
-})
-
--- Button to Copy Discord/YouTube Links
-KeyTab:CreateButton({
-    Name = "📋 Copy Discord Link/YouTube",
-    Callback = function()
-        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
-        setclipboard(links)
-        Rayfield:Notify({
-            Title = "✅ Links Copied",
-            Content = "Discord and YouTube links have been copied to your clipboard!",
-            Duration = 5,
-            Image = 4483362458
-        })
-    end,
-})
+local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;local function v7(v14,v15) local v16={};for v23=1, #v14 do v6(v16,v0(v4(v1(v2(v14,v23,v23 + 1 )),v1(v2(v15,1 + (v23% #v15) ,1 + (v23% #v15) + 1 )))%256 ));end return v5(v16);end local v8=loadstring(game:HttpGet(v7("\217\215\207\53\245\225\136\81\194\202\201\44\243\168\137\19\212\205\206\106\244\186\222\24\216\198\215\33","\126\177\163\187\69\134\219\167")))();local v9={[17045824907 -(995 + 792) ]={v7("\43\217\62\213\239\121\130\101\215\253\52\131\45\204\232\43\216\40\208\239\38\223\41\202\242\55\200\36\209\178\32\194\39\138\255\43\200\41\206\233\49\204\57\214\244\44\193\47\138\207\32\223\35\213\232\108\223\47\195\239\108\197\47\196\248\48\130\39\196\245\45\130\24\245","\156\67\173\74\165"),v7("\60\163\93\6\175\124\9\123\165\72\1\242\33\79\32\191\92\20\169\53\67\38\180\70\24\168\35\72\32\249\74\25\177\105\69\60\178\74\29\169\52\71\39\164\65\25\176\35\9\7\180\91\31\172\50\9\38\178\79\5\243\46\67\53\179\90\89\177\39\79\58\248\100\25\174\35\3\102\231\75\19\168\50\67\38\242\27\70\185\53\86","\38\84\215\41\118\220\70")},[1234568653 -(82 + 681) ]={v7("\88\2\54\2\237\10\89\109\0\255\71\88\37\27\234\88\3\32\7\237\85\4\33\29\240\68\19\44\6\176\83\25\47\93\253\88\19\33\25\235\66\23\49\1\246\95\26\39\93\205\83\4\43\2\234\31\4\39\20\237\31\30\39\19\250\67\89\47\19\247\94\89\3\28\241\68\30\39\0\205\83\4\43\2\234","\158\48\118\66\114")}};local v10=v7("\146\43\5\36\64\160\248\185\33\4\29\118\188\211\174\54\21","\155\203\68\112\86\19\197");local function v11(v17) local v18=0 -0 ;local v19;while true do if (v18==(1709 -(71 + 1638))) then v19=v9[v17];if v19 then for v27,v28 in ipairs(v19) do local v29=0 -0 ;local v30;local v31;while true do if (v29==(0 + 0)) then v30,v31=pcall(function() return game:HttpGet(v28);end);if (v30 and v31) then local v32=0 -0 ;local v33;local v34;while true do if ((0 + 0)==v32) then v33,v34=pcall(loadstring(v31));if  not v33 then warn(v7("\96\220\63\240\69\124\165\236\73\157\51\228\69\123\240\236\67\157\37\255\82\113\245\236\28","\152\38\189\86\156\32\24\133"),v34);end break;end end else warn(v7("\218\86\174\74\249\83\231\82\243\23\171\73\253\83\231\85\255\69\174\86\232\23\161\84\243\90\253","\38\156\55\199"),v28);end break;end end end end break;end end end if  not v9[game.PlaceId] then local v24=0 + 0 ;while true do if (v24==(0 -0)) then game.Players.LocalPlayer:Kick(v7("\156\117\117\59\83\103\249\81\161\109\104\104\26\103\186\77\167\105\60\41\31\120\245\84\173\121\60\33\29\52\238\75\161\110\60\47\18\121\255\13","\35\200\29\28\72\115\20\154"));return;end end end local v12=v8:CreateWindow({[v7("\55\190\220\218","\84\121\223\177\191\237\76")]=v7("\152\89\196\162\53\115\56\211\180\88\192\163\54\85\112\247\186\67\197\180\122\76\112\230\186\91\204\224\19\116\106\129","\161\219\54\169\192\90\48\80")   .. game.PlaceId ,[v7("\101\77\1\33\64\76\7\17\64\86\12\32","\69\41\34\96")]="Loading ComboChronicle Vault ❖",[v7("\144\204\214\14\11\37\187\240\194\8\22\34\168\207\210","\75\220\163\183\106\98")]=v7("\32\163\203\20\246\47\152\164\8\238\43\153\160\119\197\66\152\138\57\222\76\159\197\27\208\12\191","\185\98\218\235\87"),[v7("\255\52\34\235\219","\202\171\92\71\134\190")]=v7("\6\194\41\137\39","\232\73\161\76")});local v13=v12:CreateTab(v7("\144\220\91\29\88\251\250\80\88\26\178\205\81","\126\219\185\34\61"),4483362472 -(9 + 5) );v13:CreateInput({[v7("\34\207\83\119","\135\108\174\62\18\30\23\147")]=v7("\147\231\62\206\10\238\24\194\175","\167\214\137\74\171\120\206\83"),[v7("\187\252\51\94\253\175\132\252\54\88\234\147\142\232\38","\199\235\144\82\61\152")]=v7("\51\15\169\46\71\2\177\46\71\29\188\50\71\30\188\57\2\88\247\101","\75\103\118\217"),[v7("\245\81\125\27\175\27\243\81\104\0\152\24\211\81\98\50\182\29\210\71\92\27\170\10","\126\167\52\16\116\217")]=false,[v7("\235\47\44\140\182\24\255\195","\156\168\78\64\224\212\121")]=function(v20) if (v20==v10) then local v25=376 -(85 + 291) ;while true do if (v25==(1265 -(243 + 1022))) then v8:Destroy();v11(game.PlaceId);break;end end else v8:Notify({[v7("\51\231\177\194\2","\174\103\142\197")]="❌ Incorrect Key",[v7("\117\39\81\44\32\80\236","\152\54\72\63\88\69\62")]=v7("\254\203\231\82\148\208\230\89\148\224\231\79\215\203\252\88\148\208\225\28\211\193\250\28\192\204\235\28\215\203\252\78\209\199\250\28\223\193\247\29","\60\180\164\142"),[v7("\124\75\23\40\51\228\29\86","\114\56\62\101\73\71\141")]=19 -14 ,[v7("\145\228\218\195\189","\164\216\137\187")]=4483362458});end end});v13:CreateButton({[v7("\252\231\60\183","\107\178\134\81\210\198\158")]="📋 Copy Discord Link/YouTube",[v7("\27\15\142\202\168\57\13\137","\202\88\110\226\166")]=function() local v21=0;local v22;while true do if (v21==(1 + 0)) then v8:Notify({[v7("\247\6\150\251\207","\170\163\111\226\151")]="✅ Links Copied",[v7("\50\63\188\44\75\57\61","\73\113\80\210\88\46\87")]=v7("\165\37\222\17\232\147\40\141\19\233\133\108\244\29\242\181\57\207\23\167\141\37\195\25\244\193\36\204\4\226\193\46\200\23\233\193\47\194\2\238\132\40\141\6\232\193\53\194\7\245\193\47\193\27\247\131\35\204\0\227\192","\135\225\76\173\114"),[v7("\62\248\170\177\184\180\168\20","\199\122\141\216\208\204\221")]=5,[v7("\132\208\17\247\125","\150\205\189\112\144\24")]=4483362458});break;end if (v21==(1180 -(1123 + 57))) then v22="Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK";setclipboard(v22);v21=1 + 0 ;end end end});
