@@ -7,7 +7,7 @@ local allowedGames = {
     },
     [16740784399] = {
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TESTtingg",
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp" -- Added missing comma above
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp" -- Added missing comma aboveee
     }
 }
 
