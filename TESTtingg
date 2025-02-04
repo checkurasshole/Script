@@ -1,6 +1,6 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
-    Name = "ComboChronicle Vault | State Of Anarchy",
+    Name = "ComboChronicle Vault | The Eastern War",
     Icon = 12345678901, --  diamond icon ID? 
     LoadingTitle = "Loading ComboChronicle Vault ❖",
     LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
