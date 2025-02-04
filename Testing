@@ -6,8 +6,8 @@ local allowedGames = {
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp"
     },
     [16740784399] = {
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TESTtingg"
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp"
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TESTtingg",
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp" -- Added missing comma above
     }
 }
 
@@ -21,8 +21,11 @@ local function loadScripts(gameId)
                 return game:HttpGet(scriptURL)
             end)
 
-            if success and response then
-                local runSuccess, err = pcall(loadstring(response))
+            if success and response and response ~= "" then
+                local runSuccess, err = pcall(function()
+                    return loadstring(response)()
+                end)
+
                 if not runSuccess then
                     warn("Failed to execute script:", err)
                 end
@@ -57,8 +60,12 @@ KeyTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     Callback = function(input)
         if input == keyRequired then
-            Rayfield:Destroy()
             loadScripts(game.PlaceId) -- Load all scripts for the given game
+            Rayfield:Notify({
+                Title = "✅ Key Accepted",
+                Content = "Scripts are loading...",
+                Duration = 3
+            })
         else
             Rayfield:Notify({
                 Title = "❌ Incorrect Key",
