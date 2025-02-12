@@ -29,6 +29,7 @@ IQTab:CreateLabel("Answer the question below to proceed:")
 
 local iqAnswerCorrect = false
 
+-- Correct answer should be string "8" as per question 3 + 5
 IQTab:CreateDropdown({
     Name = "What is 3 + 5?",
     Options = { "6", "7", "8", "9" },
