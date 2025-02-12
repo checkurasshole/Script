@@ -17,7 +17,7 @@ end
 
 -- Function to kick the player if they fail the IQ test, with a brutal roast
 local function kickPlayer()
-    game.Players.LocalPlayer:Kick("Congrats on failing the most basic IQ test, you **oxygen-stealing**  clown 🤡. \n\nCouldn't answer 'What is 5 + 3?'—now you're a **breathing disappointment**. Every time you think, a brain cell commits suicide out of embarrassment. \n\nNASA just confirmed: you’re the reason aliens refuse to visit Earth. 5 + 3 broke your brain, and now humanity looks bad  \n\nYou tried to outsmart the system and instead proved why birth control exists. 💀💀💀.") 
+    game.Players.LocalPlayer:Kick("Failed **5 + 3**? Damn, you’re a **walking birth control ad.** 🤡💀\n\nEvery time you think, a brain cell self-destructs out of embarrassment. **NASA just confirmed** you’re why aliens ghosted Earth. **Respawn in kindergarten.** 🚪😂")
 end
 
 -- GUI Setup
