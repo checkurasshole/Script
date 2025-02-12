@@ -25,6 +25,7 @@ local function startIQTest()
     local correctAnswers = 0
     local totalQuestions = #iqQuestions
 
+    -- Loop through IQ questions
     for _, q in ipairs(iqQuestions) do
         local userAnswer = Rayfield:CreateInput({
             Name = q.question,
@@ -37,7 +38,7 @@ local function startIQTest()
             end
         })
 
-        -- Wait for user input to proceed to the next question
+        -- Wait for input to be processed
         wait(2)
     end
 
@@ -61,9 +62,9 @@ KeyTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     Callback = function(input)
         if input == keyRequired then
-            -- Start IQ Test if the key is correct
+            -- Key is correct, now start IQ test
             local iqPassed = startIQTest()
-            
+
             if iqPassed then
                 Rayfield:Destroy() -- Close the GUI
                 print("Loading script for game ID: " .. tostring(gameId))
@@ -83,7 +84,7 @@ KeyTab:CreateInput({
                     Duration = 5,
                     Image = 4483362458
                 })
-                -- Kick the user for failing
+                -- Kick user if IQ test is failed
                 game.Players.LocalPlayer:Kick("You Failed The IQ Test")
             end
         else
@@ -110,4 +111,3 @@ KeyTab:CreateButton({
         })
     end,
 })
-
