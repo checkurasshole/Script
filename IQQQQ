@@ -14,36 +14,6 @@ local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Scrip
 local gameId = game.PlaceId
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
 
--- IQ Test Questions
-local iqQuestions = {
-    {question = "What is 2 + 2?", answer = "4"},
-    {question = "What is the capital of France?", answer = "Paris"},
-    {question = "Which animal is known as the King of the Jungle?", answer = "Lion"}
-}
-
-local function startIQTest()
-    local correctAnswers = 0
-    local totalQuestions = #iqQuestions
-
-    for _, q in ipairs(iqQuestions) do
-        local answer = Rayfield:CreateInput({
-            Name = q.question,
-            PlaceholderText = "Type your answer...",
-            RemoveTextAfterFocusLost = false,
-            Callback = function(input)
-                if input:lower() == q.answer:lower() then
-                    correctAnswers = correctAnswers + 1
-                end
-            end
-        })
-        
-        -- Wait for user input (set an appropriate delay or listen for input completion)
-        wait(2)
-    end
-
-    return correctAnswers == totalQuestions
-end
-
 -- GUI Setup
 local Window = Rayfield:CreateWindow({
     Name = "ComboChronicle Vault | Game Loader",
@@ -55,13 +25,44 @@ local Window = Rayfield:CreateWindow({
 -- Key and Credits Tab
 local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
 
+-- IQ Test Function
+local function startIQTest()
+    local iqQuestions = {
+        {question = "What is 2 + 2?", answer = "4"},
+        {question = "What is the capital of France?", answer = "Paris"},
+        {question = "Which animal is known as the King of the Jungle?", answer = "Lion"}
+    }
+
+    local correctAnswers = 0
+    for _, q in ipairs(iqQuestions) do
+        local answer = Rayfield:CreateInput({
+            Name = q.question,
+            PlaceholderText = "Type your answer...",
+            RemoveTextAfterFocusLost = false,
+            Callback = function(input)
+                if input:lower() == q.answer:lower() then
+                    correctAnswers = correctAnswers + 1
+                end
+            end
+        })
+
+        -- Wait for the user input (adjust timing if necessary)
+        wait(3)
+    end
+
+    -- Check if all questions were answered correctly
+    return correctAnswers == #iqQuestions
+end
+
+-- Key Input for script loading
 KeyTab:CreateInput({
     Name = "Enter Key",
     PlaceholderText = "Type the key here...",
     RemoveTextAfterFocusLost = false,
     Callback = function(input)
+        -- Check if the input matches the required key
         if input == keyRequired then
-            -- Key entered successfully, start the IQ Test
+            -- If correct key, start IQ test
             local iqPassed = startIQTest()
 
             if iqPassed then
@@ -69,6 +70,7 @@ KeyTab:CreateInput({
                 print("Loading script for game ID: " .. tostring(gameId))
                 print("Script URL: " .. scriptToLoad)
                 
+                -- Load the script using the script URL for the game
                 local success, err = pcall(function()
                     loadstring(game:HttpGet(scriptToLoad))()
                 end)
@@ -83,7 +85,7 @@ KeyTab:CreateInput({
                     Duration = 5,
                     Image = 4483362458
                 })
-                -- Kick the user for failing
+                -- Optional: kick the user for failing the IQ test
                 game.Players.LocalPlayer:Kick("You Failed The IQ Test")
             end
         else
@@ -97,6 +99,7 @@ KeyTab:CreateInput({
     end
 })
 
+-- Button for copying links
 KeyTab:CreateButton({
     Name = "📋 Copy Discord Link/YouTube",
     Callback = function()
