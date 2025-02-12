@@ -1,0 +1,77 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Define the IQ test questions and correct answers
+local iqQuestions = {
+    { question = "What is 5 + 3?", answer = "8" },
+    { question = "Spell 'cat' backwards.", answer = "tac" },
+    { question = "What is 2 x 6?", answer = "12" }
+}
+
+local playerAnswers = {}
+
+-- Function to load the main script once the IQ test is passed
+local function loadMainScript()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Main%20Scripts'))()
+    end)
+    
+    if not success then
+        warn("Error loading script: " .. err)
+    end
+end
+
+-- Function to kick the player if they fail the IQ test, with an even harsher roast
+local function kickPlayer()
+    game.Players.LocalPlayer:Kick("CONGRATULATIONS! 🎉 You just failed a **three-question** IQ test that even a **goldfish** could pass. 💀\n\n" ..
+        "You have officially been **disowned by your brain.** It's sending a resignation letter as we speak. 🧠🚪\n\n" ..
+        "Your school should be **paying you** to stay home. If your thoughts were currency, you’d be in **infinite debt.**\n\n" ..
+        "💡 Next time, try **Googling basic math** before embarrassing yourself. 🚀\n\n" ..
+        "Until then… 🖕 Get the hell out. 💀")
+end
+
+-- GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | IQ Test Loader",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- IQ Test Tab
+local IQTestTab = Window:CreateTab("IQ Test", 4483362458)
+
+-- Function to check if all answers are correct
+local function checkAnswers()
+    for i, q in ipairs(iqQuestions) do
+        if playerAnswers[i] ~= q.answer then
+            Rayfield:Notify({
+                Title = "❌ Incorrect Answer",
+                Content = "You really out here failing basic-level questions? Embarrassing.",
+                Duration = 5,
+                Image = 4483362458
+            })
+            wait(5)
+            kickPlayer()
+            return
+        end
+    end
+    
+    Rayfield:Destroy()
+    print("Correct answers! Loading the script...")
+    loadMainScript()
+end
+
+-- Create the IQ test inputs
+for i, q in ipairs(iqQuestions) do
+    IQTestTab:CreateInput({
+        Name = q.question,
+        PlaceholderText = "Type your answer here...",
+        RemoveTextAfterFocusLost = false,
+        Callback = function(input)
+            playerAnswers[i] = input
+            if #playerAnswers == #iqQuestions then
+                checkAnswers()
+            end
+        end
+    })
+end
