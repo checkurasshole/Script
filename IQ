@@ -22,11 +22,7 @@ end
 
 -- Function to kick the player if they fail the IQ test, with an even harsher roast
 local function kickPlayer()
-    game.Players.LocalPlayer:Kick("CONGRATULATIONS! 🎉 You just failed a **three-question** IQ test that even a **goldfish** could pass. 💀\n\n" ..
-        "You have officially been **disowned by your brain.** It's sending a resignation letter as we speak. 🧠🚪\n\n" ..
-        "Your school should be **paying you** to stay home. If your thoughts were currency, you’d be in **infinite debt.**\n\n" ..
-        "💡 Next time, try **Googling basic math** before embarrassing yourself. 🚀\n\n" ..
-        "Until then… 🖕 Get the hell out. 💀")
+    game.Players.LocalPlayer:Kick("Congrats on failing the most basic IQ test, you **oxygen-stealing**  clown 🤡. \n\nCouldn't answer 'What is 5 + 3?'—now you're a **breathing disappointment**. Every time you think, a brain cell commits suicide out of embarrassment. \n\nNASA just confirmed: you’re the reason aliens refuse to visit Earth.  \n\nYou proved why birth control exists. 🚪 Now get the fuck out. 💀") 
 end
 
 -- GUI Setup
