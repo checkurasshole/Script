@@ -22,9 +22,6 @@ local Window = Rayfield:CreateWindow({
     Theme = "Ocean"
 })
 
--- Key and Credits Tab
-local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
-
 -- IQ Test Function
 local function startIQTest()
     local iqQuestions = {
@@ -35,6 +32,7 @@ local function startIQTest()
 
     local correctAnswers = 0
     for _, q in ipairs(iqQuestions) do
+        -- Show the question and get input
         local answer = Rayfield:CreateInput({
             Name = q.question,
             PlaceholderText = "Type your answer...",
@@ -50,56 +48,58 @@ local function startIQTest()
         wait(3)
     end
 
-    -- Check if all questions were answered correctly
+    -- Return whether the user passed the test
     return correctAnswers == #iqQuestions
 end
 
--- Key Input for script loading
-KeyTab:CreateInput({
-    Name = "Enter Key",
-    PlaceholderText = "Type the key here...",
-    RemoveTextAfterFocusLost = false,
-    Callback = function(input)
-        -- Check if the input matches the required key
-        if input == keyRequired then
-            -- If correct key, start IQ test
-            local iqPassed = startIQTest()
+-- Key and Credits Tab
+local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
 
-            if iqPassed then
+-- Show IQ test first
+local iqPassed = startIQTest()
+
+if iqPassed then
+    -- IQ test passed, show key input
+    KeyTab:CreateInput({
+        Name = "Enter Key",
+        PlaceholderText = "Type the key here...",
+        RemoveTextAfterFocusLost = false,
+        Callback = function(input)
+            if input == keyRequired then
                 Rayfield:Destroy() -- Close the GUI
                 print("Loading script for game ID: " .. tostring(gameId))
                 print("Script URL: " .. scriptToLoad)
-                
+
                 -- Load the script using the script URL for the game
                 local success, err = pcall(function()
                     loadstring(game:HttpGet(scriptToLoad))()
                 end)
-                
+
                 if not success then
                     warn("Error loading script: " .. err)
                 end
             else
                 Rayfield:Notify({
-                    Title = "❌ IQ Test Failed",
-                    Content = "You failed the IQ test! Try again after improving your knowledge.",
+                    Title = "❌ Incorrect Key",
+                    Content = "Join the Discord to get the correct key!",
                     Duration = 5,
                     Image = 4483362458
                 })
-                -- Optional: kick the user for failing the IQ test
-                game.Players.LocalPlayer:Kick("You Failed The IQ Test")
             end
-        else
-            Rayfield:Notify({
-                Title = "❌ Incorrect Key",
-                Content = "Join the Discord to get the correct key!",
-                Duration = 5,
-                Image = 4483362458
-            })
         end
-    end
-})
+    })
+else
+    -- IQ test failed, show failure message and exit
+    Rayfield:Notify({
+        Title = "❌ IQ Test Failed",
+        Content = "You failed the IQ test! Try again after improving your knowledge.",
+        Duration = 5,
+        Image = 4483362458
+    })
+    game.Players.LocalPlayer:Kick("You Failed The IQ Test")
+end
 
--- Button for copying links
+-- Button for copying links (optional)
 KeyTab:CreateButton({
     Name = "📋 Copy Discord Link/YouTube",
     Callback = function()
@@ -113,4 +113,3 @@ KeyTab:CreateButton({
         })
     end,
 })
-
