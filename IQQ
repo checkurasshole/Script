@@ -1,0 +1,62 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Define the IQ test question and correct answer
+local iqQuestion = "What is 5 + 3?"  -- Example question
+local correctAnswer = "8"  -- Correct answer
+
+-- Function to load the main script once the IQ test is passed
+local function loadMainScript()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Main%20Scripts'))()
+    end)
+    
+    if not success then
+        warn("Error loading script: " .. err)
+    end
+end
+
+-- GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | IQ Test Loader",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- IQ Test Tab
+local IQTestTab = Window:CreateTab("IQ Test", 4483362458)
+
+-- Create the IQ test question input
+IQTestTab:CreateInput({
+    Name = "Answer the IQ Test",
+    PlaceholderText = iqQuestion,
+    RemoveTextAfterFocusLost = false,
+    Callback = function(input)
+        -- Check if the input matches the correct answer
+        if input == correctAnswer then
+            Rayfield:Destroy() -- Close the GUI
+            print("Correct answer! Loading the script...")
+            loadMainScript()  -- Load the main script
+        else
+            Rayfield:Notify({
+                Title = "❌ Incorrect Answer",
+                Content = "Sorry, that's not the correct answer. Try again.",
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Add a button to show the IQ test answer (optional for debug or hint purposes)
+IQTestTab:CreateButton({
+    Name = "Show Correct Answer",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "✅ The Correct Answer is:",
+            Content = correctAnswer,
+            Duration = 5,
+            Image = 4483362458
+        })
+    end,
+})
