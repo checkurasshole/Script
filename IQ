@@ -14,6 +14,36 @@ local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Scrip
 local gameId = game.PlaceId
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
 
+-- IQ Test Questions
+local iqQuestions = {
+    {question = "What is 2 + 2?", answer = "4"},
+    {question = "What is the capital of France?", answer = "Paris"},
+    {question = "Which animal is known as the King of the Jungle?", answer = "Lion"}
+}
+
+local function startIQTest()
+    local correctAnswers = 0
+    local totalQuestions = #iqQuestions
+
+    for _, q in ipairs(iqQuestions) do
+        local userAnswer = Rayfield:CreateInput({
+            Name = q.question,
+            PlaceholderText = "Type your answer...",
+            RemoveTextAfterFocusLost = false,
+            Callback = function(input)
+                if input:lower() == q.answer:lower() then
+                    correctAnswers = correctAnswers + 1
+                end
+            end
+        })
+
+        -- Wait for user input to proceed to the next question
+        wait(2)
+    end
+
+    return correctAnswers == totalQuestions
+end
+
 -- GUI Setup
 local Window = Rayfield:CreateWindow({
     Name = "ComboChronicle Vault | Game Loader",
@@ -21,43 +51,6 @@ local Window = Rayfield:CreateWindow({
     LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
     Theme = "Ocean"
 })
-
--- Kahoot-like IQ Test Function
-local function iqTest()
-    local correctAnswers = 0
-    local questions = {
-        {question = "How do you execute a script in Roblox?", options = {"A. Press F9", "B. Press F5", "C. Use an executor"}, answer = "C"},
-        {question = "What does ESP stand for?", options = {"A. Extra Special Person", "B. Extrasensory Perception", "C. Extra Script Power"}, answer = "B"},
-        -- Add more questions here
-    }
-
-    -- Loop through questions and prompt user
-    for _, q in ipairs(questions) do
-        local userAnswer = Rayfield:CreateInput({
-            Name = q.question,
-            PlaceholderText = "Choose answer (A/B/C)",
-            RemoveTextAfterFocusLost = false,
-            Callback = function(input)
-                if input:upper() == q.answer then
-                    correctAnswers = correctAnswers + 1
-                end
-            end
-        })
-    end
-
-    -- After quiz, check if they passed
-    if correctAnswers >= #questions / 2 then
-        return true
-    else
-        Rayfield:Notify({
-            Title = "❌ IQ Test Failed",
-            Content = "You did not pass the IQ test. Better luck next time!",
-            Duration = 5,
-            Image = 4483362458
-        })
-        return false
-    end
-end
 
 -- Key and Credits Tab
 local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
@@ -68,8 +61,9 @@ KeyTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     Callback = function(input)
         if input == keyRequired then
-            -- If key is correct, proceed to IQ Test
-            local iqPassed = iqTest()
+            -- Start IQ Test if the key is correct
+            local iqPassed = startIQTest()
+            
             if iqPassed then
                 Rayfield:Destroy() -- Close the GUI
                 print("Loading script for game ID: " .. tostring(gameId))
@@ -82,6 +76,15 @@ KeyTab:CreateInput({
                 if not success then
                     warn("Error loading script: " .. err)
                 end
+            else
+                Rayfield:Notify({
+                    Title = "❌ IQ Test Failed",
+                    Content = "You failed the IQ test! Try again after improving your knowledge.",
+                    Duration = 5,
+                    Image = 4483362458
+                })
+                -- Kick the user for failing
+                game.Players.LocalPlayer:Kick("You Failed The IQ Test")
             end
         else
             Rayfield:Notify({
@@ -107,3 +110,4 @@ KeyTab:CreateButton({
         })
     end,
 })
+
