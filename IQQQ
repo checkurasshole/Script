@@ -15,6 +15,11 @@ local function loadMainScript()
     end
 end
 
+-- Function to kick the player if they fail the IQ test
+local function kickPlayer()
+    game.Players.LocalPlayer:Kick("You failed the IQ test. Try again.")
+end
+
 -- GUI Setup
 local Window = Rayfield:CreateWindow({
     Name = "ComboChronicle Vault | IQ Test Loader",
@@ -40,23 +45,12 @@ IQTestTab:CreateInput({
         else
             Rayfield:Notify({
                 Title = "❌ Incorrect Answer",
-                Content = "Sorry, that's not the correct answer. Try again.",
+                Content = "Sorry, that's not the correct answer. You will be kicked.",
                 Duration = 5,
                 Image = 4483362458
             })
+            wait(5)  -- Give some time for the notification to show before kicking
+            kickPlayer()  -- Kick the player for failing the IQ test
         end
     end
-})
-
--- Add a button to show the IQ test answer (optional for debug or hint purposes)
-IQTestTab:CreateButton({
-    Name = "Show Correct Answer",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "✅ The Correct Answer is:",
-            Content = correctAnswer,
-            Duration = 5,
-            Image = 4483362458
-        })
-    end,
 })
