@@ -42,7 +42,7 @@ local function checkAnswers()
         if playerAnswers[i] ~= q.answer then
             Rayfield:Notify({
                 Title = "❌ Incorrect Answer",
-                Content = "You really out here failing basic-level questions? Embarrassing.",
+                Content = "Are you seriously failing this? Get ready faggot.",
                 Duration = 5,
                 Image = 4483362458
             })
