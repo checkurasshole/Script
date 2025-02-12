@@ -22,44 +22,44 @@ local Window = Rayfield:CreateWindow({
     Theme = "Ocean"
 })
 
--- IQ Test Function
-local function startIQTest()
-    local iqQuestions = {
-        {question = "What is 2 + 2?", answer = "4"},
-        {question = "What is the capital of France?", answer = "Paris"},
-        {question = "Which animal is known as the King of the Jungle?", answer = "Lion"}
-    }
+-- IQ Test Tab
+local IQTab = Window:CreateTab("IQ Test", 4483362458)
 
-    local correctAnswers = 0
-    for _, q in ipairs(iqQuestions) do
-        -- Show the question and get input
-        local answer = Rayfield:CreateInput({
-            Name = q.question,
-            PlaceholderText = "Type your answer...",
-            RemoveTextAfterFocusLost = false,
-            Callback = function(input)
-                if input:lower() == q.answer:lower() then
-                    correctAnswers = correctAnswers + 1
-                end
-            end
-        })
+IQTab:CreateLabel("Answer the question below to proceed:")
 
-        -- Wait for the user input (adjust timing if necessary)
-        wait(3)
+local iqAnswerCorrect = false
+
+IQTab:CreateDropdown({
+    Name = "What is 3 + 5?",
+    Options = { "6", "7", "8", "9" },
+    Callback = function(selectedOption)
+        if selectedOption == "8" then
+            iqAnswerCorrect = true
+            Rayfield:Notify({
+                Title = "✅ Correct Answer",
+                Content = "You've passed the IQ test. Proceed to enter the key.",
+                Duration = 5,
+                Image = 4483362458
+            })
+            -- Proceed to the Key Tab once the correct answer is selected
+            IQTab:Destroy()  -- Destroy the IQ test tab after answering
+            createKeyTab()   -- Create the Key & Credits Tab after IQ test
+        else
+            iqAnswerCorrect = false
+            Rayfield:Notify({
+                Title = "❌ Incorrect Answer",
+                Content = "Please try again! You must answer correctly to proceed.",
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
     end
+})
 
-    -- Return whether the user passed the test
-    return correctAnswers == #iqQuestions
-end
+-- Key and Credits Tab Creation (only after passing IQ test)
+function createKeyTab()
+    local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
 
--- Key and Credits Tab
-local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
-
--- Show IQ test first
-local iqPassed = startIQTest()
-
-if iqPassed then
-    -- IQ test passed, show key input
     KeyTab:CreateInput({
         Name = "Enter Key",
         PlaceholderText = "Type the key here...",
@@ -70,7 +70,6 @@ if iqPassed then
                 print("Loading script for game ID: " .. tostring(gameId))
                 print("Script URL: " .. scriptToLoad)
 
-                -- Load the script using the script URL for the game
                 local success, err = pcall(function()
                     loadstring(game:HttpGet(scriptToLoad))()
                 end)
@@ -88,28 +87,18 @@ if iqPassed then
             end
         end
     })
-else
-    -- IQ test failed, show failure message and exit
-    Rayfield:Notify({
-        Title = "❌ IQ Test Failed",
-        Content = "You failed the IQ test! Try again after improving your knowledge.",
-        Duration = 5,
-        Image = 4483362458
-    })
-    game.Players.LocalPlayer:Kick("You Failed The IQ Test")
-end
 
--- Button for copying links (optional)
-KeyTab:CreateButton({
-    Name = "📋 Copy Discord Link/YouTube",
-    Callback = function()
-        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
-        setclipboard(links)
-        Rayfield:Notify({
-            Title = "✅ Links Copied",
-            Content = "Discord and YouTube links have been copied to your clipboard!",
-            Duration = 5,
-            Image = 4483362458
-        })
-    end,
-})
+    KeyTab:CreateButton({
+        Name = "📋 Copy Discord Link/YouTube",
+        Callback = function()
+            local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+            setclipboard(links)
+            Rayfield:Notify({
+                Title = "✅ Links Copied",
+                Content = "Discord and YouTube links have been copied to your clipboard!",
+                Duration = 5,
+                Image = 4483362458
+            })
+        end,
+    })
+end
