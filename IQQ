@@ -17,7 +17,7 @@ end
 
 -- Function to kick the player if they fail the IQ test, with a brutal roast
 local function kickPlayer()
-    game.Players.LocalPlayer:Kick("Congratulations, you've just failed the most basic IQ test in existence. 🧠\n\nAre you really that stupid? This was literally the most simple question imaginable and you couldn’t even get it right. Honestly, what’s your excuse?\n\nYou couldn’t handle a math question meant for a 5-year-old, so I’ll let you think about your life choices. Maybe consider trying something less intellectually demanding next time, like counting your fingers or remembering how to breathe.\n\nTake your L and go back to playing with blocks. 🧩\n\nBetter luck next time, but I’m not holding my breath. 🫣")
+    game.Players.LocalPlayer:Kick("Congrats on failing the most basic IQ test. 🤡 You couldn't even answer a first-grade question right. You're officially a walking L. Go back to school or quit while you're ahead. No one’s surprised though. Bye, idiot. 💀")
 end
 
 -- GUI Setup
