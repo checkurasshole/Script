@@ -15,9 +15,9 @@ local function loadMainScript()
     end
 end
 
--- Function to kick the player if they fail the IQ test
+-- Function to kick the player if they fail the IQ test, with a brutal roast
 local function kickPlayer()
-    game.Players.LocalPlayer:Kick("You failed the IQ test. Try again.")
+    game.Players.LocalPlayer:Kick("Congratulations on failing a basic IQ test. \n\nYou really couldn't answer a question this simple? Go back to kindergarten and try again. Maybe the next test will be 'What color is the sky?'")
 end
 
 -- GUI Setup
@@ -45,7 +45,7 @@ IQTestTab:CreateInput({
         else
             Rayfield:Notify({
                 Title = "❌ Incorrect Answer",
-                Content = "Sorry, that's not the correct answer. You will be kicked.",
+                Content = "Are you seriously failing this? Get ready to be roasted and kicked.",
                 Duration = 5,
                 Image = 4483362458
             })
