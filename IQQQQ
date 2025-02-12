@@ -8,24 +8,33 @@ local function startIQTest()
     local testQuestion = "What is 5 + 3?"
     local correctAnswer = "8"
     
-    Rayfield:CreateWindow({
+    -- Create the IQ Test Window
+    local Window = Rayfield:CreateWindow({
         Name = "IQ Test | ComboChronicle Vault",
         LoadingTitle = "Answer the IQ Test to Access the Script",
         LoadingSubtitle = "By COMBO_WICK",
         Theme = "Ocean"
     })
 
-    local IQTestTab = Rayfield:CreateTab("IQ Test")
+    -- Create Tab for IQ Test
+    local IQTestTab = Window:CreateTab("IQ Test")
 
+    -- Create the Input for the Question
     IQTestTab:CreateInput({
-        Name = "Answer the Question",
-        PlaceholderText = testQuestion,
+        Name = testQuestion,
+        PlaceholderText = "Type your answer here...",
         RemoveTextAfterFocusLost = false,
         Callback = function(input)
             if input == correctAnswer then
                 iqTestPassed = true
-                Rayfield:Destroy() -- Close the GUI for the IQ test
-                loadMainScript() -- Load the script after passing the test
+                Rayfield:Notify({
+                    Title = "✅ Correct Answer",
+                    Content = "You passed the IQ test! Loading the script...",
+                    Duration = 5,
+                    Image = 4483362458
+                })
+                wait(2) -- Wait for a brief moment before closing the test and loading the script
+                loadMainScript() -- Load the main script after passing the test
             else
                 Rayfield:Notify({
                     Title = "❌ Incorrect Answer",
