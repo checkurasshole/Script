@@ -1,0 +1,56 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- IQ Test Setup
+local iqTestPassed = false
+
+-- Function to start IQ test (can be customized for actual questions)
+local function startIQTest()
+    local testQuestion = "What is 5 + 3?"
+    local correctAnswer = "8"
+    
+    Rayfield:CreateWindow({
+        Name = "IQ Test | ComboChronicle Vault",
+        LoadingTitle = "Answer the IQ Test to Access the Script",
+        LoadingSubtitle = "By COMBO_WICK",
+        Theme = "Ocean"
+    })
+
+    local IQTestTab = Rayfield:CreateTab("IQ Test")
+
+    IQTestTab:CreateInput({
+        Name = "Answer the Question",
+        PlaceholderText = testQuestion,
+        RemoveTextAfterFocusLost = false,
+        Callback = function(input)
+            if input == correctAnswer then
+                iqTestPassed = true
+                Rayfield:Destroy() -- Close the GUI for the IQ test
+                loadMainScript() -- Load the script after passing the test
+            else
+                Rayfield:Notify({
+                    Title = "❌ Incorrect Answer",
+                    Content = "You failed the IQ test. Try again!",
+                    Duration = 5,
+                    Image = 4483362458
+                })
+            end
+        end
+    })
+end
+
+-- Function to load the main script after passing IQ test
+local function loadMainScript()
+    print("Loading the main script...")
+    local scriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Main%20Scripts"
+    
+    local success, err = pcall(function()
+        loadstring(game:HttpGet(scriptURL))()
+    end)
+    
+    if not success then
+        warn("Error loading script: " .. err)
+    end
+end
+
+-- Start the IQ Test
+startIQTest()
