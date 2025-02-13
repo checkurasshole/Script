@@ -1,0 +1,98 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Define the IQ test questions and correct answers
+local iqQuestions = {
+    { question = "What is 5 + 3?", answer = "8" },
+    { question = "Spell 'cat' backwards.", answer = "tac" },
+    { question = "What is 2 x 6?", answer = "12" }
+}
+local playerAnswers = {}
+-- Function to load the main script once the IQ test is passed
+local function loadMainScript()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Main%20Scripts'))()
+    end)
+    
+    if not success then
+        warn("Error loading script: " .. err)
+    end
+end
+
+-- Function to kick the player if they fail the IQ test, with an even harsher roast
+local function kickPlayer()
+    game.Players.LocalPlayer:Kick("Congrats on failing the most basic IQ test, you **oxygen-stealing**  clown 🤡. \n\nCouldn't answer 'What is 5 + 3?'—now you're a **breathing disappointment**. Every time you think, a brain cell commits suicide out of embarrassment. \n\nNASA just confirmed: you’re the reason aliens refuse to visit Earth.  \n\nYou proved why birth control exists. 🚪 Now get the fuck out. 💀") 
+end
+
+-- GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | IQ Test Loader",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- IQ Test Tab
+local IQTestTab = Window:CreateTab("IQ Test", 4483362458)
+
+-- Failure and Success Images (replace with URLs for memes or images you want to show)
+local failImage = "https://example.com/fail_image.png"  -- Replace with your meme URL
+local successImage = "https://example.com/success_image.png"  -- Replace with your meme URL
+local dramaticEffectImage = "https://example.com/dramatic_effect.png"  -- Replace with dramatic effect image URL
+
+-- Function to check if all answers are correct
+local function checkAnswers()
+    for i, q in ipairs(iqQuestions) do
+        if playerAnswers[i] ~= q.answer then
+            -- Show dramatic meme on failure
+            Rayfield:Notify({
+                Title = "❌ Incorrect Answer",
+                Content = "You failed the IQ test. Here's your meme punishment.",
+                Duration = 5,
+                Image = failImage
+            })
+            wait(5)
+            kickPlayer()
+            return
+        end
+    end
+    
+    -- Show success meme on correct answers
+    Rayfield:Notify({
+        Title = "✅ Correct Answers!",
+        Content = "You're not a complete failure! The script is loading...",
+        Duration = 5,
+        Image = successImage
+    })
+    wait(5)  -- Allow the success notification to show
+    Rayfield:Destroy()
+    print("Correct answers! Loading the script...")
+    loadMainScript()
+end
+
+-- Create the IQ test inputs
+for i, q in ipairs(iqQuestions) do
+    IQTestTab:CreateInput({
+        Name = q.question,
+        PlaceholderText = "Type your answer here...",
+        RemoveTextAfterFocusLost = false,
+        Callback = function(input)
+            playerAnswers[i] = input
+            if #playerAnswers == #iqQuestions then
+                checkAnswers()
+            end
+        end
+    })
+end
+
+-- Dramatic visual effect (this could be an animation or meme) on loading or incorrect answer
+Rayfield:CreateButton({
+    Name = "Show Dramatic Effect",
+    Callback = function()
+        -- Show a meme or a dramatic image when the button is pressed (optional)
+        Rayfield:Notify({
+            Title = "Dramatic Effect Activated!",
+            Content = "The drama is about to begin...",
+            Duration = 5,
+            Image = dramaticEffectImage
+        })
+    end
+})
