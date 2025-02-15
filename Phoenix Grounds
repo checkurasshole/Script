@@ -257,7 +257,7 @@ mainTab:CreateToggle({
 
 -- Hitbox Toggle
 mainTab:CreateToggle({
-    Name = "Enable Hitbox",
+    Name = "Enable Hitbox(Not Working)",
     CurrentValue = false, -- Default is off
     Callback = function(value)
         hitboxEnabled = value
