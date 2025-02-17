@@ -34,7 +34,6 @@ local function validateKey(inputKey)
     local currentTime = DateTime.now()
     
     if currentTime > expirationTime then
-        local timeLeft = expirationTime - currentTime
         return false, "Key has expired."
     end
     
@@ -93,8 +92,8 @@ KeyTab:CreateInput({
                 Image = 4483362458
             })
             
-            -- Update timer label
-            timerLabel:Set(message)
+            -- Update the label with time remaining
+            timerLabel.Text = message  -- Use the correct method to update the text
             
             -- Load the script after a short delay
             task.wait(1)
