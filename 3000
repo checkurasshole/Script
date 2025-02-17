@@ -1,46 +1,36 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Generate a random key when the script runs. This will change each time.
+-- Define Admins
+local admins = {
+    ["COMBO_WICK"] = true,  -- First Admin
+    ["yejduhvttjdruf"] = true  -- Second Admin
+}
+
 local function generateRandomKey()
-    local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    -- Function to generate a random key
+    local characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    local keyLength = 16  -- Length of the key
     local key = ""
-    for i = 1, 16 do
-        key = key .. chars:sub(math.random(1, #chars), math.random(1, #chars))
+    for i = 1, keyLength do
+        local rand = math.random(1, #characters)
+        key = key .. characters:sub(rand, rand)
     end
     return key
 end
 
--- You can store the generated key on your server-side or use a hardcoded list for validation.
-local generatedKey = generateRandomKey()  -- This is your dynamically generated key
-
-local keyRequired = generatedKey  -- The dynamically generated key
+-- Generate initial key
+local keyRequired = generateRandomKey()
+local lastKeyChangeTime = tick()  -- Start the timer for key change
+local timeLimit = 20  -- Time interval (in seconds) for the key to change
 
 local scriptURLs = {
     [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Game 1
-    [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Game 2
-    -- Add more game scripts here...
+    -- other game URLs...
 }
 
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 local gameId = game.PlaceId
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
-
--- Function to copy the key to clipboard for specific usernames
-local function copyKeyToClipboardForUser()
-    local username = game.Players.LocalPlayer.Name
-    if username == "COMBO_WICK" or username == "yejduhvttjdruf" then
-        setclipboard(generatedKey)  -- Copies the key to the clipboard
-        Rayfield:Notify({
-            Title = "✅ Key Copied",
-            Content = "The key has been copied to your clipboard!",
-            Duration = 5,
-            Image = 4483362458
-        })
-    end
-end
-
--- Copy the key to the clipboard when the script runs for specific users
-copyKeyToClipboardForUser()
 
 -- GUI Setup
 local Window = Rayfield:CreateWindow({
@@ -58,28 +48,18 @@ KeyTab:CreateInput({
     PlaceholderText = "Type the key here...",
     RemoveTextAfterFocusLost = false,
     Callback = function(input)
-        if input == keyRequired then
+        local playerName = game.Players.LocalPlayer.Name
+
+        -- Check if it's an admin or if the key matches
+        if admins[playerName] or input == keyRequired then
             Rayfield:Destroy() -- Close the GUI
             print("Loading script for game ID: " .. tostring(gameId))
-
-            if gameId == 5223287266 then -- Phoenix Grounds (Loads Two Scripts)
-                print("Loading multiple scripts for Phoenix Grounds")
-                local success1, err1 = pcall(function()
-                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"))()
-                end)
-                if not success1 then warn("Error loading first script: " .. err1) end
-                
-                local success2, err2 = pcall(function()
-                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"))()
-                end)
-                if not success2 then warn("Error loading second script: " .. err2) end
-            else
-                print("Script URL: " .. scriptToLoad)
-                local success, err = pcall(function()
-                    loadstring(game:HttpGet(scriptToLoad))()
-                end)
-                if not success then warn("Error loading script: " .. err) end
-            end
+            
+            -- Load the corresponding script
+            local success, err = pcall(function()
+                loadstring(game:HttpGet(scriptToLoad))()
+            end)
+            if not success then warn("Error loading script: " .. err) end
         else
             Rayfield:Notify({
                 Title = "❌ Incorrect Key",
@@ -91,6 +71,17 @@ KeyTab:CreateInput({
     end
 })
 
+-- Periodically update the key every minute
+game:GetService("RunService").Heartbeat:Connect(function()
+    if tick() - lastKeyChangeTime >= timeLimit then
+        -- Update the key every timeLimit seconds
+        keyRequired = generateRandomKey()
+        lastKeyChangeTime = tick()  -- Reset the time limit timer
+        print("New key generated: " .. keyRequired)
+    end
+end)
+
+-- Button to copy Discord and YouTube links
 KeyTab:CreateButton({
     Name = "📋 Copy Discord Link/YouTube",
     Callback = function()
