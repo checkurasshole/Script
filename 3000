@@ -1,0 +1,24 @@
+local HttpService = game:GetService("HttpService")
+
+-- Discord Webhook URL
+local webhookURL = "https://discord.com/api/webhooks/1341038256875114536/zcZZW4mSg0qRO7K3rmU0NCKGbJ2WwIxkw99B4lhcE5kpCYfmwQuePYQqtlENseEHb5xm"
+
+-- Function to send the key to Discord
+function sendToDiscord(key)
+    local data = {
+        content = "New Key: " .. key  -- The message to be sent to the Discord channel
+    }
+
+    local jsonData = HttpService:JSONEncode(data)  -- Convert the data to JSON format
+
+    -- Send HTTP POST request to the webhook
+    local success, errorMessage = pcall(function()
+        HttpService:PostAsync(webhookURL, jsonData, Enum.HttpContentType.ApplicationJson)
+    end)
+
+    if not success then
+        warn("Failed to send key to Discord webhook: " .. errorMessage)
+    else
+        print("Key sent to Discord successfully.")
+    end
+end
