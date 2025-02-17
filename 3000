@@ -3,7 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 -- Key validation configuration
 local function validateKey(key)
     -- You would set up a URL for your key validation service
-    local validationURL = "https://gist.githubusercontent.com/checkurasshole/891575fe2df900dd1d18112435fa25bc/raw/499f122b9bc32dd257cb3207f66a9247b66814d9/Key%2520Validation%2520JSON" .. key
+    local validationURL = "https://gist.githubusercontent.com/checkurasshole/891575fe2df900dd1d18112435fa25bc/raw/499f122b9bc32dd257cb3207f66a9247b66814d9/Key%2520Validation%2520JSON?key=" .. key
     
     local success, response = pcall(function()
         return game:HttpGet(validationURL)
