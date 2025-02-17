@@ -11,7 +11,7 @@ local function generateRandomKey()
 end
 
 -- You can store the generated key on your server-side or use a hardcoded list for validation.
-local generatedKey = generateRandomKey()  -- This is your randomized key
+local generatedKey = generateRandomKey()  -- This is your dynamically generated key
 
 local keyRequired = generatedKey  -- The dynamically generated key
 
@@ -25,16 +25,22 @@ local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Scrip
 local gameId = game.PlaceId
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
 
--- Function to log the key for specific usernames
-local function logKeyForUser()
+-- Function to copy the key to clipboard for specific usernames
+local function copyKeyToClipboardForUser()
     local username = game.Players.LocalPlayer.Name
     if username == "COMBO_WICK" or username == "yejduhvttjdruf" then
-        print("Generated Key for " .. username .. ": " .. generatedKey)
+        setclipboard(generatedKey)  -- Copies the key to the clipboard
+        Rayfield:Notify({
+            Title = "✅ Key Copied",
+            Content = "The key has been copied to your clipboard!",
+            Duration = 5,
+            Image = 4483362458
+        })
     end
 end
 
--- Log the key when the script runs
-logKeyForUser()
+-- Copy the key to the clipboard when the script runs for specific users
+copyKeyToClipboardForUser()
 
 -- GUI Setup
 local Window = Rayfield:CreateWindow({
