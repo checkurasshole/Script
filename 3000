@@ -1,1 +1,113 @@
-.
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Function to generate a random key
+local function generateKey(length)
+    local charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    local key = ""
+    for i = 1, length do
+        local rand = math.random(1, #charset)
+        key = key .. charset:sub(rand, rand)
+    end
+    return key
+end
+
+-- Generate a new key
+local keyRequired = generateKey(12) -- 12-character key
+
+-- Send key to Discord webhook
+local webhookURL = "https://discord.com/api/webhooks/1341037029538005102/spmnFok5z0KtY1Aexxajir1GDindLn8E9S2KDO9q_9vr4xI5OAzjAwhUV8bZqagYQRxW"
+
+local function sendToWebhook(message)
+    local httpService = game:GetService("HttpService")
+    local payload = httpService:JSONEncode({content = message})
+    
+    httpService:PostAsync(webhookURL, payload, Enum.HttpContentType.ApplicationJson)
+end
+
+-- Notify webhook with the new key
+sendToWebhook("🔑 **New Key Generated:** `" .. keyRequired .. "`")
+
+-- Game Script URLs
+local scriptURLs = {
+    [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",
+    [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",
+    [155615604] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",
+    [76455837887178] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",
+    [7920018625] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Nuke%20Tycoon%20Nuclear",
+    [15694891095] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TheOneV1",
+    [106266102947071] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+    [15948669967] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+    [77074973013032] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+    [17333357466] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+    [8233004585] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+    [11638805019] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+    [15599178512] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+    [16291041162] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+}
+
+local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
+local gameId = game.PlaceId
+local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
+
+-- GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Game Loader",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Key and Credits Tab
+local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
+
+KeyTab:CreateInput({
+    Name = "Enter Key",
+    PlaceholderText = "Type the key here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(input)
+        if input == keyRequired then
+            Rayfield:Destroy() -- Close the GUI
+            print("Loading script for game ID: " .. tostring(gameId))
+            
+            if gameId == 5223287266 then -- Phoenix Grounds (Loads Two Scripts)
+                print("Loading multiple scripts for Phoenix Grounds")
+                local success1, err1 = pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"))()
+                end)
+                if not success1 then warn("Error loading first script: " .. err1) end
+                
+                local success2, err2 = pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"))()
+                end)
+                if not success2 then warn("Error loading second script: " .. err2) end
+            else
+                print("Script URL: " .. scriptToLoad)
+                local success, err = pcall(function()
+                    loadstring(game:HttpGet(scriptToLoad))()
+                end)
+                if not success then warn("Error loading script: " .. err) end
+            end
+        else
+            Rayfield:Notify({
+                Title = "❌ Incorrect Key",
+                Content = "Join the Discord to get the correct key!",
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+KeyTab:CreateButton({
+    Name = "📋 Copy Discord Link/YouTube",
+    Callback = function()
+        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+        setclipboard(links)
+        Rayfield:Notify({
+            Title = "✅ Links Copied",
+            Content = "Discord and YouTube links have been copied to your clipboard!",
+            Duration = 5,
+            Image = 4483362458
+        })
+    end,
+})
