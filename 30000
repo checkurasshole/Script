@@ -1,57 +1,40 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local httpService = game:GetService("HttpService")
-local webhookURL = "https://hookcord.com/api/webhooks/1341038256875114536/zcZZW4mSg0qRO7K3rmU0NCKGbJ2WwIxkw99B4lhcE5kpCYfmwQuePYQqtlENseEHb5xm"
-
--- Function to generate a random key
+-- Generate a random key when the script runs. This will change each time.
 local function generateRandomKey()
-    local characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     local key = ""
-    for i = 1, 12 do -- 12-character key
-        local randIndex = math.random(1, #characters)
-        key = key .. characters:sub(randIndex, randIndex)
+    for i = 1, 16 do
+        key = key .. chars:sub(math.random(1, #chars), math.random(1, #chars))
     end
     return key
 end
 
-local keyRequired = generateRandomKey() -- Generate a new key
+-- You can store the generated key on your server-side or use a hardcoded list for validation.
+local generatedKey = generateRandomKey()  -- This is your randomized key
 
--- Function to send key to Discord webhook
-local function sendToWebhook(message)
-    local payload = httpService:JSONEncode({content = message})
-    
-    local success, response = pcall(function()
-        return httpService:PostAsync(webhookURL, payload, Enum.HttpContentType.ApplicationJson)
-    end)
-
-    if not success then
-        warn("❌ Failed to send webhook: " .. tostring(response))
-    end
-end
-
--- Send key securely
-sendToWebhook("🔑 **New Key Generated:** `" .. keyRequired .. "`")
+local keyRequired = generatedKey  -- The dynamically generated key
 
 local scriptURLs = {
-    [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",
-    [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",
-    [155615604] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",
-    [76455837887178] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",
-    [7920018625] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Nuke%20Tycoon%20Nuclear",
-    [15694891095] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TheOneV1",
-    [106266102947071] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [15948669967] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [77074973013032] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [17333357466] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [8233004585] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [11638805019] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [15599178512] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [16291041162] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+    [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Game 1
+    [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Game 2
+    -- Add more game scripts here...
 }
 
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 local gameId = game.PlaceId
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
+
+-- Function to log the key for specific usernames
+local function logKeyForUser()
+    local username = game.Players.LocalPlayer.Name
+    if username == "COMBO_WICK" or username == "yejduhvttjdruf" then
+        print("Generated Key for " .. username .. ": " .. generatedKey)
+    end
+end
+
+-- Log the key when the script runs
+logKeyForUser()
 
 -- GUI Setup
 local Window = Rayfield:CreateWindow({
@@ -79,7 +62,7 @@ KeyTab:CreateInput({
                     loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"))()
                 end)
                 if not success1 then warn("Error loading first script: " .. err1) end
-
+                
                 local success2, err2 = pcall(function()
                     loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"))()
                 end)
