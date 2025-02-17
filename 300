@@ -5,7 +5,7 @@ local keySystem = {
     currentKey = "", -- Will be generated
     timePerKey = 50, -- seconds
     specialPlayers = {
-        ["COMBO_WICK"] = true,
+        ["COMBO_nick"] = true,
         ["yejduhvttjdruf"] = true
     }
 }
