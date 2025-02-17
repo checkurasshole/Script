@@ -1,7 +1,7 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local httpService = game:GetService("HttpService")
-local webhookURL = "https://webhook.lewisakura.moe/api/webhooks/1341037029538005102/spmnFok5z0KtY1Aexxajir1GDindLn8E9S2KDO9q_9vr4xI5OAzjAwhUV8bZqagYQRxW"
+local webhookURL = "https://webhook.lewisakura.moe/api/webhooks/1341038256875114536/zcZZW4mSg0qRO7K3rmU0NCKGbJ2WwIxkw99B4lhcE5kpCYfmwQuePYQqtlENseEHb5xm"
 
 -- Function to generate a random key
 local function generateRandomKey()
