@@ -1,0 +1,135 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Key System Configuration
+local keySystem = {
+    currentKey = "", -- Will be generated
+    timePerKey = 50, -- seconds
+    specialPlayers = {
+        ["COMBO_WICK"] = true,
+        ["yejduhvttjdruf"] = true
+    }
+}
+
+-- Script URLs (your existing URLs)
+local scriptURLs = {
+    [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",
+    -- ... (rest of your URLs)
+}
+
+local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
+local gameId = game.PlaceId
+local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
+
+-- Function to generate a random key
+local function generateKey()
+    local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    local keyLength = 10
+    local key = ""
+    for i = 1, keyLength do
+        local randNum = math.random(1, #chars)
+        key = key .. string.sub(chars, randNum, randNum)
+    end
+    return key
+end
+
+-- Initialize first key
+math.randomseed(tick())
+keySystem.currentKey = generateKey()
+
+-- Key update loop
+spawn(function()
+    while true do
+        wait(keySystem.timePerKey)
+        keySystem.currentKey = generateKey()
+        print("Key updated: " .. keySystem.currentKey) -- For testing, remove in production
+    end
+end)
+
+-- GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Game Loader",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Key and Credits Tab
+local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
+
+-- Special Player Section (only visible to special players)
+local LocalPlayer = game:GetService("Players").LocalPlayer
+if keySystem.specialPlayers[LocalPlayer.Name] then
+    KeyTab:CreateSection("Special Access")
+    
+    -- Current Key Display
+    local keyLabel = KeyTab:CreateLabel("Current Key: " .. keySystem.currentKey)
+    
+    -- Update key display
+    spawn(function()
+        while true do
+            wait(1)
+            keyLabel:Set("Current Key: " .. keySystem.currentKey)
+        end
+    end)
+    
+    -- Copy Current Key Button
+    KeyTab:CreateButton({
+        Name = "Copy Current Key",
+        Callback = function()
+            setclipboard(keySystem.currentKey)
+            Rayfield:Notify({
+                Title = "Key Copied",
+                Content = "Current key has been copied to clipboard!",
+                Duration = 3,
+            })
+        end,
+    })
+end
+
+-- Key Input (for all players)
+KeyTab:CreateInput({
+    Name = "Enter Key",
+    PlaceholderText = "Type the key here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(input)
+        if input == keySystem.currentKey then
+            Rayfield:Destroy()
+            
+            -- Handle script loading based on game ID
+            if gameId == 5223287266 then
+                pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"))()
+                end)
+                pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"))()
+                end)
+            else
+                pcall(function()
+                    loadstring(game:HttpGet(scriptToLoad))()
+                end)
+            end
+        else
+            Rayfield:Notify({
+                Title = "❌ Incorrect Key",
+                Content = "Join the Discord to get the correct key!",
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Discord/YouTube Button
+KeyTab:CreateButton({
+    Name = "📋 Copy Discord Link/YouTube",
+    Callback = function()
+        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+        setclipboard(links)
+        Rayfield:Notify({
+            Title = "✅ Links Copied",
+            Content = "Discord and YouTube links have been copied to your clipboard!",
+            Duration = 5,
+            Image = 4483362458
+        })
+    end,
+})
