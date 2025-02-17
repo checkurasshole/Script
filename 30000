@@ -1,0 +1,76 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Key validation configuration
+local function validateKey(key)
+    -- You would set up a URL for your key validation service
+    local validationURL = "https://gist.githubusercontent.com/checkurasshole/891575fe2df900dd1d18112435fa25bc/raw/499f122b9bc32dd257cb3207f66a9247b66814d9/Key%2520Validation%2520JSON" .. key
+    
+    local success, response = pcall(function()
+        return game:HttpGet(validationURL)
+    end)
+    
+    if success then
+        -- Parse the JSON response
+        local data = game:GetService("HttpService"):JSONDecode(response)
+        
+        -- Check if key is valid and not expired
+        if data.valid and data.expiryTime > os.time() then
+            return true, data.timeRemaining
+        end
+        return false, "Key expired or invalid"
+    end
+    return false, "Failed to validate key"
+end
+
+-- GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Game Loader",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Key and Credits Tab
+local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
+
+-- Add remaining time display
+local timeLabel = KeyTab:CreateLabel("Time Remaining: Not validated")
+
+KeyTab:CreateInput({
+    Name = "Enter Key",
+    PlaceholderText = "Type the key here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(input)
+        local isValid, timeOrError = validateKey(input)
+        
+        if isValid then
+            -- Update time remaining label
+            timeLabel:Set("Time Remaining: " .. timeOrError .. " hours")
+            
+            -- Load your script here
+            Rayfield:Destroy()
+            loadstring(game:HttpGet(scriptToLoad))()
+        else
+            Rayfield:Notify({
+                Title = "❌ Key Error",
+                Content = timeOrError,
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+KeyTab:CreateButton({
+    Name = "📋 Copy Discord Link/YouTube",
+    Callback = function()
+        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+        setclipboard(links)
+        Rayfield:Notify({
+            Title = "✅ Links Copied",
+            Content = "Discord and YouTube links have been copied to your clipboard!",
+            Duration = 5,
+            Image = 4483362458
+        })
+    end,
+})
