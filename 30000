@@ -15,7 +15,7 @@ end
 local keyRequired = generateKey(12) -- 12-character key
 
 -- Send key to Discord webhook
-local webhookURL = "https://discord.com/api/webhooks/1341037029538005102/spmnFok5z0KtY1Aexxajir1GDindLn8E9S2KDO9q_9vr4xI5OAzjAwhUV8bZqagYQRxW"
+local webhookURL = "https://discord.com/api/webhooks/1341038256875114536/zcZZW4mSg0qRO7K3rmU0NCKGbJ2WwIxkw99B4lhcE5kpCYfmwQuePYQqtlENseEHb5xm"
 
 local function sendToWebhook(message)
     local httpService = game:GetService("HttpService")
