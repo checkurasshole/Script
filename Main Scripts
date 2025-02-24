@@ -16,8 +16,6 @@ local scriptURLs = {
     [11638805019] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Colombia
     [15599178512] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- West Chicago
     [16291041162] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Zeus FPS - Troca de Tiro RJ
-
-    -- New game IDs added
     [84000476186267] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/NEW_MAP_Brecha9_RioBravo", -- Brecha 9 Rio Bravo [NEW MAP]
     [9679014784] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Afghanistan", -- Afghanistan
     [18365888493] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Nogales_Mexico_Actualizacion", -- Nogales-Mexico-Actualizacion
