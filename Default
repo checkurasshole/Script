@@ -8,7 +8,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- Credits Tab
-local CreditsTab = Window:CreateTab("✨ Credits", "info")
+local CreditsTab = Window:CreateTab("✨ Credits", 4483362458) -- Added image ID
 local CreatorSection = CreditsTab:CreateSection("👑 Creator")
 CreditsTab:CreateLabel("🛠️ COMBO_WICK - Discord: world_star_hacker")
 local CoDevSection = CreditsTab:CreateSection("🤝 Co-Developer")
@@ -24,7 +24,7 @@ CreditsTab:CreateButton({
 })
 
 -- Universal Scripts Tab
-local UniversalTab = Window:CreateTab("🌐 Universal", "universal")
+local UniversalTab = Window:CreateTab("🌐 Universal", 4483362458) -- Added proper image ID instead of text
 local ESPSection = UniversalTab:CreateSection("👁️ ESP Features")
 
 -- ESP Button
@@ -37,7 +37,7 @@ UniversalTab:CreateButton({
          Title = "ESP Loaded",
          Content = "ESP script has been successfully loaded",
          Duration = 3,
-         Image = 4483362458, -- You can replace this with an appropriate image ID
+         Image = 4483362458,
          Actions = {
             Ignore = {
                Name = "OK",
