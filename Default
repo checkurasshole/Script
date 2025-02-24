@@ -1,34 +1,44 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Window = Rayfield:CreateWindow({
-   Name = "ComboChronicle Vault | ⚔️ Universal Scripts",
-   Icon = 12345678901, -- Replace with a diamond icon ID
-   LoadingTitle = "Loading ComboChronicle Vault ❖",
-   LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
-   Theme = "Ocean"
-})
+-- Optional additional UI: Rayfield Library implementation
+local function loadRayfield()
+    local success, result = pcall(function()
+        local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+        local Window = Rayfield:CreateWindow({
+            Name = "ComboChronicle Vault | ⚔️ Universal Scripts",
+            LoadingTitle = "Loading ComboChronicle Vault ❖",
+            LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+            Theme = "Ocean"
+        })
 
--- Universal ESP Tab
-local EspTab = Window:CreateTab("🛰️ ESP", "vision")
-local EspSection = EspTab:CreateSection("🔍 Universal ESP")
-EspTab:CreateButton({
-   Name = "🚀 Load Universal ESP",
-   Callback = function()
-      loadstring(game:HttpGet('https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp', true))()
-   end,
-})
-
--- Credits Tab
-local CreditsTab = Window:CreateTab("✨ Credits", "info")
-local CreatorSection = CreditsTab:CreateSection("👑 Creator")
-CreditsTab:CreateLabel("🛠️ COMBO_WICK - Discord: world_star_hacker")
-local CoDevSection = CreditsTab:CreateSection("🤝 Co-Developer")
-CreditsTab:CreateLabel("💡 None - Discord: None")
-local DiscordSection = CreditsTab:CreateSection("🌐 Discord Server")
-CreditsTab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
-CreditsTab:CreateButton({
-   Name = "📋 Copy Discord Link/Youtube",
-   Callback = function()
-      local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
-      setclipboard(links)
-   end,
-})
+        -- Credits Tab
+        local CreditsTab = Window:CreateTab("✨ Credits", nil)
+        local CreatorSection = CreditsTab:CreateSection("👑 Creator")
+        CreditsTab:CreateLabel("🛠️ COMBO_WICK - Discord: world_star_hacker")
+        local CoDevSection = CreditsTab:CreateSection("🤝 Co-Developer")
+        CreditsTab:CreateLabel("💡 None - Discord: None")
+        local DiscordSection = CreditsTab:CreateSection("🌐 Discord Server")
+        CreditsTab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
+        CreditsTab:CreateButton({
+            Name = "📋 Copy Discord Link/Youtube",
+            Callback = function()
+                local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+                setclipboard(links)
+            end,
+        })
+        
+        -- Functions Tab
+        local FunctionsTab = Window:CreateTab("🔧 Functions", nil)
+        
+        -- ESP Section
+        local ESPSection = FunctionsTab:CreateSection("👁️ ESP Features")
+        FunctionsTab:CreateButton({
+            Name = "Load Universal ESP",
+            Callback = function()
+                loadstring(game:HttpGet(('https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp'),true))()
+            end,
+        })
+    end)
+    
+    if not success then
+        warn("Failed to load Rayfield UI: " .. tostring(result))
+    end
+end
