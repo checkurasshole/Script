@@ -24,11 +24,11 @@ CreditsTab:CreateButton({
 })
 
 -- Universal Scripts Tab
-local UniversalTab = Window:CreateTab("🌐 Universal", 4483362458) -- Added proper image ID instead of text
-local ESPSection = UniversalTab:CreateSection("👁️ ESP Features")
+local MainTab = Window:CreateTab("🌐 Universal", 4483362458) -- Added proper image ID instead of text
+local MainSection = MainTab:CreateSection("👁️ ESP Features")
 
 -- ESP Button
-UniversalTab:CreateButton({
+MainTab:CreateButton({
    Name = "🔍 Load ESP",
    Info = "Loads the ESP script from GitHub",
    Callback = function()
