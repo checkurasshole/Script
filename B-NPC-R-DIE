@@ -1,0 +1,631 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Updates might come",
+    Icon = 12345678901, --  diamond icon ID? 
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Variables
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local HTTPService = game:GetService("HttpService")
+local TweenService = game:GetService("TweenService")
+
+-- Get the appropriate HTTP request function
+local http_request = syn and syn.request or http and http.request or request or httprequest
+
+-- Local Player
+local LocalPlayer = Players.LocalPlayer
+
+-- Constants
+local THEME_COLOR = Color3.fromRGB(34, 193, 195) -- Teal
+local ACCENT_COLOR = Color3.fromRGB(253, 187, 45) -- Gold
+local COOLDOWN_SECONDS = 4500 -- 1 hour and 15 minutes
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1343326350458753105/sdvyj2pSzbP8X7B2AgX17e2NWiZowvxNfHOeIFcNT6UMxJpaHqOqEpG7WwxLxbsqc3VP"
+
+--VAR
+local espEnabled = false
+local autoKillEnabled = false
+local autoKillInterval = 2
+local espObjects = {}
+local nearbyNPCs = {}
+local currentResponse = ""
+local lastFeedbackTime = 0
+
+local targetNPC = nil
+local npcAnalysisData = {}
+local knownPlayers = {}
+local godModeEnabled = false
+
+-- Utility Functions
+local function formatTime(seconds)
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local secs = math.floor(seconds % 60)
+    
+    if hours > 0 then
+        return string.format("%d hours, %d minutes", hours, minutes)
+    elseif minutes > 0 then
+        return string.format("%d minutes, %d seconds", minutes, secs)
+    else
+        return string.format("%d seconds", secs)
+    end
+end
+
+local function sendWebhook(embedData)
+    local success, response = pcall(function()
+        local http_request = syn and syn.request or http and http.request or request or httprequest
+        return http_request({
+            Url = WEBHOOK_URL,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HTTPService:JSONEncode({ embeds = { embedData } })
+        })
+    end)
+    return success
+end
+
+-- Send Initial Execution Webhook
+local function sendExecutionWebhook()
+    local embedData = {
+        title = "🚀 Script Execution",
+        description = string.format("**%s** has launched the Response System", Players.LocalPlayer.DisplayName),
+        color = 7419530,
+        fields = {
+            {
+                name = "🔑 Hardware ID",
+                value = "```" .. game:GetService("RbxAnalyticsService"):GetClientId() .. "```",
+                inline = true
+            },
+            {
+                name = "🎮 Game ID",
+                value = "```" .. game.PlaceId .. "```",
+                inline = true
+            }
+        },
+        footer = {
+            text = "Response System v2.0"
+        },
+        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+    }
+    sendWebhook(embedData)
+end
+
+local function triggerGodMode()
+    if not LocalPlayer.Character then return end
+    
+    -- Basic anti-damage techniques
+    pcall(function()
+        local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            -- Save original properties
+            local originalHealth = humanoid.Health
+            local originalMaxHealth = humanoid.MaxHealth
+            
+            -- Make invincible
+            humanoid.MaxHealth = math.huge
+            humanoid.Health = math.huge
+            
+            -- Hook damage event
+            humanoid.HealthChanged:Connect(function(health)
+                if godModeEnabled and health < humanoid.MaxHealth then
+                    humanoid.Health = humanoid.MaxHealth
+                end
+            end)
+        end
+    end)
+    
+    -- Create a shield effect
+    pcall(function()
+        local shield = Instance.new("Part")
+        shield.Name = "GodModeShield"
+        shield.Transparency = 0.8
+        shield.Color = Color3.fromRGB(0, 200, 255)
+        shield.Material = Enum.Material.ForceField
+        shield.Shape = Enum.PartType.Ball
+        shield.Size = Vector3.new(10, 10, 10)
+        shield.CanCollide = false
+        shield.Anchored = true
+        shield.Parent = LocalPlayer.Character
+        
+        -- Keep shield centered on player
+        RunService.Heartbeat:Connect(function()
+            if godModeEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                shield.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame
+            else
+                shield:Destroy()
+            end
+        end)
+    end)
+    
+    -- Anti-void/fall protection
+    RunService.Heartbeat:Connect(function()
+        if godModeEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            if LocalPlayer.Character.HumanoidRootPart.Position.Y < -50 then
+                -- Teleport back to a safe position
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(LocalPlayer.Character.HumanoidRootPart.Position.X, 100, LocalPlayer.Character.HumanoidRootPart.Position.Z)
+            end
+        end
+    end)
+end
+
+-- Helper function to detect if character might be a player disguised as NPC
+local function isPossiblePlayer(character)
+    if not character or not character:FindFirstChild("Humanoid") then return false end
+    
+    local humanoid = character.Humanoid
+    
+    -- Check for potential signs of player control
+    if humanoid.WalkSpeed > 16 or humanoid.JumpPower > 50 then
+        return true
+    end
+    
+    -- More advanced detection for recent or complex movement
+    if humanoid.MoveDirection.Magnitude > 0 then
+        return true
+    end
+    
+    -- Check for player-like behavior
+    local lastPos = character:GetAttribute("LastPosition")
+    if lastPos then
+        local currentPos = character:FindFirstChild("HumanoidRootPart") and character.HumanoidRootPart.Position
+        if currentPos and (Vector3.new(lastPos.X, lastPos.Y, lastPos.Z) - currentPos).Magnitude > 0.1 then
+            return true
+        end
+    end
+    
+    if character:FindFirstChild("HumanoidRootPart") then
+        character:SetAttribute("LastPosition", {
+            X = character.HumanoidRootPart.Position.X,
+            Y = character.HumanoidRootPart.Position.Y,
+            Z = character.HumanoidRootPart.Position.Z
+        })
+    end
+    
+    return false
+end
+
+-- Create ESP highlight
+local function createESP(character, color)
+    if not character or character:FindFirstChild("ESP_Highlight") then return end
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESP_Highlight"
+    highlight.FillColor = color or Color3.fromRGB(255, 0, 0)
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Parent = character
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESP_Label"
+    billboardGui.AlwaysOnTop = true
+    billboardGui.Size = UDim2.new(0, 100, 0, 30)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.Parent = character
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextStrokeTransparency = 0
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = 14
+    
+    if isPossiblePlayer(character) then
+        label.Text = "⚠️ THE PLAYER ⚠️"
+        highlight.FillColor = Color3.fromRGB(255, 165, 0) -- Orange for suspicious
+    else
+        label.Text = "NPC"
+        highlight.FillColor = Color3.fromRGB(255, 0, 0) -- Red for normal NPC
+    end
+    
+    label.Parent = billboardGui
+    
+    table.insert(espObjects, {highlight = highlight, billboard = billboardGui, character = character})
+    return highlight, billboardGui
+end
+
+-- Remove ESP
+local function removeESP(character)
+    local highlight = character:FindFirstChild("ESP_Highlight")
+    local billboard = character:FindFirstChild("ESP_Label")
+    
+    if highlight then highlight:Destroy() end
+    if billboard then billboard:Destroy() end
+    
+    for i, obj in ipairs(espObjects) do
+        if obj.character == character then
+            table.remove(espObjects, i)
+            break
+        end
+    end
+end
+
+-- Clear all ESP
+local function clearAllESP()
+    for _, obj in ipairs(espObjects) do
+        if obj.highlight and obj.highlight.Parent then obj.highlight:Destroy() end
+        if obj.billboard and obj.billboard.Parent then obj.billboard:Destroy() end
+    end
+    espObjects = {}
+end
+
+-- Combat Functions
+local function killNPC(npc)
+    if not npc or not npc:FindFirstChild("Humanoid") or npc:FindFirstChild("Died") then return end
+    
+    -- Mark as killed to prevent double kills
+    local marker = Instance.new("Folder")
+    marker.Name = "Died"
+    marker.Parent = npc
+    
+    -- Multiple kill methods for redundancy
+    pcall(function()
+        npc.Humanoid.RigType = Enum.HumanoidRigType.R6
+        npc.Humanoid.Health = 0
+    end)
+    
+    -- Try alternative methods (in case the game has kill protection)
+    pcall(function()
+        local humanoid = npc:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:TakeDamage(100000)
+        end
+    end)
+    
+    -- Visual feedback for kill
+    pcall(function()
+        if npc:FindFirstChild("HumanoidRootPart") then
+            local explosion = Instance.new("ParticleEmitter")
+            explosion.Texture = "rbxassetid://258126075"
+            explosion.Size = NumberSequence.new(1, 0)
+            explosion.Transparency = NumberSequence.new(0, 1)
+            explosion.Speed = NumberRange.new(5, 10)
+            explosion.Lifetime = NumberRange.new(0.5, 1)
+            explosion.Rate = 100
+            explosion.Rotation = NumberRange.new(0, 360)
+            explosion.RotSpeed = NumberRange.new(-30, 30)
+            explosion.SpreadAngle = Vector2.new(0, 180)
+            explosion.Enabled = true
+            explosion.Parent = npc.HumanoidRootPart
+            
+            delay(1, function()
+                explosion.Enabled = false
+                game:GetService("Debris"):AddItem(explosion, 2)
+            end)
+        end
+    end)
+    
+    return true
+end
+
+local function killAllNearbyNPCs(radius)
+    local killCount = 0
+    radius = radius or 100
+    
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") and not obj:FindFirstChild("Died") then
+            -- Skip player characters
+            local isPlayerCharacter = false
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player.Character == obj then
+                    isPlayerCharacter = true
+                    break
+                end
+            end
+            
+            if not isPlayerCharacter then
+                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - obj.HumanoidRootPart.Position).Magnitude
+                if distance <= radius then
+                    if killNPC(obj) then
+                        killCount = killCount + 1
+                    end
+                end
+            end
+        end
+    end
+    
+    return killCount
+end
+
+local function teleportToNPC(npc)
+    if not npc or not npc:FindFirstChild("HumanoidRootPart") or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+    
+    -- Save current position
+    local originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame
+    
+    -- Teleport
+    LocalPlayer.Character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+    
+    return originalPosition
+end
+
+-- Create tabs
+local MainTab = Window:CreateTab("Main", 4483362458)
+local ResponseTab = Window:CreateTab("📝 Responses")
+local ResponseSection = ResponseTab:CreateSection("✉️ Message System")
+
+-- local MainTab = Window:CreateTab("Main Controls", 4483362458)
+MainTab:CreateSection("Main Controls")
+
+-- ESP Toggle
+local ESPToggle = MainTab:CreateToggle({
+    Name = "ESP Highlight(Turn On/Off To function Porperly)",
+    CurrentValue = false,
+    Flag = "ESPToggle",
+    Callback = function(Value)
+        espEnabled = Value
+        
+        if espEnabled then
+            Rayfield:Notify({
+                Title = "ESP Enabled",
+                Content = "All NPCs will be highlighted",
+                Duration = 3,
+                Image = 4483362458
+            })
+            
+            -- Apply ESP to all existing characters
+            for _, obj in ipairs(workspace:GetChildren()) do
+                if obj:IsA("Model") and obj:FindFirstChild("Humanoid") then
+                    -- Skip player characters
+                    local isPlayerCharacter = false
+                    for _, player in ipairs(game.Players:GetPlayers()) do
+                        if player.Character == obj then
+                            isPlayerCharacter = true
+                            break
+                        end
+                    end
+                    
+                    if not isPlayerCharacter then
+                        createESP(obj)
+                    end
+                end
+            end
+            
+            -- Connect update function
+            if not _G.ESPUpdateConnection then
+                _G.ESPUpdateConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if not espEnabled then return end
+                    
+                    for _, obj in ipairs(workspace:GetChildren()) do
+                        if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and not obj:FindFirstChild("ESP_Highlight") then
+                            -- Skip player characters
+                            local isPlayerCharacter = false
+                            for _, player in ipairs(game.Players:GetPlayers()) do
+                                if player.Character == obj then
+                                    isPlayerCharacter = true
+                                    break
+                                end
+                            end
+                            
+                            if not isPlayerCharacter and not obj:FindFirstChild("Died") then
+                                createESP(obj)
+                            end
+                        end
+                    end
+                end)
+            end
+        else
+            Rayfield:Notify({
+                Title = "ESP Disabled",
+                Content = "NPC highlights removed",
+                Duration = 3,
+                Image = 4483362458
+            })
+            
+            clearAllESP()
+            
+            if _G.ESPUpdateConnection then
+                _G.ESPUpdateConnection:Disconnect()
+                _G.ESPUpdateConnection = nil
+            end
+        end
+    end,
+})
+
+local AutoKillToggle = MainTab:CreateToggle({
+    Name = "Auto Kill NPCs(Its a lil bugged)",
+    CurrentValue = false,
+    Flag = "AutoKillEnabled",
+    Callback = function(Value)
+        autoKillEnabled = Value
+        
+        if autoKillEnabled then
+            Rayfield:Notify({
+                Title = "Auto Kill Enabled",
+                Content = "Automatically killing NPCs in radius",
+                Duration = 3,
+                Image = 11156061121,
+                Actions = {
+                    Ignore = {
+                        Name = "OK",
+                        Callback = function() end
+                    }
+                }
+            })
+            
+            -- Start auto-kill loop
+            spawn(function()
+                while autoKillEnabled do
+                    local count = killAllNearbyNPCs(75)
+                    wait(autoKaillInterval)
+                end
+            end)
+        end
+    end
+})
+
+local KillRadiusSlider = MainTab:CreateSlider({
+    Name = "Kill Radius",
+    Range = {20, 200},
+    Increment = 5,
+    Suffix = "studs",
+    CurrentValue = 75,
+    Flag = "KillRadius",
+    Callback = function(Value)
+        killRadius = Value
+    end
+})
+
+local IntervalSlider = MainTab:CreateSlider({
+    Name = "Kill Interval",
+    Range = {0.5, 5},
+    Increment = 0.1,
+    Suffix = "seconds",
+    CurrentValue = 2,
+    Flag = "KillInterval",
+    Callback = function(Value)
+        autoKillInterval = Value
+    end
+})
+
+local GodModeToggle = MainTab:CreateToggle({
+    Name = "God Mode(chief kiss)",
+    CurrentValue = false,
+    Flag = "GodModeEnabled",
+    Callback = function(Value)
+        godModeEnabled = Value
+        
+        if godModeEnabled then
+            triggerGodMode()
+            Rayfield:Notify({
+                Title = "God Mode Enabled",
+                Content = "You are now invincible",
+                Duration = 3,
+                Image = 11156061121
+            })
+        end
+    end
+})
+
+MainTab:CreateButton({
+    Name = "Kill All NPCs(Lil Bugged, but works)",
+    Callback = function()
+        local count = killAllNearbyNPCs(200)
+        Rayfield:Notify({
+            Title = "NPCs Eliminated",
+            Content = "Killed " .. count .. " NPCs",
+            Duration = 3,
+            Image = 11156061121
+        })
+    end
+})
+
+-- Variable to store the current response
+local currentResponse = ""
+
+-- UI Elements
+ResponseTab:CreateInput({
+    Name = "💭 Your Message",
+    PlaceholderText = "Share your thoughts or suggestions here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        currentResponse = text
+    end
+})
+
+ResponseTab:CreateButton({
+    Name = "📤 Submit Response",
+    Info = "Send your message to the development team",
+    Interact = "Submit",
+    Callback = function()
+        local currentTime = tick()
+        local timeRemaining = COOLDOWN_SECONDS - (currentTime - lastFeedbackTime)
+
+        if timeRemaining > 0 then
+            Rayfield:Notify({
+                Title = "⏳ Cooldown Active",
+                Content = "Please wait " .. formatTime(timeRemaining),
+                Duration = 3,
+                Image = 4483362458
+            })
+            return
+        end
+
+        if currentResponse == "" then
+            Rayfield:Notify({
+                Title = "❌ Error",
+                Content = "Please enter a message before submitting",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return
+        end
+
+        local embedData = {
+            title = "📨 New Response",
+            description = currentResponse,
+            color = 3447003,
+            fields = {
+                {
+                    name = "👤 User",
+                    value = Players.LocalPlayer.DisplayName,
+                    inline = true
+                },
+                {
+                    name = "🆔 ID",
+                    value = Players.LocalPlayer.UserId,
+                    inline = true
+                }
+            },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }
+
+        if sendWebhook(embedData) then
+            Rayfield:Notify({
+                Title = "✅ Success",
+                Content = "Your message has been sent successfully!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            lastFeedbackTime = currentTime
+            currentResponse = ""
+        else
+            Rayfield:Notify({
+                Title = "❌ Error",
+                Content = "Failed to send message. Please try again later.",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Information Labels
+ResponseTab:CreateLabel("⏰ Cooldown: 1 hour and 15 minutes between submissions")
+ResponseTab:CreateLabel("💡 Share your suggestions for new features or improvements!")
+
+-- Statistics Section
+local StatsSection = ResponseTab:CreateSection("📊 Statistics")
+local messagesSent = 0
+
+ResponseTab:CreateLabel("Messages Sent Today: " .. messagesSent)
+
+-- Initialize
+sendExecutionWebhook()
+
+-- Credits Tab
+local CreditsTab = Window:CreateTab("✨ Credits", "info")
+local CreatorSection = CreditsTab:CreateSection("👑 Creator")
+CreditsTab:CreateLabel("🛠️ COMBO_WICK - Discord: world_star_hacker")
+local CoDevSection = CreditsTab:CreateSection("🤝 Co-Developer")
+CreditsTab:CreateLabel("💡 None - Discord: None")
+local DiscordSection = CreditsTab:CreateSection("🌐 Discord Server")
+CreditsTab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
+CreditsTab:CreateButton({
+   Name = "📋 Copy Discord Link/Youtube",
+   Callback = function()
+      local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+      setclipboard(links)
+   end,
+})
