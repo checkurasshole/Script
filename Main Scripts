@@ -16,15 +16,15 @@ local scriptURLs = {
     [11638805019] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Colombia
     [15599178512] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- West Chicago
     [16291041162] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Zeus FPS - Troca de Tiro RJ
-    [84000476186267] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/NEW_MAP_Brecha9_RioBravo", -- Brecha 9 Rio Bravo [NEW MAP]
-    [9679014784] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Afghanistan", -- Afghanistan
-    [18365888493] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Nogales_Mexico_Actualizacion", -- Nogales-Mexico-Actualizacion
-    [16168039994] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TNP_Shootout_in_Penha_Brazil", -- TNP - Shootout in Penha Brazil
-    [3678761576] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ENTRENCHED_WW1", -- ENTRENCHED WW1
-    [8735521924] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/CENTAURA", -- CENTAURA
-    [6654918151] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Trench_War", -- Trench War
-    [17209126270] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Rancheria_Nuevo_Leon", -- Rancheria, Nuevo Leon
-    [5732301513] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TRENCHES", -- TRENCHES
+    [84000476186267] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Brecha 9 Rio Bravo [NEW MAP]
+    [9679014784] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Afghanistan
+    [18365888493] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Nogales-Mexico-Actualizacion
+    [16168039994] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- TNP - Shootout in Penha Brazil
+    [3678761576] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ENTRENCHED_WW1",  -- ENTRENCHED WW1
+    [8735521924] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- CENTAURA
+    [6654918151] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Trench War
+    [17209126270] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Rancheria, Nuevo Leon
+    [5732301513] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- TRENCHES
 }
 
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
