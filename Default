@@ -29,7 +29,7 @@ local MainSection = MainTab:CreateSection("👁️ Features")
 
 -- ESP Button
 MainTab:CreateButton({
-   Name = "🔍 Load ESP",
+   Name = "🔍 Load ESP(Improvments coming)",
    Info = "Loads the ESP script from GitHub",
    Callback = function()
       loadstring(game:HttpGet(('https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp'),true))()
