@@ -25,7 +25,7 @@ CreditsTab:CreateButton({
 
 -- Universal Scripts Tab
 local MainTab = Window:CreateTab("🌐 Universal", 4483362458) -- Added proper image ID instead of text
-local MainSection = MainTab:CreateSection("👁️ ESP Features")
+local MainSection = MainTab:CreateSection("👁️ Features")
 
 -- ESP Button
 MainTab:CreateButton({
@@ -36,6 +36,29 @@ MainTab:CreateButton({
       Rayfield:Notify({
          Title = "ESP Loaded",
          Content = "ESP script has been successfully loaded",
+         Duration = 3,
+         Image = 4483362458,
+         Actions = {
+            Ignore = {
+               Name = "OK",
+               Callback = function()
+                  -- The user acknowledged the notification
+               end
+            },
+         },
+      })
+   end,
+})
+
+-- ESP Button
+MainTab:CreateButton({
+   Name = "Load Universal HitBox Bypass(Improvements coming)",
+   Info = "Loads the ESP script from GitHub",
+   Callback = function()
+      loadstring(game:HttpGet('https://raw.githubusercontent.com/checkurasshole/Script/e303bb706505581521919fd453e458960ed05c0f/Universal%20bypass%20Hitbox%20Beta'))()
+      Rayfield:Notify({
+         Title = "Hitbox Bypass Loaded",
+         Content = "Hitbox bypass script has been successfully loaded",
          Duration = 3,
          Image = 4483362458,
          Actions = {
