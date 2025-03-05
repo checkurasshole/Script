@@ -43,7 +43,7 @@ local PhysicsService = game:GetService("PhysicsService")
 local SoundService = game:GetService("SoundService")
 local ContextActionService = game:GetService("ContextActionService")
 
-local discordWebhookUrl = "https://discord.com/api/webhooks/1341037029538005102/spmnFok5z0KtY1Aexxajir1GDindLn8E9S2KDO9q_9vr4xI5OAzjAwhUV8bZqagYQRxW"
+local discordWebhookUrl = ""
 local toggleKey = Enum.KeyCode.F7
 local advancedScanKey = Enum.KeyCode.F8
 local stealthModeKey = Enum.KeyCode.F9
