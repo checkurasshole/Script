@@ -27,7 +27,7 @@ local PhysicsService = game:GetService("PhysicsService")
 local UserInputService = game:GetService("UserInputService")
 local VirtualUser = game:GetService("VirtualUser")
 
--- Load Rayfield with better error handling
+-- sfesefesf
 local Rayfield
 local success, err = pcall(function()
     Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -39,7 +39,7 @@ if not success then
     Rayfield = nil
 end
 
--- Vehicle Detection
+-- awdad
 local function getPlayerVehicle()
     local character = LocalPlayer.Character
     if not character then return nil end
