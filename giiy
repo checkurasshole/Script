@@ -1,0 +1,821 @@
+-- Configuration Variables
+local CONFIG = {
+    START_POS = Vector3.new(-18249.7, 35.1, -676.0),
+    END_POS = Vector3.new(-34551.8, 34.0, -32828.1),
+    GROUND_HEIGHT = 35.1,
+    DETECTION_THRESHOLD = 100,
+    STOP_THRESHOLD = 200,
+    ANCHOR_STRENGTH = 20000,
+    GROUND_OFFSET = 1.5,
+    PHYSICS_UPDATE_RATE = 0.02,
+    DECELERATION_RATE = 0.9,
+    DEFAULT_SPEED = 200,
+    STABILIZE_TIMER = 10,
+    ANTI_AFK_INTERVAL = 60  -- Check every 60 seconds for AFK prevention
+}
+
+-- Wait for game to load
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+-- Services
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local PhysicsService = game:GetService("PhysicsService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualUser = game:GetService("VirtualUser")
+
+-- Load Rayfield with better error handling
+local Rayfield
+local success, err = pcall(function()
+    Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+
+if not success then
+    warn("Failed to load Rayfield: " .. tostring(err))
+    print("Rayfield GUI failed to load. Using console commands instead.")
+    Rayfield = nil
+end
+
+-- Vehicle Detection
+local function getPlayerVehicle()
+    local character = LocalPlayer.Character
+    if not character then return nil end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid or not humanoid.SeatPart then return nil end
+    
+    local seat = humanoid.SeatPart
+    local vehicle = seat.Parent
+    
+    if seat:IsA("VehicleSeat") or seat.Name == "DriveSeat" or seat.Name:find("Seat") then
+        if vehicle:FindFirstChild("Body") or vehicle.PrimaryPart then
+            return vehicle
+        end
+    end
+    return nil
+end
+
+-- Utility Functions
+local function clearPhysicsObjects(part)
+    for _, obj in pairs(part:GetChildren()) do
+        if obj:IsA("BodyVelocity") or obj:IsA("BodyPosition") or obj:IsA("BodyGyro") then
+            obj:Destroy()
+        end
+    end
+end
+
+local function raycastGround(position)
+    local rayOrigin = position + Vector3.new(0, 50, 0)
+    local rayDirection = Vector3.new(0, -100, 0)
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    
+    local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+    local groundY = result and result.Position.Y or CONFIG.GROUND_HEIGHT
+    
+    local offsets = {
+        Vector3.new(5, 0, 0),
+        Vector3.new(-5, 0, 0),
+        Vector3.new(0, 0, 5),
+        Vector3.new(0, 0, -5)
+    }
+    
+    local validPoints = 1
+    local totalHeight = groundY
+    
+    for _, offset in ipairs(offsets) do
+        local offsetOrigin = rayOrigin + offset
+        local offsetResult = workspace:Raycast(offsetOrigin, rayDirection, raycastParams)
+        
+        if offsetResult then
+            totalHeight = totalHeight + offsetResult.Position.Y
+            validPoints = validPoints + 1
+        end
+    end
+    
+    return (totalHeight / validPoints) + CONFIG.GROUND_OFFSET
+end
+
+local function setNoclip(vehicle, enabled)
+    if not vehicle then return end
+    for _, part in pairs(vehicle:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = not enabled
+            pcall(function()
+                PhysicsService:SetPartCollisionGroup(part, enabled and "NoClip" or "Vehicle")
+            end)
+        end
+    end
+end
+
+local function setVehicleSpeed(vehicle, speed, direction)
+    if not vehicle then 
+        print("No vehicle found!")
+        return false 
+    end
+    
+    local primary = vehicle.PrimaryPart or vehicle:FindFirstChild("Body")
+    if not primary then
+        print("Vehicle has no primary part!")
+        return false
+    end
+    
+    clearPhysicsObjects(primary)
+    setNoclip(vehicle, false)
+    
+    local groundY = raycastGround(primary.Position)
+    local velocityDir = direction.Unit
+    
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(math.huge, 0, math.huge)
+    bv.Velocity = Vector3.new(velocityDir.X, 0, velocityDir.Z) * speed
+    bv.P = 1250
+    bv.Parent = primary
+    
+    local bp = Instance.new("BodyPosition")
+    bp.MaxForce = Vector3.new(0, CONFIG.ANCHOR_STRENGTH, 0)
+    bp.Position = Vector3.new(primary.Position.X, groundY, primary.Position.Z)
+    bp.P = CONFIG.ANCHOR_STRENGTH
+    bp.D = 2000
+    bp.Parent = primary
+    
+    local bg = Instance.new("BodyGyro")
+    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    bg.CFrame = CFrame.new(primary.Position, primary.Position + velocityDir)
+    bg.P = 10000
+    bg.D = 1000
+    bg.Parent = primary
+    
+    for _, part in pairs(vehicle:GetDescendants()) do
+        if part:IsA("BasePart") and (part.Name:lower():find("wheel") or part.Name:lower():find("tire")) then
+            local wheelBP = Instance.new("BodyPosition")
+            wheelBP.Name = "WheelAnchor"
+            wheelBP.MaxForce = Vector3.new(5000, 10000, 5000)
+            wheelBP.Position = Vector3.new(part.Position.X, groundY - 0.5, part.Position.Z)
+            wheelBP.P = 5000
+            wheelBP.D = 500
+            wheelBP.Parent = part
+            part:SetAttribute("IsWheel", true)
+        end
+    end
+    
+    return true
+end
+
+local function teleportPlayerToStart()
+    local player = game:GetService("Players").LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(CONFIG.START_POS)
+        print("Teleported to start position!")
+        return true
+    else
+        warn("Cannot teleport - character not found")
+        return false
+    end
+end
+
+local function maintainGroundLevel(vehicle)
+    if not vehicle then return end
+    
+    local primary = vehicle.PrimaryPart or vehicle:FindFirstChild("Body")
+    if not primary then return end
+    
+    local groundY = raycastGround(primary.Position)
+    
+    local bp = primary:FindFirstChildOfClass("BodyPosition")
+    if bp then
+        bp.Position = Vector3.new(primary.Position.X, groundY, primary.Position.Z)
+    end
+    
+    for _, part in pairs(vehicle:GetDescendants()) do
+        if part:GetAttribute("IsWheel") and part:IsA("BasePart") then
+            local wheelBP = part:FindFirstChild("WheelAnchor")
+            if wheelBP and wheelBP:IsA("BodyPosition") then
+                wheelBP.Position = Vector3.new(part.Position.X, groundY - 0.5, part.Position.Z)
+            end
+        end
+    end
+end
+
+-- Shuttle Logic
+local shuttleRunning = false
+local isHeadingToEnd = true
+local statusText = "Status: Ready"
+
+local function updateStatus(text)
+    statusText = text
+    print(text)
+    if Rayfield and statusLabel then
+        statusLabel:Set(text)
+    end
+end
+
+local function startShuttle()
+    if shuttleRunning then return end
+    shuttleRunning = true
+    
+    spawn(function()
+        local lastVehicle = nil
+        local consecutiveFailures = 0
+        
+        while shuttleRunning do
+            local vehicle = getPlayerVehicle()
+            
+            if vehicle then
+                consecutiveFailures = 0
+                
+                if vehicle ~= lastVehicle then
+                    local speed = speedInput and tonumber(speedInput.CurrentValue) or CONFIG.DEFAULT_SPEED
+                    local direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+                    setVehicleSpeed(vehicle, speed, direction)
+                    lastVehicle = vehicle
+                end
+                
+                local primary = vehicle.PrimaryPart or vehicle:FindFirstChild("Body")
+                if primary then
+                    local pos = primary.Position
+                    local bv = primary:FindFirstChildOfClass("BodyVelocity")
+                    
+                    local targetPos = isHeadingToEnd and CONFIG.END_POS or CONFIG.START_POS
+                    local distance = (pos - targetPos).Magnitude
+                    
+                    local target = isHeadingToEnd and "end" or "start"
+                    updateStatus("Driving to " .. target .. "... Distance: " .. math.floor(distance) .. " studs")
+                    
+                    if distance < CONFIG.STOP_THRESHOLD then
+                        if bv then
+                            bv.Velocity = bv.Velocity * CONFIG.DECELERATION_RATE
+                            
+                            if distance < CONFIG.DETECTION_THRESHOLD then
+                                bv.Velocity = Vector3.new(0, 0, 0)
+                                wait(1)
+                                isHeadingToEnd = not isHeadingToEnd
+                                updateStatus("Changing direction...")
+                                
+                                local newDirection = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+                                local speed = speedInput and tonumber(speedInput.CurrentValue) or CONFIG.DEFAULT_SPEED
+                                clearPhysicsObjects(primary)
+                                setVehicleSpeed(vehicle, speed, newDirection)
+                                local target = isHeadingToEnd and "endpoint" or "starting point"
+                                print("Now heading to " .. target)
+                                wait(0.5)
+                            end
+                        end
+                    end
+                    
+                    maintainGroundLevel(vehicle)
+                end
+                
+                wait(CONFIG.PHYSICS_UPDATE_RATE)
+            else
+                updateStatus("Waiting for vehicle...")
+                lastVehicle = nil
+                
+                consecutiveFailures = consecutiveFailures + 1
+                if consecutiveFailures > 20 then
+                    teleportPlayerToStart()
+                    consecutiveFailures = 0
+                    updateStatus("Emergency teleport performed")
+                end
+                
+                wait(1)
+            end
+        end
+        
+        if lastVehicle then
+            local primary = lastVehicle.PrimaryPart or lastVehicle:FindFirstChild("Body")
+            if primary then
+                clearPhysicsObjects(primary)
+            end
+        end
+        
+        updateStatus("Shuttle stopped")
+    end)
+end
+
+-- Anti-AFK System
+local antiAfkRunning = false
+
+local function startAntiAfk()
+    if antiAfkRunning then return end
+    antiAfkRunning = true
+    
+    spawn(function()
+        while antiAfkRunning do
+            -- Method 1: VirtualUser to simulate key presses
+            local success1, err1 = pcall(function()
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton1(Vector2.new(0, 0)) -- Simulate a mouse click
+                VirtualUser:Button1Up(Vector2.new(0, 0))
+            end)
+            
+            if not success1 then
+                print("VirtualUser method failed: " .. tostring(err1))
+                
+                -- Method 2: Simulate camera movement
+                local success2, err2 = pcall(function()
+                    local camera = workspace.CurrentCamera
+                    local originalCFrame = camera.CFrame
+                    camera.CFrame = originalCFrame * CFrame.Angles(0, math.rad(1), 0) -- Slight rotation
+                    wait(0.1)
+                    camera.CFrame = originalCFrame -- Reset
+                end)
+                
+                if not success2 then
+                    print("Camera movement method failed: " .. tostring(err2))
+                    
+                    -- Method 3: Simulate minimal character movement
+                    local success3, err3 = pcall(function()
+                        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                        if humanoid then
+                            humanoid:Move(Vector3.new(0.1, 0, 0)) -- Tiny movement
+                            wait(0.1)
+                            humanoid:Move(Vector3.new(-0.1, 0, 0)) -- Move back
+                        end
+                    end)
+                    
+                    if not success3 then
+                        print("Character movement method failed: " .. tostring(err3))
+                        updateStatus("All Anti-AFK methods failed!")
+                    else
+                        print("Anti-AFK: Using character movement method")
+                    end
+                else
+                    print("Anti-AFK: Using camera movement method")
+                end
+            else
+                print("Anti-AFK: Using VirtualUser method")
+            end
+            
+            -- Update status with Anti-AFK state
+            updateStatus(statusText .. " | Anti-AFK: Active")
+            
+            wait(CONFIG.ANTI_AFK_INTERVAL) -- Wait before next check
+        end
+        updateStatus(statusText .. " | Anti-AFK: Stopped")
+    end)
+end
+
+local function stopAntiAfk()
+    antiAfkRunning = false
+    print("Anti-AFK system stopped")
+end
+
+-- GUI Setup
+local Window, MainTab, speedInput, applyButton, toggleButton, teleportButton, statusLabel, antiAfkToggle
+
+local function setupGUI()
+    if not Rayfield then
+        print("GUI not available - using console commands")
+        return false
+    end
+    
+    local windowSuccess, windowErr = pcall(function()
+        Window = Rayfield:CreateWindow({
+            Name = "Vehicle Control Hub",
+            LoadingTitle = "Loading Vehicle Controls",
+            LoadingSubtitle = "by xAI",
+            ConfigurationSaving = {
+                Enabled = true,
+                FolderName = "VehicleControl",
+                FileName = "CarConfig"
+            },
+            KeybindNote = "Press T to toggle"
+        })
+    end)
+    
+    if not windowSuccess then
+        warn("Failed to create window: " .. tostring(windowErr))
+        return false
+    end
+    
+    local tabSuccess, tabErr = pcall(function()
+        MainTab = Window:CreateTab("Main Controls", 4483362458)
+    end)
+    
+    if not tabSuccess then
+        warn("Failed to create tab: " .. tostring(tabErr))
+        return false
+    end
+    
+    pcall(function()
+        speedInput = MainTab:CreateInput({
+            Name = "Speed",
+            PlaceholderText = "Enter Speed (Default: 200)",
+            RemoveTextAfterFocusLost = false,
+            Callback = function(Value)
+                local vehicle = getPlayerVehicle()
+                local speed = tonumber(Value)
+                if speed and vehicle then
+                    local direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+                    setVehicleSpeed(vehicle, speed, direction)
+                    print("Speed set to " .. speed)
+                else
+                    print("Invalid speed or no vehicle!")
+                end
+            end
+        })
+    end)
+    
+    pcall(function()
+        applyButton = MainTab:CreateButton({
+            Name = "Apply Speed",
+            Callback = function()
+                local vehicle = getPlayerVehicle()
+                local speed = speedInput and tonumber(speedInput.CurrentValue) or CONFIG.DEFAULT_SPEED
+                if vehicle then
+                    local direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+                    setVehicleSpeed(vehicle, speed, direction)
+                    print("Speed set to " .. speed)
+                else
+                    print("No vehicle found!")
+                end
+            end
+        })
+    end)
+    
+    pcall(function()
+        toggleButton = MainTab:CreateToggle({
+            Name = "Auto Shuttle",
+            CurrentValue = false,
+            Callback = function(Value)
+                shuttleRunning = Value
+                if Value then
+                    isHeadingToEnd = true
+                    startShuttle()
+                    print("Auto back-and-forth driving started")
+                else
+                    print("Auto back-and-forth driving stopped")
+                    local vehicle = getPlayerVehicle()
+                    if vehicle then
+                        local primary = vehicle.PrimaryPart or vehicle:FindFirstChild("Body")
+                        if primary then
+                            local bv = primary:FindFirstChildOfClass("BodyVelocity")
+                            if bv then
+                                bv.Velocity = Vector3.new(0, 0, 0)
+                            end
+                        end
+                    end
+                end
+            end
+        })
+    end)
+    
+    pcall(function()
+        teleportButton = MainTab:CreateButton({
+            Name = "Teleport to Start",
+            Callback = function()
+                teleportPlayerToStart()
+                isHeadingToEnd = true
+            end
+        })
+    end)
+    
+    pcall(function()
+        MainTab:CreateButton({
+            Name = "Force Teleport",
+            Callback = function()
+                local player = game:GetService("Players").LocalPlayer
+                if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character.HumanoidRootPart.CFrame = CFrame.new(CONFIG.START_POS)
+                    print("Directly teleported to start position")
+                    isHeadingToEnd = true
+                end
+            end
+        })
+    end)
+    
+    pcall(function()
+        MainTab:CreateButton({
+            Name = "Stabilize & Toggle Direction",
+            Callback = function()
+                _G.stabilizeAndToggleWithTimer()
+            end
+        })
+    end)
+    
+    pcall(function()
+        MainTab:CreateButton({
+            Name = "Stabilize Vehicle",
+            Callback = function()
+                local vehicle = getPlayerVehicle()
+                if vehicle then
+                    local primary = vehicle.PrimaryPart or vehicle:FindFirstChild("Body")
+                    if primary then
+                        clearPhysicsObjects(primary)
+                        local direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+                        local speed = speedInput and tonumber(speedInput.CurrentValue) or CONFIG.DEFAULT_SPEED
+                        setVehicleSpeed(vehicle, speed, direction)
+                        print("Vehicle stabilized and grounded")
+                    end
+                else
+                    print("No vehicle found to stabilize!")
+                end
+            end
+        })
+    end)
+    
+    pcall(function()
+        -- Anti-AFK Toggle Button
+        antiAfkToggle = MainTab:CreateToggle({
+            Name = "Anti-AFK",
+            CurrentValue = false,
+            Callback = function(Value)
+                if Value then
+                    startAntiAfk()
+                    print("Anti-AFK system started")
+                else
+                    stopAntiAfk()
+                    print("Anti-AFK system stopped")
+                end
+            end
+        })
+    end)
+    
+    pcall(function()
+        statusLabel = MainTab:CreateLabel("Status: Ready")
+    end)
+    
+    print("GUI setup complete")
+    return true
+end
+
+local guiAvailable = setupGUI()
+
+-- Fallback Console Commands
+_G.setSpeed = function(value)
+    local vehicle = getPlayerVehicle()
+    local speed = tonumber(value)
+    if speed and vehicle then
+        local direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+        setVehicleSpeed(vehicle, speed, direction)
+        print("Speed set to " .. speed)
+    else
+        warn("Invalid speed or no vehicle!")
+    end
+end
+
+_G.toggleShuttle = function()
+    shuttleRunning = not shuttleRunning
+    if shuttleRunning then
+        isHeadingToEnd = true
+        startShuttle()
+        print("Auto shuttle started")
+    else
+        print("Auto shuttle stopped")
+    end
+end
+
+_G.teleportToStart = function()
+    teleportPlayerToStart()
+    isHeadingToEnd = true
+end
+
+_G.forceTeleport = function()
+    local player = game:GetService("Players").LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(CONFIG.START_POS)
+        print("Directly teleported to start position")
+        isHeadingToEnd = true
+    end
+end
+
+_G.toggleDirection = function()
+    isHeadingToEnd = not isHeadingToEnd
+    local directionText = isHeadingToEnd and "end point" or "start point"
+    print("Direction changed: Now heading to " .. directionText)
+    
+    local vehicle = getPlayerVehicle()
+    if vehicle then
+        local speed = CONFIG.DEFAULT_SPEED
+        local direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+        setVehicleSpeed(vehicle, speed, direction)
+    end
+end
+
+_G.stabilizeVehicle = function()
+    local vehicle = getPlayerVehicle()
+    if vehicle then
+        local primary = vehicle.PrimaryPart or vehicle:FindFirstChild("Body")
+        if primary then
+            clearPhysicsObjects(primary)
+            local direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+            setVehicleSpeed(vehicle, CONFIG.DEFAULT_SPEED, direction)
+            print("Vehicle stabilized and grounded")
+        end
+    else
+        print("No vehicle found to stabilize!")
+    end
+end
+
+local stabilizeTimerActive = false
+_G.stabilizeAndToggleWithTimer = function()
+    local vehicle = getPlayerVehicle()
+    if not vehicle then
+        print("No vehicle found to stabilize or toggle direction!")
+        return
+    end
+    
+    local primary = vehicle.PrimaryPart or vehicle:FindFirstChild("Body")
+    if not primary then
+        print("Vehicle has no primary part!")
+        return
+    end
+    
+    clearPhysicsObjects(primary)
+    isHeadingToEnd = not isHeadingToEnd
+    local directionText = isHeadingToEnd and "end point" or "start point"
+    local direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+    local speed = speedInput and tonumber(speedInput.CurrentValue) or CONFIG.DEFAULT_SPEED
+    
+    setVehicleSpeed(vehicle, speed, direction)
+    print("Vehicle stabilized and direction toggled to " .. directionText)
+    updateStatus("Stabilized & Direction: " .. directionText)
+    
+    if not stabilizeTimerActive then
+        stabilizeTimerActive = true
+        spawn(function()
+            while stabilizeTimerActive do
+                local remainingTime = CONFIG.STABILIZE_TIMER
+                while remainingTime > 0 and stabilizeTimerActive do
+                    updateStatus("Stabilize Timer: " .. math.floor(remainingTime) .. "s | Direction: " .. directionText .. (antiAfkRunning and " | Anti-AFK: Active" or ""))
+                    wait(1)
+                    remainingTime = remainingTime - 1
+                end
+                
+                if stabilizeTimerActive then
+                    local newVehicle = getPlayerVehicle()
+                    if newVehicle and newVehicle.PrimaryPart then
+                        clearPhysicsObjects(newVehicle.PrimaryPart)
+                        isHeadingToEnd = not isHeadingToEnd
+                        directionText = isHeadingToEnd and "end point" or "start point"
+                        direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+                        speed = speedInput and tonumber(speedInput.CurrentValue) or CONFIG.DEFAULT_SPEED
+                        setVehicleSpeed(newVehicle, speed, direction)
+                        print("Timer reset: Vehicle re-stabilized and direction toggled to " .. directionText)
+                    else
+                        print("Vehicle lost during timer - stopping automatic stabilization")
+                        stabilizeTimerActive = false
+                    end
+                end
+            end
+            updateStatus("Stabilize timer stopped" .. (antiAfkRunning and " | Anti-AFK: Active" or ""))
+        end)
+    end
+end
+
+_G.stopStabilizeTimer = function()
+    stabilizeTimerActive = false
+    print("Stabilization timer stopped")
+    updateStatus("Stabilization timer stopped" .. (antiAfkRunning and " | Anti-AFK: Active" or ""))
+end
+
+-- Anti-AFK Console Command
+_G.toggleAntiAfk = function()
+    if not antiAfkRunning then
+        startAntiAfk()
+        print("Anti-AFK toggled ON")
+    else
+        stopAntiAfk()
+        print("Anti-AFK toggled OFF")
+    end
+end
+
+-- Physics Initialization
+local function initializePhysics()
+    pcall(function()
+        PhysicsService:CreateCollisionGroup("Vehicle")
+        PhysicsService:CreateCollisionGroup("NoClip")
+        PhysicsService:CollisionGroupSetCollidable("Vehicle", "Default", true)
+        PhysicsService:CollisionGroupSetCollidable("NoClip", "Default", false)
+    end)
+end
+
+initializePhysics()
+
+-- Validation and Monitoring
+local function validatePositions()
+    local startGround = raycastGround(CONFIG.START_POS)
+    local endGround = raycastGround(CONFIG.END_POS)
+    if not startGround or not endGround then
+        warn("Position validation issues - routes may not work properly")
+        return false
+    end
+    return true
+end
+
+validatePositions()
+
+-- Emergency Teleport Button
+local function createEmergencyTeleport()
+    local success, err = pcall(function()
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "EmergencyTeleportGui"
+        screenGui.Parent = game:GetService("CoreGui")
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 120, 0, 50)
+        frame.Position = UDim2.new(0.85, 0, 0.1, 0)
+        frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        frame.BorderSizePixel = 2
+        frame.Parent = screenGui
+        
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, 0, 1, 0)
+        button.Text = "Emergency TP"
+        button.Font = Enum.Font.SourceSansBold
+        button.TextSize = 16
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+        button.Parent = frame
+        
+        button.MouseButton1Click:Connect(function()
+            local player = game:GetService("Players").LocalPlayer
+            if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(CONFIG.START_POS)
+                print("Emergency teleported to start position!")
+                isHeadingToEnd = true
+            end
+        end)
+    end)
+    
+    if not success then
+        warn("Failed to create emergency teleport button: " .. tostring(err))
+    end
+end
+
+createEmergencyTeleport()
+
+-- Vehicle detection on startup
+spawn(function()
+    for i = 1, 50 do
+        wait(0.1)
+        local vehicle = getPlayerVehicle()
+        if vehicle then
+            updateStatus("Vehicle detected, ready to start" .. (antiAfkRunning and " | Anti-AFK: Active" or ""))
+            break
+        end
+    end
+end)
+
+-- Enhanced Safety Monitoring
+RunService.Heartbeat:Connect(function()
+    if shuttleRunning then
+        local vehicle = getPlayerVehicle()
+        if vehicle then
+            local primary = vehicle.PrimaryPart or vehicle:FindFirstChild("Body")
+            if primary then
+                if primary.Velocity.Magnitude > 1000 or primary.RotVelocity.Magnitude > 100 then
+                    for _, part in pairs(vehicle:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.Velocity = Vector3.new(0, 0, 0)
+                            part.RotVelocity = Vector3.new(0, 0, 0)
+                        end
+                    end
+                    updateStatus("Vehicle stabilized" .. (antiAfkRunning and " | Anti-AFK: Active" or ""))
+                end
+                
+                if primary.Position.Y < 0 then
+                    teleportPlayerToStart()
+                    updateStatus("Vehicle fell below map - teleported back" .. (antiAfkRunning and " | Anti-AFK: Active" or ""))
+                end
+                
+                maintainGroundLevel(vehicle)
+                
+                local hasDetachedParts = false
+                for _, part in pairs(vehicle:GetDescendants()) do
+                    if part:IsA("BasePart") and part:GetAttribute("IsWheel") then
+                        if (part.Position - primary.Position).Magnitude > 20 then
+                            hasDetachedParts = true
+                            break
+                        end
+                    end
+                end
+                
+                if hasDetachedParts then
+                    teleportPlayerToStart()
+                    wait(1)
+                    local direction = isHeadingToEnd and (CONFIG.END_POS - CONFIG.START_POS) or (CONFIG.START_POS - CONFIG.END_POS)
+                    setVehicleSpeed(vehicle, CONFIG.DEFAULT_SPEED, direction)
+                    updateStatus("Detected detached wheels - vehicle reset" .. (antiAfkRunning and " | Anti-AFK: Active" or ""))
+                end
+            end
+        end
+    end
+end)
+
+-- Initial message
+print("Vehicle Shuttle Script loaded successfully!")
+print("If GUI doesn't appear, use console commands:")
+print("_G.setSpeed(200) - Set vehicle speed")
+print("_G.toggleShuttle() - Toggle auto shuttle")
+print("_G.teleportToStart() - Teleport to start")
+print("_G.toggleDirection() - Switch direction")
+print("_G.stabilizeVehicle() - Fix vehicle grounding issues")
+print("_G.stabilizeAndToggleWithTimer() - Stabilize and toggle direction with 15s repeating timer")
+print("_G.stopStabilizeTimer() - Stop the stabilization timer")
+print("_G.toggleAntiAfk() - Toggle Anti-AFK system")
