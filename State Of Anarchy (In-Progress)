@@ -1,12 +1,341 @@
---[[
- .____                  ________ ___.    _____                           __                
- |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
- |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
- |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
- |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
-         \/          \/         \/    \/                \/     \/     \/                   
-          \_Welcome to LuaObfuscator.com   (Alpha 0.10.8) ~  Much Love, Ferib 
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | State Of Anarchy",
+    Icon = 12345678901,
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
 
-]]--
+local lastDeathPosition = nil
+local lastKillPosition = nil
+local teleportDistance = 10
+local teleporting = false
+local checkInterval = 0.5
+local espEnabled = false
+local containersList = {}
+local buildingsFolder = game.Workspace:FindFirstChild("ChunkingSystem") and game.Workspace.ChunkingSystem:FindFirstChild("Buildings")
 
-local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;local function v7(v41,v42) local v43={};for v71=1, #v41 do v6(v43,v0(v4(v1(v2(v41,v71,v71 + 1 )),v1(v2(v42,1 + (v71% #v42) ,1 + (v71% #v42) + 1 )))%256 ));end return v5(v43);end local v8=loadstring(game:HttpGet(v7("\217\215\207\53\245\225\136\81\194\202\201\44\243\168\137\19\212\205\206\106\244\186\222\24\216\198\215\33","\126\177\163\187\69\134\219\167")))();local v9=v8:CreateWindow({[v7("\13\204\39\192","\156\67\173\74\165")]=v7("\23\184\68\20\179\5\78\38\184\71\31\191\42\67\116\129\72\3\176\50\6\40\247\122\2\189\50\67\116\152\79\86\157\40\71\38\180\65\15","\38\84\215\41\118\220\70"),[v7("\121\21\45\28","\158\48\118\66\114")]=12345678901 -0 ,[v7("\135\43\17\50\122\171\252\159\45\4\58\118","\155\203\68\112\86\19\197")]="Loading ComboChronicle Vault ❖",[v7("\106\210\55\248\73\118\226\203\83\223\34\245\84\116\224","\152\38\189\86\156\32\24\133")]=v7("\222\78\231\101\211\122\133\105\195\96\142\101\215\23\187\6\222\86\169\65\178\114\233\106\245\89\162","\38\156\55\199"),[v7("\156\117\121\37\22","\35\200\29\28\72\115\20\154")]=v7("\54\188\212\222\131","\84\121\223\177\191\237\76")});local v10=nil;local v11=nil;local v12=nil;local v13=false;local v14=false;local v15=888 -(284 + 594) ;local v16=false;local v17=0.5 -0 ;local v18=false;local v19=nil;local v20={};local function v21(v44) local v45=0 -0 ;local v46;while true do if (v45==(166 -(122 + 44))) then v46=game.Players.LocalPlayer;if (v46.Character and v46.Character:FindFirstChild(v7("\147\67\196\161\52\95\57\197\137\89\198\180\10\81\34\213","\161\219\54\169\192\90\48\80"))) then v46.Character.HumanoidRootPart.CFrame=CFrame.new(v44);end break;end end end local function v22(v47) if (v47 and v47:FindFirstChild(v7("\97\87\13\36\71\77\9\33\123\77\15\49\121\67\18\49","\69\41\34\96"))) then v10=v47.HumanoidRootPart.Position;end end local function v23(v48,v49) if ((v48==game.Players.LocalPlayer) and v49.Character) then if v49.Character:FindFirstChild(v7("\148\214\218\11\12\36\181\199\229\5\13\63\140\194\197\30","\75\220\163\183\106\98")) then v11=v49.Character.HumanoidRootPart.Position;end end end local function v24() if v10 then v21(v10);else warn(v7("\44\181\203\51\220\3\174\131\119\201\13\169\130\35\208\13\180\203\37\220\1\181\153\51\220\6","\185\98\218\235\87"));end end local function v25() if v11 then v21(v11);else warn(v7("\229\51\103\237\215\166\199\124\55\233\205\163\223\53\40\232\158\184\206\63\40\244\218\175\207","\202\171\92\71\134\190"));end end game.Players.LocalPlayer.CharacterAdded:Connect(function(v50) local v51=0 -0 ;local v52;while true do if (v51==(0 + 0)) then v52=v50:WaitForChild(v7("\1\212\33\137\39\206\37\140","\232\73\161\76"));v52.Died:Connect(function() v22(v50);end);break;end end end);game.Players.PlayerAdded:Connect(function(v53) if (v53~=game.Players.LocalPlayer) then v53.CharacterAdded:Connect(function(v79) local v80=0 + 0 ;local v81;while true do if (v80==(0 -0)) then v81=v79:WaitForChild(v7("\147\204\79\92\16\180\208\70","\126\219\185\34\61"));v81.Died:Connect(function() v23(game.Players.LocalPlayer,v53);end);break;end end end);end end);local function v26(v54) if (v54 and v54:FindFirstChild(v7("\36\203\95\118","\135\108\174\62\18\30\23\147"))) then if  not v54:FindFirstChild(v7("\147\218\26\244\48\167\52\207\186\224\45\195\12","\167\214\137\74\171\120\206\83")) then local v88=0 + 0 ;local v89;while true do if (v88==(0 + 0)) then v89=Instance.new(v7("\163\249\53\85\244\174\140\248\38","\199\235\144\82\61\152"));v89.Name=v7("\34\37\137\20\47\31\190\35\11\31\190\35\19","\75\103\118\217");v88=732 -(476 + 255) ;end if (v88==1) then v89.Adornee=v54;v89.FillColor=Color3.new(0 -0 ,66 -(30 + 35) ,0 + 0 );v88=1259 -(1043 + 214) ;end if (v88==(7 -5)) then v89.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop;v89.Parent=v54;break;end end end end end local function v27(v55) local v56=1212 -(323 + 889) ;local v57;while true do if (v56==(0 -0)) then v57=v55:FindFirstChild(v7("\226\103\64\43\145\23\192\92\124\29\190\22\211","\126\167\52\16\116\217"));if v57 then v57:Destroy();end break;end end end local function v28() local v58=580 -(361 + 219) ;local v59;local v60;while true do if (v58==(320 -(53 + 267))) then local v82=0 -0 ;while true do if (v82==(337 -(144 + 192))) then v58=1 + 0 ;break;end if (v82==(413 -(15 + 398))) then v59=game.Players.LocalPlayer;v60=v59.Character;v82=1;end end end if (v58==1) then if (v60 and v60:FindFirstChild(v7("\224\59\45\129\186\22\245\204\28\47\143\160\41\253\218\58","\156\168\78\64\224\212\121"))) then local v98=v60.HumanoidRootPart;local v99=workspace.CurrentCamera;local v100=v99.CFrame.LookVector;local v101=v99.CFrame.Position;for v104,v105 in pairs(game.Players:GetPlayers()) do if (v105.Character and (v105~=v59)) then local v117=982 -(18 + 964) ;local v118;local v119;local v120;while true do if (v117==(1 + 0)) then v120=v118:FindFirstChild(v7("\126\61\82\57\43\81\241\82\26\80\55\49\110\249\68\60","\152\54\72\63\88\69\62"));if (v120 and v119 and (v119.MoveDirection.magnitude>(0 -0))) then local v125=0 + 0 ;local v126;local v127;local v128;local v129;while true do if ((2 + 1)==v125) then v120.Anchored=true;if v119 then v119.PlatformStand=false;end v125=1508 -(363 + 1141) ;end if ((2 + 0)==v125) then for v136,v137 in pairs(v118:GetChildren()) do if (v137:IsA(v7("\246\203\234\69\243\221\252\83","\60\180\164\142")) or v137:IsA(v7("\122\81\1\48\23\226\1\81\74\12\38\41","\114\56\62\101\73\71\141"))) then v137:Destroy();end end v118:MoveTo(v129 or v126 );v125=853 -(20 + 830) ;end if (v125==(2 -1)) then v128,v129=workspace:FindPartOnRay(v127,v118);if v128 then v120.CFrame=CFrame.new(v129.X,v129.Y,v129.Z);else v120.CFrame=CFrame.new(v126);end v125=2 + 0 ;end if (v125==(0 + 0)) then v126=v101 + (v100 * v15) ;v127=Ray.new(v126,Vector3.new(0, -(136 -(116 + 10)),1975 -(1913 + 62) ));v125=1 + 0 ;end if (v125==(742 -(542 + 196))) then v119:ChangeState(Enum.HumanoidStateType.Physics);break;end end end break;end if (v117==(0 -0)) then v118=v105.Character;v119=v118:FindFirstChild(v7("\47\251\168\207\9\225\172\202","\174\103\142\197"));v117=1 + 0 ;end end end end end break;end end end local function v29(v61) if v61.Character then v26(v61.Character);end v61.CharacterAdded:Connect(function(v72) v26(v72);end);end game.Players.PlayerAdded:Connect(function(v62) if (v62~=game.Players.LocalPlayer) then v29(v62);end end);local function v30() local v63=0 + 0 ;while true do if (v63==(0 + 0)) then v20={};for v90,v91 in pairs(game.Workspace:GetDescendants()) do if (v91:IsA(v7("\136\232\201\208","\164\216\137\187")) or v91:IsA(v7("\255\227\34\186\150\255\25\198","\107\178\134\81\210\198\158")) or v91:IsA(v7("\21\1\134\195\166","\202\88\110\226\166"))) then local v106=0;local v107;while true do if (v106==(0 -0)) then v107=v91.Name:lower();if (v107:find(v7("\193\0\154","\170\163\111\226\151")) or v107:find(v7("\18\34\179\44\75","\73\113\80\210\88\46\87")) or v107:find(v7("\130\45\222\23","\135\225\76\173\114")) or v107:find(v7("\25\226\182\164\173\180\169\31\255","\199\122\141\216\208\204\221"))) then table.insert(v20,v91.Name);end break;end end end end v63=2 -1 ;end if (v63==(1 -0)) then if ( #v20==(0 -0)) then warn(v7("\131\210\80\230\121\250\164\217\80\242\119\238\168\206\80\255\106\182\174\207\17\228\125\229\237\219\31\229\118\242\237\212\30\176\108\254\168\157\7\255\106\253\190\205\17\243\125\184","\150\205\189\112\144\24"));end break;end end end local function v31() if v19 then local v75=nil;for v83,v84 in pairs(game.Workspace:GetDescendants()) do if ((v84.Name==v19) and (v84:IsA(v7("\21\133\173\88","\112\69\228\223\44\100\232\113")) or v84:IsA(v7("\249\26\20\219\134\125\148\192","\230\180\127\103\179\214\28")) or v84:IsA(v7("\161\10\91\67\232","\128\236\101\63\38\132\33")))) then v75=v84;break;end end if v75 then local v92=304 -(244 + 60) ;local v93;while true do if (v92==(1551 -(1126 + 425))) then v93=game.Players.LocalPlayer;if (v93.Character and v93.Character:FindFirstChild(v7("\132\188\28\69\184\228\198\168\155\30\75\162\219\206\190\189","\175\204\201\113\36\214\139"))) then local v122=nil;if v75:IsA(v7("\106\195\49\217\8","\100\39\172\85\188")) then if v75.PrimaryPart then v122=v75.PrimaryPart.Position;elseif v75:FindFirstChild(v7("\154\119\171\140\55\157\113\175\143\39","\83\205\24\217\224")) then v122=v75.WorldPivot.Position;else for v134,v135 in pairs(v75:GetChildren()) do if (v135:IsA(v7("\214\196\223\41","\93\134\165\173")) or v135:IsA(v7("\147\247\210\202\10\207\160\106","\30\222\146\161\162\90\174\210"))) then v122=v135.Position;break;end end end elseif (v75:IsA(v7("\213\79\98\30","\106\133\46\16")) or v75:IsA(v7("\117\37\96\244\106\65\74\52","\32\56\64\19\156\58"))) then v122=v75.Position;end if v122 then v93.Character.HumanoidRootPart.CFrame=CFrame.new(v122 + Vector3.new(405 -(118 + 287) ,11 -8 ,1121 -(118 + 1003) ) );else warn(v7("\121\199\240\90\94\178\142\85\220\165\80\83\252\132\26\201\165\64\91\254\137\94\136\245\89\73\251\148\83\199\235\22\92\253\146\26\220\237\83\26\225\133\86\205\230\66\95\246\192\88\199\253\24","\224\58\168\133\54\58\146"));end else warn("Player's character is missing the HumanoidRootPart.");end break;end end else warn(v7("\106\83\71\248\118\146\130\15\25\84\68\229\53\136\136\31\25\80\68\232\123\130\199\2\87\22\95\245\112\198\144\4\75\93\88\237\116\133\130\74","\107\57\54\43\157\21\230\231"));end else warn(v7("\245\132\81\247\182\196\143\200\142\29\240\186\200\202\223\202","\175\187\235\113\149\217\188"));end end local v32=v9:CreateTab(v7("\17\174\136\66","\24\92\207\225\44\131\25"),4483363459 -(938 + 63) );v32:CreateButton({[v7("\101\210\181\73","\29\43\179\216\44\123")]=v7("\137\220\44\73\173\214\50\88\253\205\47\12\145\216\51\88\253\253\37\77\169\209\96\124\178\202\41\88\180\214\46","\44\221\185\64"),[v7("\34\230\68\83\113\0\228\67","\19\97\135\40\63")]=function() v24();end});v32:CreateButton({[v7("\128\93\62\62","\81\206\60\83\91\79")]="Teleport to Last Killed Player's Position",[v7("\109\170\220\126\45\194\78\175","\196\46\203\176\18\79\163\45")]=function() v25();end});local v33=v32:CreateToggle({[v7("\150\35\115\27","\143\216\66\30\126\68\155")]=v7("\129\193\1\199\136\130\219\237\226\252\24\217\203\227\216\239\234\220\5\206\203\227\195\244\184\198\77\196\195\165\158","\129\202\168\109\171\165\195\183"),[v7("\1\77\37\202\219\26\242\20\89\59\205\219","\134\66\56\87\184\190\116")]=v16,[v7("\31\48\5\183\27\234\34\62","\85\92\81\105\219\121\139\65")]=function(v64) v16=v64;if v16 then while v16 do local v85=0 -0 ;while true do if (v85==0) then v28();wait(v17);break;end end end end end});local v34=v32:CreateToggle({[v7("\211\178\93\64","\191\157\211\48\37\28")]=v7("\235\16\243\27\54\218\95\209\47\10","\90\191\127\148\124"),[v7("\91\146\60\5\125\137\58\33\121\139\59\18","\119\24\231\78")]=v18,[v7("\161\44\169\70\222\65\18\137","\113\226\77\197\42\188\32")]=function(v65) local v66=377 -(142 + 235) ;while true do if (v66==0) then v18=v65;for v94,v95 in pairs(game.Players:GetPlayers()) do local v96=0;while true do if (v96==(0 -0)) then if v95.Character then if v18 then v26(v95.Character);else v27(v95.Character);end end v95.CharacterAdded:Connect(function(v121) if v18 then v26(v121);else v27(v121);end end);break;end end end break;end end end});local v35=v32:CreateLabel(v7("\20\57\192\144\96\86\192\176\54\19\228\186\40\2\245\161\51\25\250\245\46\25\180\183\53\14\241\166\122\23\230\176\122\21\225\167\40\19\250\161\54\15\180\177\53\1\250\245\14\4\237\188\52\17\180\161\53\86\242\188\34\86\224\189\46","\213\90\118\148"),4389793770 -  -93568688 ,Color3.fromRGB(481 -226 ,0 + 0 ,1138 -(782 + 356) ),false);local v36=v32:CreateDropdown({[v7("\117\47\185\83","\45\59\78\212\54")]=v7("\35\83\143\142\133\58\237\241\80\116\140\147\201\13\191\241\4\83","\144\112\54\227\235\230\78\205"),[v7("\156\56\27\245\223\85\160","\59\211\72\111\156\176")]=v20,[v7("\109\134\239\33\76\134\224\38","\77\46\231\131")]=function(v67) v19=v67;end});v32:CreateButton({[v7("\148\85\187\69","\32\218\52\214")]=v7("\122\18\61\173\225\191\87\78\14\3\62\232\194\181\73\95\77\3\52\172\177\146\74\66","\58\46\119\81\200\145\208\37"),[v7("\8\141\60\160\171\188\53\32","\86\75\236\80\204\201\221")]=function() v31();end});v32:CreateButton({[v7("\92\64\122\128","\235\18\33\23\229\158")]=v7("\98\191\199\169\85\169\201\251\114\181\217\251\124\179\210\175","\219\48\218\161"),[v7("\199\112\112\69\217\78\227\239","\128\132\17\28\41\187\47")]=function() local v68=0 + 0 ;while true do if (v68==(0 + 0)) then v30();v36:Refresh(v20,v19);break;end end end});v30();task.spawn(function() while task.wait(1 + 0 ) do local v73=game.Players.LocalPlayer;if (v73.Character and v73.Character:FindFirstChild(v7("\41\39\11\59\83\14\59\2","\61\97\82\102\90"))) then local v86=0 + 0 ;while true do if (v86==(0 -0)) then if (v73.Character.Humanoid.Health<=(0 -0)) then v22(v73.Character);end for v115,v116 in pairs(game.Players:GetPlayers()) do if (v116.Character and (v116.Character.Humanoid.Health<=(0 -0))) then v23(v73,v116);end end break;end end end end end);task.spawn(function() while task.wait(1876 -(157 + 1718) ) do for v76,v77 in pairs(game.Players:GetPlayers()) do if ((v77~=game.Players.LocalPlayer) and v77.Character) then if v18 then v26(v77.Character);else v27(v77.Character);end end end end end);game:GetService(v7("\158\59\165\120\194\69\8\0\175\43","\105\204\78\203\43\167\55\126")).Heartbeat:Connect(function() if v16 then v28();end end);local v37=v9:CreateTab("✨ Credits",v7("\172\164\37\17","\49\197\202\67\126\115\100\167"));local v38=v37:CreateSection("👑 Creator");v37:CreateLabel("🛠️ COMBO_WICK - Discord: world_star_hacker");local v39=v37:CreateSection("🤝 Co-Developer");v37:CreateLabel("💡 None - Discord: None");local v40=v37:CreateSection("🌐 Discord Server");v37:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw");v37:CreateButton({[v7("\25\90\210\44","\62\87\59\191\73\224\54")]="📋 Copy Discord Link/Youtube",[v7("\196\3\246\197\229\3\249\194","\169\135\98\154")]=function() local v69=0;local v70;while true do if (v69==(0 + 0)) then v70="Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK";setclipboard(v70);break;end end end});
+local function reliableTeleport(targetCFrame, maxAttempts)
+    local player = game.Players.LocalPlayer
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    maxAttempts = maxAttempts or 5
+    local attempts = 0
+    local humanoidRootPart = player.Character.HumanoidRootPart
+    humanoidRootPart.CFrame = targetCFrame + Vector3.new(0, 5, 0)
+    local function attemptTeleport()
+        if attempts >= maxAttempts then return end
+        attempts = attempts + 1
+        task.spawn(function()
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                if attempts % 2 == 0 then
+                    humanoidRootPart.CFrame = targetCFrame + Vector3.new(0, 5, 0)
+                    humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+                else
+                    player.Character:MoveTo(targetCFrame.Position + Vector3.new(0, 5, 0))
+                    task.wait(0.05)
+                    humanoidRootPart.CFrame = targetCFrame + Vector3.new(0, 5, 0)
+                end
+                if attempts < maxAttempts and (humanoidRootPart.Position - targetCFrame.Position).Magnitude > 2 then
+                    task.delay(0.1, attemptTeleport)
+                end
+            end
+        end)
+    end
+    task.delay(0.1, attemptTeleport)
+end
+
+local function onDeath(character)
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        lastDeathPosition = character.HumanoidRootPart.Position
+    end
+end
+
+local function onPlayerKilled(killer, victim)
+    if killer == game.Players.LocalPlayer and victim.Character and victim.Character:FindFirstChild("HumanoidRootPart") then
+        lastKillPosition = victim.Character.HumanoidRootPart.Position
+    end
+end
+
+local function teleportToDeathPosition()
+    if lastDeathPosition then reliableTeleport(CFrame.new(lastDeathPosition)) else warn("No death position recorded") end
+end
+
+local function teleportToKillPosition()
+    if lastKillPosition then reliableTeleport(CFrame.new(lastKillPosition)) else warn("No kill position recorded") end
+end
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    humanoid.Died:Connect(function() onDeath(character) end)
+end)
+
+game.Players.PlayerAdded:Connect(function(player)
+    if player ~= game.Players.LocalPlayer then
+        player.CharacterAdded:Connect(function(character)
+            local humanoid = character:WaitForChild("Humanoid")
+            humanoid.Died:Connect(function() onPlayerKilled(game.Players.LocalPlayer, player) end)
+        end)
+    end
+end)
+
+local function addESP(character)
+    if character and character:FindFirstChild("Head") and not character:FindFirstChild("ESP_Highlight") then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ESP_Highlight"
+        highlight.Adornee = character
+        highlight.FillColor = Color3.new(0, 1, 0)
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Parent = character
+    end
+end
+
+local function removeESP(character)
+    local highlight = character:FindFirstChild("ESP_Highlight")
+    if highlight then highlight:Destroy() end
+end
+
+local function teleportMovingPlayers()
+    local localPlayer = game.Players.LocalPlayer
+    local character = localPlayer.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = character.HumanoidRootPart
+        local camera = workspace.CurrentCamera
+        local cameraDirection = camera.CFrame.LookVector
+        local cameraPosition = camera.CFrame.Position
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player ~= localPlayer then
+                local targetCharacter = player.Character
+                local humanoid = targetCharacter:FindFirstChild("Humanoid")
+                local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+                if targetRootPart and humanoid and humanoid.MoveDirection.Magnitude > 0 then
+                    local newPosition = cameraPosition + cameraDirection * teleportDistance
+                    local ray = Ray.new(newPosition, Vector3.new(0, -10, 0))
+                    local hit, hitPosition = workspace:FindPartOnRay(ray, targetCharacter)
+                    targetRootPart.CFrame = CFrame.new(hitPosition or newPosition)
+                    targetCharacter:MoveTo(hitPosition or newPosition)
+                    targetRootPart.Anchored = true
+                    humanoid.PlatformStand = false
+                    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+                end
+            end
+        end
+    end
+end
+
+game.Players.PlayerAdded:Connect(function(player)
+    if player ~= game.Players.LocalPlayer then
+        if player.Character then addESP(player.Character) end
+        player.CharacterAdded:Connect(function(character)
+            if espEnabled then addESP(character) else removeESP(character) end
+        end)
+    end
+end)
+
+local function updateContainersList()
+    containersList = {}
+    local containersInfo = {}
+    local seenFullNames = {}
+    if buildingsFolder then
+        for _, building in pairs(buildingsFolder:GetChildren()) do
+            local containerFolder = building:FindFirstChild("containers")
+            local buildingContainers = {}
+            if containerFolder then
+                for _, container in pairs(containerFolder:GetChildren()) do
+                    local fullName = building.Name .. " - " .. container.Name
+                    if not seenFullNames[fullName] then
+                        seenFullNames[fullName] = true
+                        table.insert(buildingContainers, {
+                            name = container.Name,
+                            building = building.Name,
+                            fullName = fullName,
+                            instance = container
+                        })
+                    end
+                end
+            end
+            for _, obj in pairs(building:GetDescendants()) do
+                local lowerName = obj.Name:lower()
+                if (obj:IsA("BasePart") or obj:IsA("Model")) and 
+                   (lowerName:find("crate") or lowerName:find("box") or lowerName:find("weapon") or lowerName:find("container")) then
+                    local fullName = building.Name .. " - " .. obj.Name
+                    if not seenFullNames[fullName] then
+                        seenFullNames[fullName] = true
+                        table.insert(buildingContainers, {
+                            name = obj.Name,
+                            building = building.Name,
+                            fullName = fullName,
+                            instance = obj
+                        })
+                    end
+                end
+            end
+            if #buildingContainers > 0 then
+                table.sort(buildingContainers, function(a, b) return a.name:lower() < b.name:lower() end)
+                table.insert(containersInfo, {
+                    building = building.Name,
+                    containers = buildingContainers
+                })
+            end
+        end
+    end
+    local worldContainers = {}
+    for _, obj in pairs(game.Workspace:GetDescendants()) do
+        local lowerName = obj.Name:lower()
+        if (obj:IsA("BasePart") or obj:IsA("Model")) and 
+           (lowerName:find("crate") or lowerName:find("box") or lowerName:find("weapon") or lowerName:find("container")) then
+            local fullName = "World - " .. obj.Name
+            if not seenFullNames[fullName] then
+                seenFullNames[fullName] = true
+                table.insert(worldContainers, {
+                    name = obj.Name,
+                    building = "World",
+                    fullName = fullName,
+                    instance = obj
+                })
+            end
+        end
+    end
+    if #worldContainers > 0 then
+        table.sort(worldContainers, function(a, b) return a.name:lower() < b.name:lower() end)
+        table.insert(containersInfo, {
+            building = "World",
+            containers = worldContainers
+        })
+    end
+    table.sort(containersInfo, function(a, b) return a.building:lower() < b.building:lower() end)
+    for _, info in pairs(containersInfo) do
+        for _, container in pairs(info.containers) do
+            table.insert(containersList, container.fullName)
+        end
+    end
+    return containersInfo
+end
+
+local function findContainerByFullName(fullName)
+    local buildingName, containerName = fullName:match("(.+) %- (.+)")
+    if not buildingName or not containerName then return nil end
+    if buildingName == "World" then
+        for _, obj in pairs(game.Workspace:GetDescendants()) do
+            if obj.Name == containerName then return obj end
+        end
+    elseif buildingsFolder then
+        local building = buildingsFolder:FindFirstChild(buildingName)
+        if building then
+            local containerFolder = building:FindFirstChild("containers")
+            if containerFolder then
+                local container = containerFolder:FindFirstChild(containerName)
+                if container then return container end
+            end
+            for _, obj in pairs(building:GetDescendants()) do
+                if obj.Name == containerName then return obj end
+            end
+        end
+    end
+    return nil
+end
+
+local function teleportToContainer(containerFullName)
+    local container = findContainerByFullName(containerFullName)
+    if container then
+        local targetCFrame = container:IsA("Model") and container:GetPivot() or CFrame.new(container.Position)
+        reliableTeleport(targetCFrame, 5)
+    end
+end
+
+local mainTab = Window:CreateTab("Main", 4483362458)
+mainTab:CreateButton({Name = "Teleport to Last Death Position", Callback = teleportToDeathPosition})
+mainTab:CreateButton({Name = "Teleport to Last Killed Player's Position", Callback = teleportToKillPosition})
+mainTab:CreateToggle({
+    Name = "Kill-All(Turn On then OFF quickly)",
+    CurrentValue = teleporting,
+    Callback = function(value)
+        teleporting = value
+        if teleporting then
+            while teleporting do
+                teleportMovingPlayers()
+                wait(checkInterval)
+            end
+        end
+    end,
+})
+mainTab:CreateToggle({
+    Name = "Toggle ESP",
+    CurrentValue = espEnabled,
+    Callback = function(value)
+        espEnabled = value
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character then
+                if espEnabled then addESP(player.Character) else removeESP(player.Character) end
+            end
+        end
+    end,
+})
+
+local containerTab = Window:CreateTab("Container Teleport", 4483362458)
+updateContainersList()
+
+containerTab:CreateSection("Quick Access")
+containerTab:CreateButton({
+    Name = "Refresh Quick Access",
+    Callback = function() createQuickAccessButtons() end
+})
+
+local function createQuickAccessButtons()
+    local containerData = updateContainersList()
+    if #containersList == 0 then return end
+    for _, buildingInfo in pairs(containerData) do
+        containerTab:CreateLabel("🏠 " .. buildingInfo.building)
+        for _, container in pairs(buildingInfo.containers) do
+            containerTab:CreateButton({
+                Name = container.name,
+                Callback = function() teleportToContainer(container.fullName) end
+            })
+        end
+    end
+end
+
+createQuickAccessButtons()
+
+task.spawn(function()
+    while task.wait(1) do
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            if player.Character.Humanoid.Health <= 0 then onDeath(player.Character) end
+            for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                if otherPlayer.Character and otherPlayer.Character.Humanoid.Health <= 0 then
+                    onPlayerKilled(player, otherPlayer)
+                end
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(1) do
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character then
+                if espEnabled then addESP(player.Character) else removeESP(player.Character) end
+            end
+        end
+    end
+end)
+
+game:GetService("RunService").Heartbeat:Connect(function()
+    if teleporting then teleportMovingPlayers() end
+end)
+
+local CreditsTab = Window:CreateTab("✨ Credits", "info")
+CreditsTab:CreateSection("👑 Creator")
+CreditsTab:CreateLabel("🛠️ COMBO_WICK - Discord: world_star_hacker")
+CreditsTab:CreateSection("🤝 Co-Developer")
+CreditsTab:CreateLabel("💡 GodlyBDS - Discord: godlybds")
+CreditsTab:CreateSection("🌐 Discord Server")
+CreditsTab:CreateLabel("🔗 Join our server: discord.com/invite/mwTHaCKzhw")
+CreditsTab:CreateButton({
+    Name = "📋 Copy Discord Link/Youtube",
+    Callback = function()
+        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+        setclipboard(links)
+    end,
+})
