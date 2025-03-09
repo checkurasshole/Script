@@ -28,6 +28,7 @@ local scriptURLs = {
     [11276071411] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/B-NPC-R-DIE",  -- Be NPC or DIE!
     [3351674303] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/DRIVING%20EMPIRE",  -- Driving Empire
     [125723653259639] = "https://raw.githubusercontent.com/theodorzeidos/drillgame/refs/heads/main/drillgame",  -- Drilling thhingy game
+    [147848991] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Be%20A%20Parkour%20Ninja",  -- Parkour Ninja
 }
 
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
