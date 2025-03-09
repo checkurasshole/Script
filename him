@@ -1,0 +1,105 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local function getLatestKey()
+    local success, response = pcall(function()
+        return game:HttpGet("https://pastebin.com/raw/ZWFwRjBJ") -- Replace with your Pastebin raw URL
+    end)
+    return success and response or "Key22Changed"
+end
+
+local keyRequired = getLatestKey()
+local scriptURLs = {
+    [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",  -- Game 1
+    [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",  -- Game 2
+    [155615604] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",  -- Game 3
+    [76455837887178] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",  -- Game 4
+    [7920018625] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Nuke%20Tycoon%20Nuclear",  -- Game 5
+    [15694891095] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TheOneV1",  -- Game 6
+    [106266102947071] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- DAY OF INFAMY D-DAY
+    [15948669967] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- TNB Shootout in Baixada Brazil
+    [77074973013032] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Zamora, Michoacan
+    [17333357466] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Nuevo Laredo, Tamaulipas
+    [8233004585] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Syrian Shenanigans [B1]
+    [11638805019] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Colombia
+    [15599178512] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- West Chicago
+    [16291041162] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Zeus FPS - Troca de Tiro RJ
+    [84000476186267] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Brecha 9 Rio Bravo [NEW MAP]
+    [9679014784] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Afghanistan
+    [18365888493] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Nogales-Mexico-Actualizacion
+    [16168039994] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- TNP - Shootout in Penha Brazil
+    [3678761576] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ENTRENCHED_WW1",  -- ENTRENCHED WW1
+    [8735521924] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- CENTAURA
+    [6654918151] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Trench War
+    [17209126270] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- Rancheria, Nuevo Leon
+    [5732301513] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",  -- TRENCHES
+    [11276071411] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/B-NPC-R-DIE",  -- Be NPC or DIE!
+    [3351674303] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/DRIVING%20EMPIRE",  -- Driving Empire
+    [125723653259639] = "https://raw.githubusercontent.com/theodorzeidos/drillgame/refs/heads/main/drillgame",  -- Drilling thhingy game
+}
+
+local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
+local gameId = game.PlaceId
+local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
+
+-- GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Game Loader",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Key and Credits Tab
+local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
+
+KeyTab:CreateInput({
+    Name = "Enter Key",
+    PlaceholderText = "Type the key here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(input)
+        if input == keyRequired then
+            Rayfield:Destroy() -- Close the GUI
+            print("Loading script for game ID: " .. tostring(gameId))
+            
+            if gameId == 5223287266 then -- Phoenix Grounds (Loads Two Scripts)
+                print("Loading multiple scripts for Phoenix Grounds")
+                local success1, err1 = pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"))()
+                end)
+                if not success1 then warn("Error loading first script: " .. err1) end
+                
+                local success2, err2 = pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"))()
+                end)
+                if not success2 then warn("Error loading second script: " .. err2) end
+            else
+                print("Script URL: " .. scriptToLoad)
+                local success, err = pcall(function()
+                    loadstring(game:HttpGet(scriptToLoad))()
+                end)
+                if not success then warn("Error loading script: " .. err) end
+            end
+        else
+            Rayfield:Notify({
+                Title = "❌ Incorrect Key",
+                Content = "Join the Discord to get the correct key!",
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+KeyTab:CreateButton({
+    Name = "📋 Copy Discord Link/YouTube",
+    Callback = function()
+        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+        setclipboard(links)
+        Rayfield:Notify({
+            Title = "✅ Links Copied",
+            Content = "Discord and YouTube links have been copied to your clipboard!",
+            Duration = 5,
+            Image = 4483362458
+        })
+    end,
+})
