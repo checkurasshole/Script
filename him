@@ -1,29 +1,103 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local HttpService = game:GetService("HttpService")
 
-local function getLatestKey() -- Same as yours
+-- Fetch latest key from Pastebin
+local function getLatestKey()
     local success, response = pcall(function()
         return game:HttpGet("https://pastebin.com/raw/ZWFwRjBJ")
     end)
+    if not success then
+        warn("Failed to fetch key: " .. response)
+        Rayfield:Notify({
+            Title = "⚠️ Key Fetch Failed",
+            Content = "Using fallback key. Check connection!",
+            Duration = 5,
+            Image = 4483362458
+        })
+    end
     return success and response or "Key22Changed"
 end
 
+-- Fetch script URLs dynamically
 local function getScriptURLs()
     local success, response = pcall(function()
+        -- Replace with your Pastebin raw URL for script list if you set one up
         return HttpService:JSONDecode(game:HttpGet("https://pastebin.com/raw/your_scripts"))
     end)
-    return success and response or { -- Fallback
+    return success and response or { -- Fallback hardcoded list
         [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",
-        -- Add others as needed...
+        [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",
+        [155615604] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",
+        [76455837887178] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",
+        [7920018625] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Nuke%20Tycoon%20Nuclear",
+        [15694891095] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TheOneV1",
+        [106266102947071] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [15948669967] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [77074973013032] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [17333357466] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [8233004585] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [11638805019] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [15599178512] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [16291041162] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [84000476186267] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [9679014784] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [18365888493] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [16168039994] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [3678761576] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ENTRENCHED_WW1",
+        [8735521924] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [6654918151] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [17209126270] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [5732301513] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
+        [11276071411] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/B-NPC-R-DIE",
+        [3351674303] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/DRIVING%20EMPIRE",
+        [125723653259639] = "https://raw.githubusercontent.com/theodorzeidos/drillgame/refs/heads/main/drillgame"
     }
 end
 
-local keyRequired = getLatestKey()
+-- Error logging to Discord webhook
+local webhookUrl = "https://discord.com/api/webhooks/1348317540585308261/Odr4ATl9hJMK67GOxYmSLq4sTr4B43waCLUv48LtmHIRtpBEGqt-iT-rRN803Kjh5chF"
+local function logError(err)
+    pcall(function()
+        HttpService:PostAsync(webhookUrl, HttpService:JSONEncode({
+            content = "Error in ComboChronicle Vault\nGame ID: " .. game.PlaceId .. "\nError: " .. tostring(err)
+        }))
+    end)
+end
+
+-- Subscription check (optional, uncomment to use)
+--[[
+local function checkSubscription(userId)
+    local success, response = pcall(function()
+        return game:HttpGet("https://your-server.com/check?user=" .. userId)
+    end)
+    return success and response == "valid" or false
+end
+--]]
+
+-- Anti-tamper key validation
+local function getLatestKeyWithChecksum()
+    local success, response = pcall(function()
+        local raw = game:HttpGet("https://pastebin.com/raw/ZWFwRjBJ")
+        local key, checksum = raw:match("([^|]+)|([^|]+)")
+        return key, checksum == tostring(#key * 42)
+    end)
+    if success and response then
+        return response, true
+    else
+        logError("Key fetch failed or tampered: " .. tostring(response))
+        return "Key22Changed", false
+    end
+end
+
+local keyRequired, isValid = getLatestKeyWithChecksum()
+if not isValid then warn("Key integrity check failed, using fallback.") end
+
 local scriptURLs = getScriptURLs()
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 local gameId = game.PlaceId
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
 
+-- GUI Setup
 local Window = Rayfield:CreateWindow({
     Name = "ComboChronicle Vault | Game Loader",
     LoadingTitle = "Loading ComboChronicle Vault ❖",
@@ -31,36 +105,126 @@ local Window = Rayfield:CreateWindow({
     Theme = "Ocean"
 })
 
+-- Key & Credits Tab
 local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
+local lastAttempt = 0
+local cooldown = 5
+
+-- Theme selector (fixed for Rayfield)
 KeyTab:CreateDropdown({
     Name = "Select Theme",
     Options = {"Ocean", "Dark", "Light", "Mocha"},
-    CurrentOption = "Ocean",
-    Callback = function(theme) Window:SetTheme(theme) end
+    CurrentOption = {"Ocean"}, -- Rayfield expects a table for CurrentOption
+    Callback = function(option)
+        Window:SetTheme(option) -- Single string, not a table
+    end
 })
+
 KeyTab:CreateInput({
     Name = "Enter Key",
     PlaceholderText = "Type the key here...",
+    RemoveTextAfterFocusLost = false,
     Callback = function(input)
+        if os.time() - lastAttempt < cooldown then
+            Rayfield:Notify({
+                Title = "⏲️ Slow Down",
+                Content = "Wait " .. cooldown .. " seconds!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return
+        end
+        lastAttempt = os.time()
         Rayfield:Notify({Title = "⏳ Checking", Content = "Verifying key...", Duration = 2})
         task.wait(0.5)
         if input == keyRequired then
             Rayfield:Notify({Title = "✅ Success", Content = "Loading script...", Duration = 3})
             Rayfield:Destroy()
             print("Loading script for game ID: " .. gameId)
-            local success, err = pcall(function()
-                loadstring(game:HttpGet(scriptToLoad))()
-            end)
-            if not success then warn("Error: " .. err) end
+            if gameId == 5223287266 then
+                print("Loading multiple scripts for Phoenix Grounds")
+                local success1, err1 = pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"))()
+                end)
+                if not success1 then logError(err1); warn("Error loading first script: " .. err1) end
+                local success2, err2 = pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"))()
+                end)
+                if not success2 then logError(err2); warn("Error loading second script: " .. err2) end
+            else
+                print("Script URL: " .. scriptToLoad)
+                local success, err = pcall(function()
+                    loadstring(game:HttpGet(scriptToLoad))()
+                end)
+                if not success then logError(err); warn("Error: " .. err) end
+            end
         else
-            Rayfield:Notify({Title = "❌ Wrong Key", Content = "Join Discord!", Duration = 5, Image = 4483362458})
+            Rayfield:Notify({
+                Title = "❌ Incorrect Key",
+                Content = "Join Discord for the correct key!",
+                Duration = 5,
+                Image = 4483362458
+            })
         end
     end
 })
+
 KeyTab:CreateButton({
     Name = "📋 Copy Links",
     Callback = function()
         setclipboard("Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK")
-        Rayfield:Notify({Title = "✅ Copied", Content = "Links copied!", Duration = 5})
+        Rayfield:Notify({Title = "✅ Copied", Content = "Links copied!", Duration = 5, Image = 4483362458})
     end
 })
+
+-- News Tab with live updates
+local NewsTab = Window:CreateTab("News", 4483362458)
+local newsParagraph = NewsTab:CreateParagraph({
+    Title = "Latest Updates",
+    Content = "Fetching news..."
+})
+spawn(function()
+    while task.wait(60) do
+        local success, news = pcall(function()
+            return game:HttpGet("https://pastebin.com/raw/your_news_id") -- Replace with your news source
+        end)
+        if success then
+            newsParagraph:Set({Title = "Latest Updates", Content = news})
+        else
+            newsParagraph:Set({Title = "Update Failed", Content = "Check back later!"})
+            logError("News fetch failed: " .. news)
+        end
+    end
+end)
+
+-- Dynamic Script Injection (for games with multiple scripts)
+local multiScriptGames = {
+    [5223287266] = {
+        {"Phoenix Grounds", "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"},
+        {"Teleport Behind", "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"}
+    }
+}
+if multiScriptGames[gameId] then
+    KeyTab:CreateDropdown({
+        Name = "Select Script",
+        Options = (function()
+            local opts = {}
+            for _, script in pairs(multiScriptGames[gameId]) do
+                table.insert(opts, script[1])
+            end
+            return opts
+        end)(),
+        CurrentOption = {multiScriptGames[gameId][1][1]}, -- First script as default
+        Callback = function(option)
+            for _, script in pairs(multiScriptGames[gameId]) do
+                if script[1] == option then
+                    local success, err = pcall(function()
+                        loadstring(game:HttpGet(script[2]))()
+                    end)
+                    if not success then logError(err); warn("Error: " .. err) end
+                    break
+                end
+            end
+        end
+    })
+end
