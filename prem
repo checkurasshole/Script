@@ -8,9 +8,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting = game:GetService("Lighting")
 
 local Window = Rayfield:CreateWindow({
-    Name = "🔥 COMBO_WICK Apocalypse Unleashed 🔥",
-    LoadingTitle = "⚡ Summoning the Apocalypse ⚡",
-    LoadingSubtitle = "by Theodorzeidos & COMBO_WICK",
+    Name = "🔥 Theodor's Beyond Insane V2 GUI 🔥",
+    LoadingTitle = "⚡ Summoning the Apocalypse V2 ⚡",
+    LoadingSubtitle = "by Theodorzeidos - God of Chaos",
     ConfigurationSaving = {Enabled = true, FolderName = "TheodorBeyondV2", FileName = "DragonApocalypseV2"},
     Discord = {Enabled = true, Invite = "YOUR_DISCORD_INVITE", RememberJoins = true},
     KeySystem = false,
@@ -462,5 +462,3 @@ spawn(function()
 end)
 
 Rayfield:LoadConfiguration()
-message.txt
-15 KB
