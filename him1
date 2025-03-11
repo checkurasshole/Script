@@ -252,10 +252,10 @@ local function updateSubStatus()
     end
 end
 spawn(function()
-    wait(2)
+    wait(2) -- Wait for fetch
     updateSubStatus()
     while true do
-        wait(60)
+        wait(60) -- Update every minute
         updateSubStatus()
     end
 end)
@@ -263,12 +263,12 @@ end)
 -- Credits Tab
 local CreditsTab = Window:CreateTab("💰 Vault Credits", 4483362458)
 local vaultCredits = 0
-local creditsParagraph = CreditsTab:CreateParagraph({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
+CreditsTab:CreateParagraph({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
 CreditsTab:CreateButton({
     Name = "🎁 Claim Daily",
     Callback = function()
         vaultCredits = vaultCredits + 50
-        creditsParagraph:Set({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
+        CreditsTab:UpdateParagraph({Content = "Balance: " .. vaultCredits .. " VC"})
         Rayfield:Notify({Title = "💰 Claimed", Content = "+50 Vault Credits!", Duration = 3})
         sendWebhook({
             title = "💰 Credit Claim",
@@ -278,76 +278,52 @@ CreditsTab:CreateButton({
         })
     end
 })
+CreditsTab:CreateLabel("Use credits for exclusive features soon!")
 
--- Store Tab
-local StoreTab = Window:CreateTab("🛒 Store", 4483362458)
-StoreTab:CreateSection("💼 Premium Scripts")
-
-local storeItems = {
-    {name = "Admin Commands", price = 250, id = "admin"},
-    {name = "Silent Aim", price = 500, id = "silentaim"},
-    {name = "Server Crasher", price = 750, id = "crasher"}
-}
-
-for _, item in ipairs(storeItems) do
-    StoreTab:CreateButton({
-        Name = item.name .. " - " .. item.price .. " VC",
-        Callback = function()
-            if vaultCredits >= item.price then
-                vaultCredits = vaultCredits - item.price
-                creditsParagraph:Set({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
-                Rayfield:Notify({Title = "✅ Purchased", Content = "Unlocked " .. item.name .. "!", Duration = 3})
-                sendWebhook({
-                    title = "🛒 Store Purchase",
-                    description = LocalPlayer.DisplayName .. " purchased " .. item.name,
-                    color = 16776960,
-                    timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-                })
-            else
-                Rayfield:Notify({Title = "❌ Insufficient", Content = "Not enough credits!", Duration = 3})
-            end
-        end
-    })
+-- Stats Tab
+local StatsTab = Window:CreateTab("📊 Live Stats", 4483362458)
+local function updateStats()
+    local statsText = "👤 Players: " .. #Players:GetPlayers() .. "\n"
+    statsText = statsText .. "🏃 Speed: " .. (LocalPlayer.Character and LocalPlayer.Character.Humanoid.WalkSpeed or "N/A") .. "\n"
+    statsText = statsText .. "❤️ Health: " .. (LocalPlayer.Character and LocalPlayer.Character.Humanoid.Health or "N/A")
+    return statsText
 end
-
--- Settings Tab
-local SettingsTab = Window:CreateTab("⚙️ Settings", 4483362458)
-SettingsTab:CreateToggle({
-    Name = "Auto Execute",
-    CurrentValue = false,
-    Flag = "AutoExecute",
-    Callback = function(value)
-        Rayfield:Notify({Title = "⚙️ Settings", Content = "Auto Execute: " .. (value and "Enabled" or "Disabled"), Duration = 3})
+local statsParagraph = StatsTab:CreateParagraph({Title = "📈 Player Stats", Content = updateStats()})
+spawn(function()
+    while true do
+        wait(5)
+        statsParagraph:Set({Content = updateStats()})
     end
-})
+end)
 
-SettingsTab:CreateDropdown({
-    Name = "Theme",
-    Options = {"Ocean", "Dark", "Light", "Midnight"},
-    CurrentOption = "Ocean",
-    Flag = "ThemeSelection",
-    Callback = function(option)
-        Rayfield:Notify({Title = "⚙️ Settings", Content = "Theme will change next launch", Duration = 3})
+-- Challenges Tab
+local ChallengeTab = Window:CreateTab("🏆 Challenges", 4483362458)
+local challenges = {
+    {name = "Login Streak", progress = 1, goal = 5, reward = 100},
+    {name = "Feedback Pro", progress = 0, goal = 3, reward = 150}
+}
+local function updateChallenges()
+    local text = "🏆 Active Challenges 🏆\n"
+    for i, challenge in ipairs(challenges) do
+        text = text .. challenge.name .. ": " .. challenge.progress .. "/" .. challenge.goal .. " (Reward: " .. challenge.reward .. " VC)\n"
+    end
+    return text
+end
+local challengeParagraph = ChallengeTab:CreateParagraph({Title = "🎯 Goals", Content = updateChallenges()})
+ChallengeTab:CreateButton({
+    Name = "🔄 Refresh Progress",
+    Callback = function()
+        challenges[1].progress = math.min(challenges[1].progress + 1, challenges[1].goal)
+        if challenges[1].progress == challenges[1].goal then
+            vaultCredits = vaultCredits + challenges[1].reward
+            CreditsTab:UpdateParagraph({Content = "Balance: " .. vaultCredits .. " VC"})
+            Rayfield:Notify({Title = "🏆 Completed", Content = "Login Streak done! +100 VC", Duration = 5})
+            challenges[1].progress = 0
+        end
+        challengeParagraph:Set({Content = updateChallenges()})
     end
 })
 
 -- Initialize
-spawn(function()
-    sendExecutionWebhook()
-end)
-
--- Game Detection
-if gameId == 5223287266 then
-    local PhoenixTab = Window:CreateTab("🔥 Phoenix Grounds", 4483362458)
-    PhoenixTab:CreateButton({
-        Name = "Quick Load Scripts",
-        Callback = function()
-            if isSubscribed(LocalPlayer.UserId) then
-                Rayfield:Notify({Title = "⭐ Premium", Content = "Loading VIP scripts...", Duration = 3})
-                -- Premium script loading would go here
-            else
-                Rayfield:Notify({Title = "⚠️ Notice", Content = "Subscribe for instant loading!", Duration = 3})
-            end
-        end
-    })
-end
+sendExecutionWebhook()
+print("ComboChronicle Vault NextGen loaded!")
