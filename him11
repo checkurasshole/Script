@@ -13,19 +13,19 @@ spawn(function()
 end)
 
 -- Subscription keys system
-local SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG" -- Your Pastebin URL
+local SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG"
 local subscribedUsers = {}
 local function fetchSubscriptions()
     local success, data = pcall(function()
         return game:HttpGet(SUBSCRIPTION_URL)
     end)
     if success then
-        print("Subscription data fetched: " .. data) -- Debug
+        print("Subscription data fetched: " .. data)
         for line in data:gmatch("[^\n]+") do
             local userId, expiry = line:match("(%d+):(%d+)")
             if userId and expiry then
                 subscribedUsers[tonumber(userId)] = tonumber(expiry)
-                print("Loaded subscription - UserID: " .. userId .. ", Expiry: " .. expiry) -- Debug
+                print("Loaded subscription - UserID: " .. userId .. ", Expiry: " .. expiry)
             end
         end
     else
@@ -37,10 +37,10 @@ spawn(function() fetchSubscriptions() end)
 local function isSubscribed(userId)
     local expiry = subscribedUsers[userId]
     if expiry and os.time() < expiry then
-        print("User " .. userId .. " is subscribed until " .. expiry) -- Debug
+        print("User " .. userId .. " is subscribed until " .. expiry)
         return true
     end
-    print("User " .. userId .. " is not subscribed or expired") -- Debug
+    print("User " .. userId .. " is not subscribed or expired")
     return false
 end
 
@@ -225,7 +225,7 @@ end
 spawn(function() wait(1) updateNews() end)
 spawn(function() while true do wait(60) updateNews() end end)
 
--- Subscription Tab
+-- Subscription Tab with Countdown
 local SubTab = Window:CreateTab("⭐ Subscription", 4483362458)
 local subParagraph = SubTab:CreateParagraph({
     Title = "⭐ Vault Elite",
@@ -240,58 +240,35 @@ SubTab:CreateButton({
 })
 local function updateSubStatus()
     if isSubscribed(LocalPlayer.UserId) then
-        subParagraph:Set({Content = "Status: Subscribed!\nPerks: Early updates, VIP scripts"})
+        local expiry = subscribedUsers[LocalPlayer.UserId]
+        local secondsLeft = expiry - os.time()
+        local daysLeft = math.floor(secondsLeft / (24 * 60 * 60))
+        local hoursLeft = math.floor((secondsLeft % (24 * 60 * 60)) / (60 * 60))
+        subParagraph:Set({
+            Content = "Status: Subscribed!\nPerks: Early updates, VIP scripts\nExpires in: " .. daysLeft .. " days, " .. hoursLeft .. " hours"
+        })
     else
         subParagraph:Set({Content = "Status: Not Subscribed\nGet perks at our Discord!"})
     end
 end
 spawn(function()
-    wait(2) -- Give time for fetchSubscriptions to complete
+    wait(2)
     updateSubStatus()
-end)
-
--- Radio Tab
-local RadioTab = Window:CreateTab("📻 Vault Radio", 4483362458)
-local radioMessages = {"Welcome to the Vault!", "Stay tuned for epic updates!", "ComboChronicle is evolving!"}
-local radioIndex = 1
-RadioTab:CreateParagraph({Title = "🎙️ Live Broadcast", Content = radioMessages[radioIndex]})
-spawn(function()
     while true do
-        wait(10)
-        radioIndex = (radioIndex % #radioMessages) + 1
-        RadioTab:UpdateParagraph({Content = radioMessages[radioIndex]})
+        wait(60)
+        updateSubStatus()
     end
 end)
-RadioTab:CreateButton({
-    Name = "📡 Suggest Broadcast",
-    Callback = function()
-        Rayfield:Notify({Title = "📻 Radio", Content = "Submit via Responses tab!", Duration = 3})
-    end
-})
-
--- Theme Tab
-local ThemeTab = Window:CreateTab("🎨 Themes", 4483362458)
-local themes = {"Ocean", "Dark", "Light", "Rose", "Aqua"}
-ThemeTab:CreateButton({
-    Name = "🔄 Cycle Theme",
-    Callback = function()
-        local currentTheme = Window:GetConfig().Theme
-        local nextIndex = ((table.find(themes, currentTheme) or 1) % #themes) + 1
-        Window:SetTheme(themes[nextIndex])
-        Rayfield:Notify({Title = "🎨 Theme", Content = "Switched to " .. themes[nextIndex], Duration = 3})
-    end
-})
-ThemeTab:CreateLabel("Current: " .. Window:GetConfig().Theme)
 
 -- Credits Tab
 local CreditsTab = Window:CreateTab("💰 Vault Credits", 4483362458)
 local vaultCredits = 0
-CreditsTab:CreateParagraph({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
+local creditsParagraph = CreditsTab:CreateParagraph({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
 CreditsTab:CreateButton({
     Name = "🎁 Claim Daily",
     Callback = function()
         vaultCredits = vaultCredits + 50
-        CreditsTab:UpdateParagraph({Content = "Balance: " .. vaultCredits .. " VC"})
+        creditsParagraph:Set({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
         Rayfield:Notify({Title = "💰 Claimed", Content = "+50 Vault Credits!", Duration = 3})
         sendWebhook({
             title = "💰 Credit Claim",
@@ -301,52 +278,76 @@ CreditsTab:CreateButton({
         })
     end
 })
-CreditsTab:CreateLabel("Use credits for exclusive features soon!")
 
--- Stats Tab
-local StatsTab = Window:CreateTab("📊 Live Stats", 4483362458)
-local function updateStats()
-    local statsText = "👤 Players: " .. #Players:GetPlayers() .. "\n"
-    statsText = statsText .. "🏃 Speed: " .. (LocalPlayer.Character and LocalPlayer.Character.Humanoid.WalkSpeed or "N/A") .. "\n"
-    statsText = statsText .. "❤️ Health: " .. (LocalPlayer.Character and LocalPlayer.Character.Humanoid.Health or "N/A")
-    return statsText
-end
-local statsParagraph = StatsTab:CreateParagraph({Title = "📈 Player Stats", Content = updateStats()})
-spawn(function()
-    while true do
-        wait(5)
-        statsParagraph:Set({Content = updateStats()})
-    end
-end)
+-- Store Tab
+local StoreTab = Window:CreateTab("🛒 Store", 4483362458)
+StoreTab:CreateSection("💼 Premium Scripts")
 
--- Challenges Tab
-local ChallengeTab = Window:CreateTab("🏆 Challenges", 4483362458)
-local challenges = {
-    {name = "Login Streak", progress = 1, goal = 5, reward = 100},
-    {name = "Feedback Pro", progress = 0, goal = 3, reward = 150}
+local storeItems = {
+    {name = "Admin Commands", price = 250, id = "admin"},
+    {name = "Silent Aim", price = 500, id = "silentaim"},
+    {name = "Server Crasher", price = 750, id = "crasher"}
 }
-local function updateChallenges()
-    local text = "🏆 Active Challenges 🏆\n"
-    for i, challenge in ipairs(challenges) do
-        text = text .. challenge.name .. ": " .. challenge.progress .. "/" .. challenge.goal .. " (Reward: " .. challenge.reward .. " VC)\n"
-    end
-    return text
-end
-local challengeParagraph = ChallengeTab:CreateParagraph({Title = "🎯 Goals", Content = updateChallenges()})
-ChallengeTab:CreateButton({
-    Name = "🔄 Refresh Progress",
-    Callback = function()
-        challenges[1].progress = math.min(challenges[1].progress + 1, challenges[1].goal)
-        if challenges[1].progress == challenges[1].goal then
-            vaultCredits = vaultCredits + challenges[1].reward
-            CreditsTab:UpdateParagraph({Content = "Balance: " .. vaultCredits .. " VC"})
-            Rayfield:Notify({Title = "🏆 Completed", Content = "Login Streak done! +100 VC", Duration = 5})
-            challenges[1].progress = 0
+
+for _, item in ipairs(storeItems) do
+    StoreTab:CreateButton({
+        Name = item.name .. " - " .. item.price .. " VC",
+        Callback = function()
+            if vaultCredits >= item.price then
+                vaultCredits = vaultCredits - item.price
+                creditsParagraph:Set({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
+                Rayfield:Notify({Title = "✅ Purchased", Content = "Unlocked " .. item.name .. "!", Duration = 3})
+                sendWebhook({
+                    title = "🛒 Store Purchase",
+                    description = LocalPlayer.DisplayName .. " purchased " .. item.name,
+                    color = 16776960,
+                    timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+                })
+            else
+                Rayfield:Notify({Title = "❌ Insufficient", Content = "Not enough credits!", Duration = 3})
+            end
         end
-        challengeParagraph:Set({Content = updateChallenges()})
+    })
+end
+
+-- Settings Tab
+local SettingsTab = Window:CreateTab("⚙️ Settings", 4483362458)
+SettingsTab:CreateToggle({
+    Name = "Auto Execute",
+    CurrentValue = false,
+    Flag = "AutoExecute",
+    Callback = function(value)
+        Rayfield:Notify({Title = "⚙️ Settings", Content = "Auto Execute: " .. (value and "Enabled" or "Disabled"), Duration = 3})
+    end
+})
+
+SettingsTab:CreateDropdown({
+    Name = "Theme",
+    Options = {"Ocean", "Dark", "Light", "Midnight"},
+    CurrentOption = "Ocean",
+    Flag = "ThemeSelection",
+    Callback = function(option)
+        Rayfield:Notify({Title = "⚙️ Settings", Content = "Theme will change next launch", Duration = 3})
     end
 })
 
 -- Initialize
-sendExecutionWebhook()
-print("ComboChronicle Vault NextGen loaded!")
+spawn(function()
+    sendExecutionWebhook()
+end)
+
+-- Game Detection
+if gameId == 5223287266 then
+    local PhoenixTab = Window:CreateTab("🔥 Phoenix Grounds", 4483362458)
+    PhoenixTab:CreateButton({
+        Name = "Quick Load Scripts",
+        Callback = function()
+            if isSubscribed(LocalPlayer.UserId) then
+                Rayfield:Notify({Title = "⭐ Premium", Content = "Loading VIP scripts...", Duration = 3})
+                -- Premium script loading would go here
+            else
+                Rayfield:Notify({Title = "⚠️ Notice", Content = "Subscribe for instant loading!", Duration = 3})
+            end
+        end
+    })
+end
