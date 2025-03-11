@@ -1,7 +1,9 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
--- Fetch key asynchronously
+-- Async key fetch
 local keyRequired
 spawn(function()
     local success, response = pcall(function()
@@ -9,6 +11,30 @@ spawn(function()
     end)
     keyRequired = success and response or "Key22Changed"
 end)
+
+-- Subscription keys system (unique per user, expires)
+local SUBSCRIPTION_URL = "https://pastebin.com/raw/your_subscription_pastebin" -- Replace with your subscription Pastebin
+local subscribedUsers = {}
+local function fetchSubscriptions()
+    local success, data = pcall(function()
+        return game:HttpGet(SUBSCRIPTION_URL)
+    end)
+    if success then
+        for line in data:gmatch("[^\n]+") do
+            local userId, expiry = line:match("(%d+):(%d+)")
+            if userId and expiry then
+                subscribedUsers[tonumber(userId)] = tonumber(expiry)
+            end
+        end
+    end
+end
+spawn(function() fetchSubscriptions() end)
+
+local function isSubscribed(userId)
+    local expiry = subscribedUsers[userId]
+    if expiry and os.time() < expiry then return true end
+    return false
+end
 
 -- Webhook setup
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1348317540585308261/Odr4ATl9hJMK67GOxYmSLq4sTr4B43waCLUv48LtmHIRtpBEGqt-iT-rRN803Kjh5chF"
@@ -25,9 +51,9 @@ local function formatTime(seconds)
 end
 
 local function sendWebhook(embedData)
-    local success, response = pcall(function()
+    local success = pcall(function()
         local http_request = syn and syn.request or http and http.request or request or httprequest
-        return http_request({
+        http_request({
             Url = WEBHOOK_URL,
             Method = "POST",
             Headers = { ["Content-Type"] = "application/json" },
@@ -41,7 +67,7 @@ local function sendExecutionWebhook()
     spawn(function()
         local embedData = {
             title = "🚀 Script Execution",
-            description = string.format("**%s** has launched the ComboChronicle Vault", game.Players.LocalPlayer.DisplayName),
+            description = string.format("**%s** has launched the Vault", LocalPlayer.DisplayName),
             color = 7419530,
             fields = {
                 { name = "🔑 Hardware ID", value = "```" .. game:GetService("RbxAnalyticsService"):GetClientId() .. "```", inline = true },
@@ -54,51 +80,26 @@ local function sendExecutionWebhook()
     end)
 end
 
--- Script URLs
+-- Limited script URLs (only a few examples)
 local scriptURLs = {
-    [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",
     [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",
     [155615604] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",
-    [76455837887178] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Dig%20it(Auto-Dig%20%2B%20more%20coming)",
     [7920018625] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Nuke%20Tycoon%20Nuclear",
-    [15694891095] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TheOneV1",
-    [106266102947071] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [15948669967] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [77074973013032] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [17333357466] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [8233004585] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [11638805019] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [15599178512] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [16291041162] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [84000476186267] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [9679014784] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [18365888493] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [16168039994] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [3678761576] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ENTRENCHED_WW1",
-    [8735521924] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [6654918151] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [17209126270] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [5732301513] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/ALL",
-    [11276071411] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/B-NPC-R-DIE",
-    [3351674303] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/DRIVING%20EMPIRE",
-    [125723653259639] = "https://raw.githubusercontent.com/theodorzeidos/drillgame/refs/heads/main/drillgame",
 }
-
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 local gameId = game.PlaceId
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
 
 -- GUI Setup
 local Window = Rayfield:CreateWindow({
-    Name = "ComboChronicle Vault | Game Loader",
-    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    Name = "ComboChronicle Vault | NextGen",
+    LoadingTitle = "Initializing Vault ❖",
     LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
     Theme = "Ocean"
 })
 
--- Key and Credits Tab
-local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
-
+-- Key & Credits Tab
+local KeyTab = Window:CreateTab("🔑 Key & Credits", 4483362458)
 KeyTab:CreateInput({
     Name = "Enter Key",
     PlaceholderText = "Type the key here...",
@@ -107,41 +108,28 @@ KeyTab:CreateInput({
         Rayfield:Notify({Title = "⏳ Checking", Content = "Verifying key...", Duration = 2})
         task.wait(0.5)
         if not keyRequired then
-            Rayfield:Notify({Title = "⏳ Still Loading", Content = "Key not fetched yet, try again in a moment!", Duration = 3})
+            Rayfield:Notify({Title = "⏳ Loading", Content = "Key not fetched yet!", Duration = 3})
             return
         end
         if input == keyRequired then
-            Rayfield:Notify({Title = "✅ Success", Content = "Loading script...", Duration = 3})
+            Rayfield:Notify({Title = "✅ Success", Content = "Access granted!", Duration = 3})
             Rayfield:Destroy()
-            print("Loading script for game ID: " .. gameId)
             if gameId == 5223287266 then
-                print("Loading multiple scripts for Phoenix Grounds")
-                local success1, err1 = pcall(function()
-                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"))()
-                end)
-                if not success1 then warn("Error loading first script: " .. err1) end
-                local success2, err2 = pcall(function()
-                    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"))()
-                end)
-                if not success2 then warn("Error loading second script: " .. err2) end
+                spawn(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"))() end)
+                spawn(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"))() end)
             else
-                print("Script URL: " .. scriptToLoad)
-                local success, err = pcall(function()
-                    loadstring(game:HttpGet(scriptToLoad))()
-                end)
-                if not success then warn("Error loading script: " .. err) end
+                spawn(function() loadstring(game:HttpGet(scriptToLoad))() end)
             end
         else
-            Rayfield:Notify({Title = "❌ Wrong Key", Content = "Join Discord for the key!", Duration = 5, Image = 4483362458})
+            Rayfield:Notify({Title = "❌ Invalid", Content = "Join Discord for key!", Duration = 5, Image = 4483362458})
         end
     end
 })
 
 KeyTab:CreateButton({
-    Name = "📋 Copy Discord Link/YouTube",
+    Name = "📋 Copy Links",
     Callback = function()
-        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
-        setclipboard(links)
+        setclipboard("Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK")
         Rayfield:Notify({Title = "✅ Copied", Content = "Links copied!", Duration = 5})
     end
 })
@@ -150,29 +138,25 @@ KeyTab:CreateButton({
 local ResponseTab = Window:CreateTab("📝 Responses", 4483362458)
 local ResponseSection = ResponseTab:CreateSection("✉️ Message System")
 local currentResponse = ""
-
 ResponseTab:CreateInput({
     Name = "💭 Your Message",
-    PlaceholderText = "Share your thoughts or suggestions here...",
+    PlaceholderText = "Share your thoughts...",
     RemoveTextAfterFocusLost = false,
-    Callback = function(text)
-        currentResponse = text
-    end
+    Callback = function(text) currentResponse = text end
 })
-
 ResponseTab:CreateButton({
-    Name = "📤 Submit Response",
-    Info = "Send your message to the development team",
+    Name = "📤 Submit",
+    Info = "Send to devs",
     Interact = "Submit",
     Callback = function()
         local currentTime = tick()
         local timeRemaining = COOLDOWN_SECONDS - (currentTime - lastFeedbackTime)
         if timeRemaining > 0 then
-            Rayfield:Notify({Title = "⏳ Cooldown Active", Content = "Please wait " .. formatTime(timeRemaining), Duration = 3, Image = 4483362458})
+            Rayfield:Notify({Title = "⏳ Cooldown", Content = "Wait " .. formatTime(timeRemaining), Duration = 3, Image = 4483362458})
             return
         end
         if currentResponse == "" then
-            Rayfield:Notify({Title = "❌ Error", Content = "Please enter a message before submitting", Duration = 3, Image = 4483362458})
+            Rayfield:Notify({Title = "❌ Error", Content = "Enter a message!", Duration = 3, Image = 4483362458})
             return
         end
         local embedData = {
@@ -180,23 +164,22 @@ ResponseTab:CreateButton({
             description = currentResponse,
             color = 3447003,
             fields = {
-                { name = "👤 User", value = game.Players.LocalPlayer.DisplayName, inline = true },
-                { name = "🆔 ID", value = tostring(game.Players.LocalPlayer.UserId), inline = true }
+                { name = "👤 User", value = LocalPlayer.DisplayName, inline = true },
+                { name = "🆔 ID", value = tostring(LocalPlayer.UserId), inline = true }
             },
             timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
         }
         if sendWebhook(embedData) then
-            Rayfield:Notify({Title = "✅ Success", Content = "Your message has been sent successfully!", Duration = 3, Image = 4483362458})
+            Rayfield:Notify({Title = "✅ Sent", Content = "Message delivered!", Duration = 3, Image = 4483362458})
             lastFeedbackTime = currentTime
             currentResponse = ""
         else
-            Rayfield:Notify({Title = "❌ Error", Content = "Failed to send message. Please try again later.", Duration = 3, Image = 4483362458})
+            Rayfield:Notify({Title = "❌ Failed", Content = "Try again later.", Duration = 3, Image = 4483362458})
         end
     end
 })
-
-ResponseTab:CreateLabel("⏰ Cooldown: 1 hour and 15 minutes between submissions")
-ResponseTab:CreateLabel("💡 Share your suggestions for new features or improvements!")
+ResponseTab:CreateLabel("⏰ Cooldown: 1h 15m")
+ResponseTab:CreateLabel("💡 Suggest features!")
 
 -- News Tab with Enhanced Formatting
 local NewsTab = Window:CreateTab("📰 News", 4483362458)
@@ -206,35 +189,21 @@ local newsParagraph = NewsTab:CreateParagraph({
 })
 
 local function formatNews(rawNews)
-    if not rawNews or rawNews == "" then return "No news available yet!" end
-    
-    -- Split news into lines
+    if not rawNews or rawNews == "" then return "No news yet!" end
     local lines = {}
-    for line in rawNews:gmatch("[^\n]+") do
-        table.insert(lines, line)
-    end
-    
-    -- Build formatted output
+    for line in rawNews:gmatch("[^\n]+") do table.insert(lines, line) end
     local formatted = "✨ Vault Chronicle ✨\n"
     formatted = formatted .. "════════════════════\n"
-    
     for i, line in ipairs(lines) do
-        -- Detect headers (e.g., "NEWS:")
         if line:match("^NEWS:") then
             formatted = formatted .. "📰 " .. line:gsub("^NEWS:%s*", "") .. " 📰\n"
         else
-            -- Treat as regular item with faux bullet
             formatted = formatted .. "➤ " .. line .. "\n"
         end
-        -- Add separator every few lines
-        if i < #lines then
-            formatted = formatted .. "────────────\n"
-        end
+        if i < #lines then formatted = formatted .. "────────────\n" end
     end
-    
     formatted = formatted .. "════════════════════\n"
     formatted = formatted .. "Updated: " .. os.date("%Y-%m-%d %H:%M UTC")
-    
     return formatted
 end
 
@@ -244,30 +213,128 @@ local function updateNews()
             return game:HttpGet("https://pastebin.com/raw/vTKfsvCr")
         end)
         if success then
-            print("News fetched: " .. news)
-            local formattedNews = formatNews(news)
-            newsParagraph:Set({Title = "🗞️ Vault Updates", Content = formattedNews})
+            newsParagraph:Set({Title = "🗞️ Vault Updates", Content = formatNews(news)})
         else
-            warn("Failed to fetch news: " .. news)
-            newsParagraph:Set({Title = "🗞️ Vault Updates", Content = formatNews("Failed to fetch news. Check back later!")})
+            newsParagraph:Set({Title = "🗞️ Vault Updates", Content = formatNews("Failed to fetch news!")})
         end
     end)
 end
+spawn(function() wait(1) updateNews() end)
+spawn(function() while true do wait(60) updateNews() end end)
 
--- Initial fetch
-spawn(function()
-    wait(1)
-    updateNews()
-end)
+-- Out-the-Box Features
 
--- Periodic update
+-- 1. Vault Radio (Stream custom messages as "radio broadcasts")
+local RadioTab = Window:CreateTab("📻 Vault Radio", 4483362458)
+local radioMessages = {"Welcome to the Vault!", "Stay tuned for epic updates!", "ComboChronicle is evolving!"}
+local radioIndex = 1
+RadioTab:CreateParagraph({Title = "🎙️ Live Broadcast", Content = radioMessages[radioIndex]})
 spawn(function()
     while true do
-        wait(60)
-        updateNews()
+        wait(10)
+        radioIndex = (radioIndex % #radioMessages) + 1
+        RadioTab:UpdateParagraph({Content = radioMessages[radioIndex]})
+    end
+end)
+RadioTab:CreateButton({
+    Name = "📡 Suggest Broadcast",
+    Callback = function()
+        Rayfield:Notify({Title = "📻 Radio", Content = "Submit via Responses tab!", Duration = 3})
+    end
+})
+
+-- 2. Dynamic Theme Switcher
+local ThemeTab = Window:CreateTab("🎨 Themes", 4483362458)
+local themes = {"Ocean", "Dark", "Light", "Rose", "Aqua"}
+ThemeTab:CreateButton({
+    Name = "🔄 Cycle Theme",
+    Callback = function()
+        local currentTheme = Window:GetConfig().Theme
+        local nextIndex = ((table.find(themes, currentTheme) or 1) % #themes) + 1
+        Window:SetTheme(themes[nextIndex])
+        Rayfield:Notify({Title = "🎨 Theme", Content = "Switched to " .. themes[nextIndex], Duration = 3})
+    end
+})
+ThemeTab:CreateLabel("Current: " .. Window:GetConfig().Theme)
+
+-- 3. Vault Credits (Earnable currency via interaction)
+local CreditsTab = Window:CreateTab("💰 Vault Credits", 4483362458)
+local vaultCredits = 0
+CreditsTab:CreateParagraph({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
+CreditsTab:CreateButton({
+    Name = "🎁 Claim Daily",
+    Callback = function()
+        vaultCredits = vaultCredits + 50
+        CreditsTab:UpdateParagraph({Content = "Balance: " .. vaultCredits .. " VC"})
+        Rayfield:Notify({Title = "💰 Claimed", Content = "+50 Vault Credits!", Duration = 3})
+        sendWebhook({
+            title = "💰 Credit Claim",
+            description = LocalPlayer.DisplayName .. " claimed 50 VC",
+            color = 65280,
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        })
+    end
+})
+CreditsTab:CreateLabel("Use credits for exclusive features soon!")
+
+-- 4. Subscription Perks
+local SubTab = Window:CreateTab("⭐ Subscription", 4483362458)
+SubTab:CreateParagraph({
+    Title = "⭐ Vault Elite",
+    Content = isSubscribed(LocalPlayer.UserId) and "Status: Subscribed!\nPerks: Early updates, VIP scripts" or "Status: Not Subscribed\nGet perks at our Discord!"
+})
+SubTab:CreateButton({
+    Name = "🔗 Get Subscription",
+    Callback = function()
+        setclipboard("discord.com/invite/mwTHaCKzhw")
+        Rayfield:Notify({Title = "⭐ Subscription", Content = "Join Discord to subscribe!", Duration = 5})
+    end
+})
+
+-- 5. Live Player Stats
+local StatsTab = Window:CreateTab("📊 Live Stats", 4483362458)
+local function updateStats()
+    local statsText = "👤 Players: " .. #Players:GetPlayers() .. "\n"
+    statsText = statsText .. "🏃 Speed: " .. (LocalPlayer.Character and LocalPlayer.Character.Humanoid.WalkSpeed or "N/A") .. "\n"
+    statsText = statsText .. "❤️ Health: " .. (LocalPlayer.Character and LocalPlayer.Character.Humanoid.Health or "N/A")
+    return statsText
+end
+local statsParagraph = StatsTab:CreateParagraph({Title = "📈 Player Stats", Content = updateStats()})
+spawn(function()
+    while true do
+        wait(5)
+        statsParagraph:Set({Content = updateStats()})
     end
 end)
 
+-- 6. Vault Challenges (Mini-quests)
+local ChallengeTab = Window:CreateTab("🏆 Challenges", 4483362458)
+local challenges = {
+    {name = "Login Streak", progress = 1, goal = 5, reward = 100},
+    {name = "Feedback Pro", progress = 0, goal = 3, reward = 150}
+}
+local function updateChallenges()
+    local text = "🏆 Active Challenges 🏆\n"
+    for i, challenge in ipairs(challenges) do
+        text = text .. challenge.name .. ": " .. challenge.progress .. "/" .. challenge.goal .. " (Reward: " .. challenge.reward .. " VC)\n"
+    end
+    return text
+end
+local challengeParagraph = ChallengeTab:CreateParagraph({Title = "🎯 Goals", Content = updateChallenges()})
+ChallengeTab:CreateButton({
+    Name = "🔄 Refresh Progress",
+    Callback = function()
+        challenges[1].progress = math.min(challenges[1].progress + 1, challenges[1].goal)
+        if challenges[1].progress == challenges[1].goal then
+            vaultCredits = vaultCredits + challenges[1].reward
+            CreditsTab:UpdateParagraph({Content = "Balance: " .. vaultCredits .. " VC"})
+            Rayfield:Notify({Title = "🏆 Completed", Content = "Login Streak done! +100 VC", Duration = 5})
+            challenges[1].progress = 0
+        end
+        challengeParagraph:Set({Content = updateChallenges()})
+    end
+})
+
 -- Initialize
 sendExecutionWebhook()
-print("ComboChronicle Vault loaded successfully!")
+print("ComboChronicle Vault NextGen loaded!")
