@@ -13,7 +13,7 @@ spawn(function()
 end)
 
 -- Subscription keys system (unique per user, expires)
-local SUBSCRIPTION_URL = "https://pastebin.com/raw/your_subscription_pastebin" -- Replace with your subscription Pastebin
+local SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JGa" -- Replace with your subscription Pastebin
 local subscribedUsers = {}
 local function fetchSubscriptions()
     local success, data = pcall(function()
