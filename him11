@@ -1,4 +1,8 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local success, Rayfield = pcall(loadstring(game:HttpGet('https://sirius.menu/rayfield')))
+if not success then
+    warn("Failed to load Rayfield: " .. tostring(Rayfield))
+    return
+end
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -13,16 +17,29 @@ local CONFIG = {
     HTTP_TIMEOUT = 10,
     FEEDBACK_COOLDOWN = 4500,
     REFRESH_INTERVAL = 180,
-    VERSION = "1.3.0", -- Bumped version
+    VERSION = "1.3.0",
     VIP_PERKS = {
-        SCRIPT_BOOST = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/VIP_Boost",
-        EXCLUSIVE_UI = "https://pastebin.com/raw/your_exclusive_ui" -- Add real URL
+        SCRIPT_BOOST = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/VIP_Boost", -- Ensure valid
+        EXCLUSIVE_UI = "https://pastebin.com/raw/your_exclusive_ui" -- Ensure valid
     }
 }
 
--- Persistent DataStore (server-side storage)
-local VaultDataStore = DataStoreService:GetDataStore("VaultData_v1")
+-- Persistent DataStore
+local VaultDataStore
+local function initializeDataStore()
+    local success, ds = pcall(function()
+        return DataStoreService:GetDataStore("VaultData_v1")
+    end)
+    if success then
+        VaultDataStore = ds
+    else
+        warn("DataStore initialization failed: " .. tostring(ds) .. ". Using local storage fallback.")
+    end
+end
+initializeDataStore()
+
 local function getDataStore(key, default)
+    if not VaultDataStore then return default end
     local success, data = pcall(function()
         return VaultDataStore:GetAsync(tostring(LocalPlayer.UserId) .. "_" .. key)
     end)
@@ -30,12 +47,14 @@ local function getDataStore(key, default)
 end
 
 local function setDataStore(key, value)
-    pcall(function()
-        VaultDataStore:SetAsync(tostring(LocalPlayer.UserId) .. "_" .. key, value)
-    end)
+    if VaultDataStore then
+        pcall(function()
+            VaultDataStore:SetAsync(tostring(LocalPlayer.UserId) .. "_" .. key, value)
+        end)
+    end
 end
 
--- Local storage (client-side)
+-- Local storage
 local function getLocalStorage(key, default)
     local success, data = pcall(function()
         return LocalPlayer:GetAttribute(key)
@@ -44,11 +63,13 @@ local function getLocalStorage(key, default)
 end
 
 local function setLocalStorage(key, value)
-    LocalPlayer:SetAttribute(key, value)
+    pcall(function()
+        LocalPlayer:SetAttribute(key, value)
+    end)
 end
 
--- Improved HTTP with timeout, retry, and rate limiting
-local HTTP_RATE_LIMIT = 0.5 -- Seconds between requests
+-- Improved HTTP
+local HTTP_RATE_LIMIT = 0.5
 local lastHttpRequest = 0
 local function safeHttpGet(url, retries)
     retries = retries or 2
@@ -78,9 +99,11 @@ local function safeHttpGet(url, retries)
         end
         
         if requestComplete and success then
+            print("HTTP success for " .. url .. ": " .. (data or "empty"))
             return true, data
         end
         
+        warn("HTTP attempt " .. i .. " failed for " .. url .. ": " .. (errorMsg or "timeout"))
         if i < retries then wait(1) end
     end
     
@@ -107,30 +130,26 @@ local keySystem = {
         if success then
             self.key = response
             self.lastFetch = tick()
-            self.isFetching = false
-            return self.key
         else
             self.key = "Key22Changed"
-            self.isFetching = false
             Rayfield:Notify({Title = "⚠️ Warning", Content = "Using fallback key.", Duration = 3})
-            return self.key
         end
+        self.isFetching = false
+        return self.key
     end,
     
     verify = function(self, input)
-        local keyToCheck = self:fetch()
-        return input == keyToCheck
+        return input == self:fetch()
     end
 }
 
--- Subscription system with perk enhancements
+-- Subscription system
 local subscriptionSystem = {
     data = {},
     lastUpdate = 0,
     
     fetch = function(self)
         if (tick() - self.lastUpdate) < 300 then return end
-        
         local success, data = safeHttpGet(CONFIG.SUBSCRIPTION_URL)
         if success then
             self.data = {}
@@ -141,9 +160,7 @@ local subscriptionSystem = {
                 end
             end
             self.lastUpdate = tick()
-            return true
         end
-        return false
     end,
     
     isSubscribed = function(self, userId)
@@ -154,18 +171,15 @@ local subscriptionSystem = {
     
     getTimeRemaining = function(self, userId)
         if not self:isSubscribed(userId) then return 0 end
-        local expiry = self.data[userId]
-        return expiry - os.time()
+        return self.data[userId] - os.time()
     end,
     
     formatTimeRemaining = function(self, userId)
         local seconds = self:getTimeRemaining(userId)
         if seconds <= 0 then return "Expired" end
-        
         local days = math.floor(seconds / 86400)
         local hours = math.floor((seconds % 86400) / 3600)
         local minutes = math.floor((seconds % 3600) / 60)
-        
         if days > 0 then return string.format("%d days, %d hrs", days, hours)
         elseif hours > 0 then return string.format("%d hrs, %d min", hours, minutes)
         else return string.format("%d min", minutes) end
@@ -175,14 +189,14 @@ local subscriptionSystem = {
         if self.data[userId] then
             local newExpiry = math.max(self.data[userId], os.time()) + (days * 86400)
             self.data[userId] = newExpiry
-            setDataStore("subExpiry", newExpiry) -- Persist extension
+            setDataStore("subExpiry", newExpiry)
             return true
         end
         return false
     end
 }
 
--- Webhook system with batching
+-- Webhook system
 local webhookSystem = {
     queue = {},
     processing = false,
@@ -207,7 +221,6 @@ local webhookSystem = {
             self.processing = false
             return
         end
-        
         self.processing = true
         local batch = {}
         for i = 1, math.min(self.batchSize, #self.queue) do
@@ -216,7 +229,6 @@ local webhookSystem = {
             embed.timestamp = embed.timestamp or os.date("!%Y-%m-%dT%H:%M:%SZ")
             table.insert(batch, embed)
         end
-        
         spawn(function()
             local success = pcall(function()
                 local http_request = syn and syn.request or http and http.request or request or httprequest
@@ -239,7 +251,7 @@ local webhookSystem = {
     end
 }
 
--- Script loader with VIP enhancements
+-- Script loader
 local scriptSystem = {
     scripts = {
         [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",
@@ -284,7 +296,7 @@ local scriptSystem = {
     end
 }
 
--- Challenge system with DataStore
+-- Challenge system
 local challengeSystem = {
     challenges = {
         {id = "login_streak", name = "Login Streak", progress = 0, goal = 5, reward = "50 VC"},
@@ -359,7 +371,7 @@ local challengeSystem = {
     end
 }
 
--- News system with caching
+-- News system
 local newsSystem = {
     content = "Loading news...",
     lastUpdate = 0,
@@ -387,7 +399,6 @@ local newsSystem = {
             self.content = self.cache
             return false
         end
-        
         local success, news = safeHttpGet(CONFIG.NEWS_URL)
         if success then
             self.content = self:formatNews(news)
@@ -401,7 +412,7 @@ local newsSystem = {
     end
 }
 
--- Initialize systems
+-- Initialize
 subscriptionSystem:fetch()
 challengeSystem:load()
 newsSystem:update()
@@ -420,12 +431,19 @@ webhookSystem:send({
 })
 
 -- GUI Setup
-local Window = Rayfield:CreateWindow({
-    Name = "ComboChronicle Vault | NextGen v" .. CONFIG.VERSION,
-    LoadingTitle = "Initializing Vault ❖",
-    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
-    Theme = "Ocean"
-})
+local Window
+local success, err = pcall(function()
+    Window = Rayfield:CreateWindow({
+        Name = "ComboChronicle Vault | NextGen v" .. CONFIG.VERSION,
+        LoadingTitle = "Initializing Vault ❖",
+        LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+        Theme = "Ocean"
+    })
+end)
+if not success then
+    warn("Failed to create Window: " .. tostring(err))
+    return
+end
 
 -- Key & Credits Tab
 local KeyTab = Window:CreateTab("🔑 Key & Credits", 4483362458)
@@ -698,7 +716,7 @@ SettingsTab:CreateButton({
     end
 })
 
--- Analytics Tab (new feature)
+-- Analytics Tab
 local AnalyticsTab = Window:CreateTab("📈 Analytics", 4483362458)
 local analyticsParagraph = AnalyticsTab:CreateParagraph({
     Title = "📊 Your Stats",
@@ -727,11 +745,11 @@ AnalyticsTab:CreateButton({
     Callback = function() updateAnalytics() end
 })
 
--- VIP Auto-Load (new feature)
+-- VIP Auto-Load
 if subscriptionSystem:isSubscribed(LocalPlayer.UserId) and getLocalStorage("autoUpdateEnabled", true) then
     spawn(function()
         wait(5)
-        scriptSystem:loadScript(scriptSystem.vipScript, false)
+        scriptSystem:loadScript(scriptSystem.vipScript, true)
     end)
 end
 
