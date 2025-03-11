@@ -1,30 +1,27 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))() -- Can't avoid this, but we'll optimize around it
 local HttpService = game:GetService("HttpService")
 
--- Fetch the latest key from Pastebin
-local function getLatestKey()
+-- Fetch key asynchronously to avoid blocking
+local keyRequired
+spawn(function()
     local success, response = pcall(function()
         return game:HttpGet("https://pastebin.com/raw/ZWFwRjBJ")
     end)
-    return success and response or "Key22Changed"
-end
+    keyRequired = success and response or "Key22Changed"
+end)
 
--- Webhook functions
+-- Webhook setup
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1348317540585308261/Odr4ATl9hJMK67GOxYmSLq4sTr4B43waCLUv48LtmHIRtpBEGqt-iT-rRN803Kjh5chF"
-local COOLDOWN_SECONDS = 4500 -- 1 hour and 15 minutes
+local COOLDOWN_SECONDS = 4500
 local lastFeedbackTime = 0
 
 local function formatTime(seconds)
     local hours = math.floor(seconds / 3600)
     local minutes = math.floor((seconds % 3600) / 60)
     local secs = math.floor(seconds % 60)
-    if hours > 0 then
-        return string.format("%d hours, %d minutes", hours, minutes)
-    elseif minutes > 0 then
-        return string.format("%d minutes, %d seconds", minutes, secs)
-    else
-        return string.format("%d seconds", secs)
-    end
+    if hours > 0 then return string.format("%d hours, %d minutes", hours, minutes)
+    elseif minutes > 0 then return string.format("%d minutes, %d seconds", minutes, secs)
+    else return string.format("%d seconds", secs) end
 end
 
 local function sendWebhook(embedData)
@@ -33,9 +30,7 @@ local function sendWebhook(embedData)
         return http_request({
             Url = WEBHOOK_URL,
             Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
+            Headers = { ["Content-Type"] = "application/json" },
             Body = HttpService:JSONEncode({ embeds = { embedData } })
         })
     end)
@@ -43,21 +38,23 @@ local function sendWebhook(embedData)
 end
 
 local function sendExecutionWebhook()
-    local embedData = {
-        title = "🚀 Script Execution",
-        description = string.format("**%s** has launched the ComboChronicle Vault", game.Players.LocalPlayer.DisplayName),
-        color = 7419530,
-        fields = {
-            { name = "🔑 Hardware ID", value = "```" .. game:GetService("RbxAnalyticsService"):GetClientId() .. "```", inline = true },
-            { name = "🎮 Game ID", value = "```" .. game.PlaceId .. "```", inline = true }
-        },
-        footer = { text = "ComboChronicle Vault" },
-        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-    }
-    sendWebhook(embedData)
+    spawn(function() -- Run asynchronously
+        local embedData = {
+            title = "🚀 Script Execution",
+            description = string.format("**%s** has launched the ComboChronicle Vault", game.Players.LocalPlayer.DisplayName),
+            color = 7419530,
+            fields = {
+                { name = "🔑 Hardware ID", value = "```" .. game:GetService("RbxAnalyticsService"):GetClientId() .. "```", inline = true },
+                { name = "🎮 Game ID", value = "```" .. game.PlaceId .. "```", inline = true }
+            },
+            footer = { text = "ComboChronicle Vault" },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }
+        sendWebhook(embedData)
+    end)
 end
 
--- Script URLs
+-- Script URLs (static, no fetch delay here)
 local scriptURLs = {
     [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",
     [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",
@@ -90,7 +87,6 @@ local scriptURLs = {
 local defaultScriptURL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default"
 local gameId = game.PlaceId
 local scriptToLoad = scriptURLs[gameId] or defaultScriptURL
-local keyRequired = getLatestKey()
 
 -- GUI Setup
 local Window = Rayfield:CreateWindow({
@@ -110,6 +106,10 @@ KeyTab:CreateInput({
     Callback = function(input)
         Rayfield:Notify({Title = "⏳ Checking", Content = "Verifying key...", Duration = 2})
         task.wait(0.5)
+        if not keyRequired then -- Wait for key to load if not ready
+            Rayfield:Notify({Title = "⏳ Still Loading", Content = "Key not fetched yet, try again in a moment!", Duration = 3})
+            return
+        end
         if input == keyRequired then
             Rayfield:Notify({Title = "✅ Success", Content = "Loading script...", Duration = 3})
             Rayfield:Destroy()
@@ -167,27 +167,14 @@ ResponseTab:CreateButton({
     Callback = function()
         local currentTime = tick()
         local timeRemaining = COOLDOWN_SECONDS - (currentTime - lastFeedbackTime)
-
         if timeRemaining > 0 then
-            Rayfield:Notify({
-                Title = "⏳ Cooldown Active",
-                Content = "Please wait " .. formatTime(timeRemaining),
-                Duration = 3,
-                Image = 4483362458
-            })
+            Rayfield:Notify({Title = "⏳ Cooldown Active", Content = "Please wait " .. formatTime(timeRemaining), Duration = 3, Image = 4483362458})
             return
         end
-
         if currentResponse == "" then
-            Rayfield:Notify({
-                Title = "❌ Error",
-                Content = "Please enter a message before submitting",
-                Duration = 3,
-                Image = 4483362458
-            })
+            Rayfield:Notify({Title = "❌ Error", Content = "Please enter a message before submitting", Duration = 3, Image = 4483362458})
             return
         end
-
         local embedData = {
             title = "📨 New Response",
             description = currentResponse,
@@ -198,23 +185,12 @@ ResponseTab:CreateButton({
             },
             timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
         }
-
         if sendWebhook(embedData) then
-            Rayfield:Notify({
-                Title = "✅ Success",
-                Content = "Your message has been sent successfully!",
-                Duration = 3,
-                Image = 4483362458
-            })
+            Rayfield:Notify({Title = "✅ Success", Content = "Your message has been sent successfully!", Duration = 3, Image = 4483362458})
             lastFeedbackTime = currentTime
             currentResponse = ""
         else
-            Rayfield:Notify({
-                Title = "❌ Error",
-                Content = "Failed to send message. Please try again later.",
-                Duration = 3,
-                Image = 4483362458
-            })
+            Rayfield:Notify({Title = "❌ Error", Content = "Failed to send message. Please try again later.", Duration = 3, Image = 4483362458})
         end
     end
 })
@@ -226,29 +202,34 @@ ResponseTab:CreateLabel("💡 Share your suggestions for new features or improve
 local NewsTab = Window:CreateTab("📰 News", 4483362458)
 local newsParagraph = NewsTab:CreateParagraph({
     Title = "Latest Updates",
-    Content = "Fetching news..."
+    Content = "Loading news..."
 })
 
 local function updateNews()
-    local success, news = pcall(function()
-        return game:HttpGet("https://pastebin.com/raw/vTKfsvCr")
+    spawn(function() -- Async fetch
+        local success, news = pcall(function()
+            return game:HttpGet("https://pastebin.com/raw/vTKfsvCr")
+        end)
+        if success then
+            print("News fetched: " .. news)
+            newsParagraph:Set({Title = "Latest Updates", Content = news})
+        else
+            warn("Failed to fetch news: " .. news)
+            newsParagraph:Set({Title = "Latest Updates", Content = "Failed to fetch news. Check back later!"})
+        end
     end)
-    if success then
-        print("News fetched: " .. news) -- Debug print to confirm content
-        newsParagraph:Set({Title = "Latest Updates", Content = news})
-    else
-        warn("Failed to fetch news: " .. news) -- Debug warn for errors
-        newsParagraph:Set({Title = "Latest Updates", Content = "Failed to fetch news. Check back later!"})
-    end
 end
 
--- Initial fetch
-updateNews()
+-- Initial fetch after GUI loads
+spawn(function()
+    wait(1) -- Give GUI time to render
+    updateNews()
+end)
 
 -- Periodic update
 spawn(function()
     while true do
-        wait(60) -- Update every minute
+        wait(60)
         updateNews()
     end
 end)
