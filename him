@@ -1,7 +1,7 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))() -- Can't avoid this, but we'll optimize around it
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local HttpService = game:GetService("HttpService")
 
--- Fetch key asynchronously to avoid blocking
+-- Fetch key asynchronously
 local keyRequired
 spawn(function()
     local success, response = pcall(function()
@@ -38,7 +38,7 @@ local function sendWebhook(embedData)
 end
 
 local function sendExecutionWebhook()
-    spawn(function() -- Run asynchronously
+    spawn(function()
         local embedData = {
             title = "🚀 Script Execution",
             description = string.format("**%s** has launched the ComboChronicle Vault", game.Players.LocalPlayer.DisplayName),
@@ -54,7 +54,7 @@ local function sendExecutionWebhook()
     end)
 end
 
--- Script URLs (static, no fetch delay here)
+-- Script URLs
 local scriptURLs = {
     [18209375211] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/FireTouchIntrest%20Universal",
     [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",
@@ -106,7 +106,7 @@ KeyTab:CreateInput({
     Callback = function(input)
         Rayfield:Notify({Title = "⏳ Checking", Content = "Verifying key...", Duration = 2})
         task.wait(0.5)
-        if not keyRequired then -- Wait for key to load if not ready
+        if not keyRequired then
             Rayfield:Notify({Title = "⏳ Still Loading", Content = "Key not fetched yet, try again in a moment!", Duration = 3})
             return
         end
@@ -198,31 +198,65 @@ ResponseTab:CreateButton({
 ResponseTab:CreateLabel("⏰ Cooldown: 1 hour and 15 minutes between submissions")
 ResponseTab:CreateLabel("💡 Share your suggestions for new features or improvements!")
 
--- News Tab
+-- News Tab with Enhanced Formatting
 local NewsTab = Window:CreateTab("📰 News", 4483362458)
 local newsParagraph = NewsTab:CreateParagraph({
-    Title = "Latest Updates",
+    Title = "🗞️ Vault Updates",
     Content = "Loading news..."
 })
 
+local function formatNews(rawNews)
+    if not rawNews or rawNews == "" then return "No news available yet!" end
+    
+    -- Split news into lines
+    local lines = {}
+    for line in rawNews:gmatch("[^\n]+") do
+        table.insert(lines, line)
+    end
+    
+    -- Build formatted output
+    local formatted = "✨ Vault Chronicle ✨\n"
+    formatted = formatted .. "════════════════════\n"
+    
+    for i, line in ipairs(lines) do
+        -- Detect headers (e.g., "NEWS:")
+        if line:match("^NEWS:") then
+            formatted = formatted .. "📰 " .. line:gsub("^NEWS:%s*", "") .. " 📰\n"
+        else
+            -- Treat as regular item with faux bullet
+            formatted = formatted .. "➤ " .. line .. "\n"
+        end
+        -- Add separator every few lines
+        if i < #lines then
+            formatted = formatted .. "────────────\n"
+        end
+    end
+    
+    formatted = formatted .. "════════════════════\n"
+    formatted = formatted .. "Updated: " .. os.date("%Y-%m-%d %H:%M UTC")
+    
+    return formatted
+end
+
 local function updateNews()
-    spawn(function() -- Async fetch
+    spawn(function()
         local success, news = pcall(function()
             return game:HttpGet("https://pastebin.com/raw/vTKfsvCr")
         end)
         if success then
             print("News fetched: " .. news)
-            newsParagraph:Set({Title = "Latest Updates", Content = news})
+            local formattedNews = formatNews(news)
+            newsParagraph:Set({Title = "🗞️ Vault Updates", Content = formattedNews})
         else
             warn("Failed to fetch news: " .. news)
-            newsParagraph:Set({Title = "Latest Updates", Content = "Failed to fetch news. Check back later!"})
+            newsParagraph:Set({Title = "🗞️ Vault Updates", Content = formatNews("Failed to fetch news. Check back later!")})
         end
     end)
 end
 
--- Initial fetch after GUI loads
+-- Initial fetch
 spawn(function()
-    wait(1) -- Give GUI time to render
+    wait(1)
     updateNews()
 end)
 
