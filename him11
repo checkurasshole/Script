@@ -12,27 +12,35 @@ spawn(function()
     keyRequired = success and response or "Key22Changed"
 end)
 
--- Subscription keys system (unique per user, expires)
-local SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG" -- Replace with your subscription Pastebin
+-- Subscription keys system
+local SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG" -- Your Pastebin URL
 local subscribedUsers = {}
 local function fetchSubscriptions()
     local success, data = pcall(function()
         return game:HttpGet(SUBSCRIPTION_URL)
     end)
     if success then
+        print("Subscription data fetched: " .. data) -- Debug
         for line in data:gmatch("[^\n]+") do
             local userId, expiry = line:match("(%d+):(%d+)")
             if userId and expiry then
                 subscribedUsers[tonumber(userId)] = tonumber(expiry)
+                print("Loaded subscription - UserID: " .. userId .. ", Expiry: " .. expiry) -- Debug
             end
         end
+    else
+        warn("Failed to fetch subscriptions: " .. data)
     end
 end
 spawn(function() fetchSubscriptions() end)
 
 local function isSubscribed(userId)
     local expiry = subscribedUsers[userId]
-    if expiry and os.time() < expiry then return true end
+    if expiry and os.time() < expiry then
+        print("User " .. userId .. " is subscribed until " .. expiry) -- Debug
+        return true
+    end
+    print("User " .. userId .. " is not subscribed or expired") -- Debug
     return false
 end
 
@@ -80,7 +88,7 @@ local function sendExecutionWebhook()
     end)
 end
 
--- Limited script URLs (only a few examples)
+-- Limited script URLs
 local scriptURLs = {
     [14518422161] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Hitbox%20Gunfight%20Arena",
     [155615604] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Prison%20Life",
@@ -125,7 +133,6 @@ KeyTab:CreateInput({
         end
     end
 })
-
 KeyTab:CreateButton({
     Name = "📋 Copy Links",
     Callback = function()
@@ -181,19 +188,17 @@ ResponseTab:CreateButton({
 ResponseTab:CreateLabel("⏰ Cooldown: 1h 15m")
 ResponseTab:CreateLabel("💡 Suggest features!")
 
--- News Tab with Enhanced Formatting
+-- News Tab
 local NewsTab = Window:CreateTab("📰 News", 4483362458)
 local newsParagraph = NewsTab:CreateParagraph({
     Title = "🗞️ Vault Updates",
     Content = "Loading news..."
 })
-
 local function formatNews(rawNews)
     if not rawNews or rawNews == "" then return "No news yet!" end
     local lines = {}
     for line in rawNews:gmatch("[^\n]+") do table.insert(lines, line) end
-    local formatted = "✨ Vault Chronicle ✨\n"
-    formatted = formatted .. "════════════════════\n"
+    local formatted = "✨ Vault Chronicle ✨\n════════════════════\n"
     for i, line in ipairs(lines) do
         if line:match("^NEWS:") then
             formatted = formatted .. "📰 " .. line:gsub("^NEWS:%s*", "") .. " 📰\n"
@@ -202,11 +207,9 @@ local function formatNews(rawNews)
         end
         if i < #lines then formatted = formatted .. "────────────\n" end
     end
-    formatted = formatted .. "════════════════════\n"
-    formatted = formatted .. "Updated: " .. os.date("%Y-%m-%d %H:%M UTC")
+    formatted = formatted .. "════════════════════\nUpdated: " .. os.date("%Y-%m-%d %H:%M UTC")
     return formatted
 end
-
 local function updateNews()
     spawn(function()
         local success, news = pcall(function()
@@ -222,9 +225,32 @@ end
 spawn(function() wait(1) updateNews() end)
 spawn(function() while true do wait(60) updateNews() end end)
 
--- Out-the-Box Features
+-- Subscription Tab
+local SubTab = Window:CreateTab("⭐ Subscription", 4483362458)
+local subParagraph = SubTab:CreateParagraph({
+    Title = "⭐ Vault Elite",
+    Content = "Checking subscription status..."
+})
+SubTab:CreateButton({
+    Name = "🔗 Get Subscription",
+    Callback = function()
+        setclipboard("discord.com/invite/mwTHaCKzhw")
+        Rayfield:Notify({Title = "⭐ Subscription", Content = "Join Discord to subscribe!", Duration = 5})
+    end
+})
+local function updateSubStatus()
+    if isSubscribed(LocalPlayer.UserId) then
+        subParagraph:Set({Content = "Status: Subscribed!\nPerks: Early updates, VIP scripts"})
+    else
+        subParagraph:Set({Content = "Status: Not Subscribed\nGet perks at our Discord!"})
+    end
+end
+spawn(function()
+    wait(2) -- Give time for fetchSubscriptions to complete
+    updateSubStatus()
+end)
 
--- 1. Vault Radio (Stream custom messages as "radio broadcasts")
+-- Radio Tab
 local RadioTab = Window:CreateTab("📻 Vault Radio", 4483362458)
 local radioMessages = {"Welcome to the Vault!", "Stay tuned for epic updates!", "ComboChronicle is evolving!"}
 local radioIndex = 1
@@ -243,7 +269,7 @@ RadioTab:CreateButton({
     end
 })
 
--- 2. Dynamic Theme Switcher
+-- Theme Tab
 local ThemeTab = Window:CreateTab("🎨 Themes", 4483362458)
 local themes = {"Ocean", "Dark", "Light", "Rose", "Aqua"}
 ThemeTab:CreateButton({
@@ -257,7 +283,7 @@ ThemeTab:CreateButton({
 })
 ThemeTab:CreateLabel("Current: " .. Window:GetConfig().Theme)
 
--- 3. Vault Credits (Earnable currency via interaction)
+-- Credits Tab
 local CreditsTab = Window:CreateTab("💰 Vault Credits", 4483362458)
 local vaultCredits = 0
 CreditsTab:CreateParagraph({Title = "💰 Your Credits", Content = "Balance: " .. vaultCredits .. " VC"})
@@ -277,21 +303,7 @@ CreditsTab:CreateButton({
 })
 CreditsTab:CreateLabel("Use credits for exclusive features soon!")
 
--- 4. Subscription Perks
-local SubTab = Window:CreateTab("⭐ Subscription", 4483362458)
-SubTab:CreateParagraph({
-    Title = "⭐ Vault Elite",
-    Content = isSubscribed(LocalPlayer.UserId) and "Status: Subscribed!\nPerks: Early updates, VIP scripts" or "Status: Not Subscribed\nGet perks at our Discord!"
-})
-SubTab:CreateButton({
-    Name = "🔗 Get Subscription",
-    Callback = function()
-        setclipboard("discord.com/invite/mwTHaCKzhw")
-        Rayfield:Notify({Title = "⭐ Subscription", Content = "Join Discord to subscribe!", Duration = 5})
-    end
-})
-
--- 5. Live Player Stats
+-- Stats Tab
 local StatsTab = Window:CreateTab("📊 Live Stats", 4483362458)
 local function updateStats()
     local statsText = "👤 Players: " .. #Players:GetPlayers() .. "\n"
@@ -307,7 +319,7 @@ spawn(function()
     end
 end)
 
--- 6. Vault Challenges (Mini-quests)
+-- Challenges Tab
 local ChallengeTab = Window:CreateTab("🏆 Challenges", 4483362458)
 local challenges = {
     {name = "Login Streak", progress = 1, goal = 5, reward = 100},
