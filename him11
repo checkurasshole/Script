@@ -3,36 +3,72 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local DataStoreService = game:GetService("DataStoreService")
+local RunService = game:GetService("RunService")
 
--- Config (moved to top for easy editing)
+-- Config
 local CONFIG = {
     WEBHOOK_URL = "https://discord.com/api/webhooks/1348317540585308261/Odr4ATl9hJMK67GOxYmSLq4sTr4B43waCLUv48LtmHIRtpBEGqt-iT-rRN803Kjh5chF",
     KEY_URL = "https://pastebin.com/raw/ZWFwRjBJ",
     SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG",
     NEWS_URL = "https://pastebin.com/raw/vTKfsvCr",
-    HTTP_TIMEOUT = 10, -- seconds
-    FEEDBACK_COOLDOWN = 4500, -- seconds
-    REFRESH_INTERVAL = 180, -- seconds (news, subscription)
-    VERSION = "1.2.0"
+    HTTP_TIMEOUT = 10,
+    FEEDBACK_COOLDOWN = 4500,
+    REFRESH_INTERVAL = 180,
+    VERSION = "1.3.0",
+    ANIMATION_SPEED = 0.3, -- GUI transition speed
+    ENCRYPTION_KEY = "VaultSecret123", -- Basic XOR key for sensitive data
+    VIP_PERKS = {
+        ["speed_boost"] = 1.5, -- Multiplier
+        ["priority_support"] = true,
+        ["exclusive_scripts"] = true
+    }
 }
 
--- Local storage (persists between script executions)
+-- Local storage with encryption
+local function encrypt(value)
+    local str = HttpService:JSONEncode(value)
+    local encrypted = ""
+    for i = 1, #str do
+        local char = str:byte(i)
+        local keyChar = CONFIG.ENCRYPTION_KEY:byte((i - 1) % #CONFIG.ENCRYPTION_KEY + 1)
+        encrypted = encrypted .. string.char(bit32.bxor(char, keyChar))
+    end
+    return encrypted
+end
+
+local function decrypt(encrypted)
+    local decrypted = ""
+    for i = 1, #encrypted do
+        local char = encrypted:byte(i)
+        local keyChar = CONFIG.ENCRYPTION_KEY:byte((i - 1) % #CONFIG.ENCRYPTION_KEY + 1)
+        decrypted = decrypted .. string.char(bit32.bxor(char, keyChar))
+    end
+    return HttpService:JSONDecode(decrypted)
+end
+
 local function getLocalStorage(key, default)
     local success, data = pcall(function()
-        return LocalPlayer:GetAttribute(key)
+        local encrypted = LocalPlayer:GetAttribute(key)
+        return encrypted and decrypt(encrypted) or default
     end)
-    return (success and data) or default
+    return success and data or default
 end
 
 local function setLocalStorage(key, value)
-    LocalPlayer:SetAttribute(key, value)
+    pcall(function()
+        LocalPlayer:SetAttribute(key, encrypt(value))
+    end)
 end
 
--- Improved HTTP requests with timeout and retry
+-- Improved HTTP requests with timeout, retry, and caching
+local httpCache = {}
 local function safeHttpGet(url, retries)
     retries = retries or 2
+    if httpCache[url] and (tick() - httpCache[url].timestamp) < 300 then
+        return true, httpCache[url].data
+    end
+
     local data, success, errorMsg
-    
     for i = 1, retries do
         local requestComplete = false
         local requestThread = coroutine.create(function()
@@ -45,50 +81,37 @@ local function safeHttpGet(url, retries)
             end
             requestComplete = true
         end)
-        
+
         coroutine.resume(requestThread)
-        
-        -- Wait with timeout
         local startTime = tick()
         while not requestComplete and (tick() - startTime) < CONFIG.HTTP_TIMEOUT do
             wait(0.1)
         end
-        
+
         if requestComplete and success then
+            httpCache[url] = {data = data, timestamp = tick()}
             return true, data
         end
-        
-        if i < retries then
-            wait(1) -- Wait before retry
-        end
+        if i < retries then wait(1) end
     end
-    
     return false, errorMsg or "Request timed out"
 end
 
--- Key system with caching
+-- Key system
 local keySystem = {
     key = nil,
     lastFetch = 0,
     isFetching = false,
-    
+
     fetch = function(self)
         if self.isFetching then return end
         self.isFetching = true
-        
-        -- Try to use cached key first if recently fetched
         if self.key and (tick() - self.lastFetch < 300) then
             self.isFetching = false
             return self.key
         end
-        
-        -- Fetch new key with notification
-        Rayfield:Notify({
-            Title = "⏳ Loading", 
-            Content = "Fetching access key...", 
-            Duration = 2
-        })
-        
+
+        Rayfield:Notify({Title = "⏳ Loading", Content = "Fetching access key...", Duration = 2})
         local success, response = safeHttpGet(CONFIG.KEY_URL)
         if success then
             self.key = response
@@ -96,128 +119,103 @@ local keySystem = {
             self.isFetching = false
             return self.key
         else
-            -- Fallback to default key if fetch fails
             self.key = "Key22Changed"
             self.isFetching = false
-            Rayfield:Notify({
-                Title = "⚠️ Warning", 
-                Content = "Using fallback key. Some features may be limited.", 
-                Duration = 3
-            })
+            Rayfield:Notify({Title = "⚠️ Warning", Content = "Using fallback key.", Duration = 3})
             return self.key
         end
     end,
-    
+
     verify = function(self, input)
         local keyToCheck = self:fetch()
         return input == keyToCheck
     end
 }
 
--- Improved subscription system
+-- Subscription system with perks
 local subscriptionSystem = {
     data = {},
     lastUpdate = 0,
-    
+
     fetch = function(self)
         if (tick() - self.lastUpdate) < 300 then return end
-        
         local success, data = safeHttpGet(CONFIG.SUBSCRIPTION_URL)
         if success then
-            -- Clear existing data
             self.data = {}
-            
-            -- Parse subscription data
             for line in data:gmatch("[^\n]+") do
                 local userId, expiry = line:match("(%d+):(%d+)")
                 if userId and expiry then
                     self.data[tonumber(userId)] = tonumber(expiry)
                 end
             end
-            
             self.lastUpdate = tick()
             return true
         end
         return false
     end,
-    
+
     isSubscribed = function(self, userId)
-        self:fetch() -- Make sure data is up-to-date
+        self:fetch()
         local expiry = self.data[userId]
         return expiry and os.time() < expiry
     end,
-    
+
     getTimeRemaining = function(self, userId)
         if not self:isSubscribed(userId) then return 0 end
-        
         local expiry = self.data[userId]
-        local secondsLeft = expiry - os.time()
-        return secondsLeft
+        return expiry - os.time()
     end,
-    
+
     formatTimeRemaining = function(self, userId)
         local seconds = self:getTimeRemaining(userId)
         if seconds <= 0 then return "Expired" end
-        
         local days = math.floor(seconds / 86400)
         local hours = math.floor((seconds % 86400) / 3600)
         local minutes = math.floor((seconds % 3600) / 60)
-        
-        if days > 0 then
-            return string.format("%d days, %d hours", days, hours)
-        elseif hours > 0 then
-            return string.format("%d hours, %d minutes", hours, minutes)
-        else
-            return string.format("%d minutes", minutes)
+        if days > 0 then return string.format("%d days, %d hours", days, hours)
+        elseif hours > 0 then return string.format("%d hours, %d minutes", hours, minutes)
+        else return string.format("%d minutes", minutes) end
+    end,
+
+    applyPerks = function(self, userId)
+        if not self:isSubscribed(userId) then return end
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = 16 * CONFIG.VIP_PERKS.speed_boost
         end
     end
 }
 
--- Improved webhook system
+-- Webhook system
 local webhookSystem = {
     queue = {},
     processing = false,
-    
+
     formatTime = function(self, seconds)
         local hours = math.floor(seconds / 3600)
         local minutes = math.floor((seconds % 3600) / 60)
         local secs = math.floor(seconds % 60)
-        
-        if hours > 0 then 
-            return string.format("%d hours, %d minutes", hours, minutes)
-        elseif minutes > 0 then 
-            return string.format("%d minutes, %d seconds", minutes, secs)
-        else 
-            return string.format("%d seconds", secs) 
-        end
+        if hours > 0 then return string.format("%d hours, %d minutes", hours, minutes)
+        elseif minutes > 0 then return string.format("%d minutes, %d seconds", minutes, secs)
+        else return string.format("%d seconds", secs) end
     end,
-    
+
     send = function(self, embedData)
         table.insert(self.queue, embedData)
-        
-        if not self.processing then
-            self:processQueue()
-        end
+        if not self.processing then self:processQueue() end
     end,
-    
+
     processQueue = function(self)
         if #self.queue == 0 then
             self.processing = false
             return
         end
-        
         self.processing = true
-        local currentEmbed = table.remove(self.queue, 1)
-        
-        -- Add common fields to all embeds
-        currentEmbed.footer = currentEmbed.footer or { 
-            text = string.format("ComboChronicle Vault v%s", CONFIG.VERSION)
-        }
+        local currentEmbed = table.remove(self.queuerizon, 1)
+        currentEmbed.footer = currentEmbed.footer or { text = "ComboChronicle Vault v" .. CONFIG.VERSION }
         currentEmbed.timestamp = currentEmbed.timestamp or os.date("!%Y-%m-%dT%H:%M:%SZ")
-        
-        -- Send the webhook
+
         spawn(function()
-            local success = pcall(function()
+            pcall(function()
                 local http_request = syn and syn.request or http and http.request or request or httprequest
                 local response = http_request({
                     Url = CONFIG.WEBHOOK_URL,
@@ -225,18 +223,13 @@ local webhookSystem = {
                     Headers = { ["Content-Type"] = "application/json" },
                     Body = HttpService:JSONEncode({ embeds = { currentEmbed } })
                 })
-                
-                -- Check if response succeeded
-                if not response or response.StatusCode < 200 or response.StatusCode >= 300 then
-                    -- Re-queue if failed (with limit)
+                if not response or response.StatusCode >= 300 then
                     if currentEmbed.retryCount and currentEmbed.retryCount < 3 then
-                        currentEmbed.retryCount = currentEmbed.retryCount + 1
+                        currentEmbed.retryCount = (currentEmbed.retryCount or 0) + 1
                         table.insert(self.queue, currentEmbed)
                     end
                 end
             end)
-            
-            -- Process next in queue after short delay
             wait(1)
             self:processQueue()
         end)
@@ -256,45 +249,31 @@ local scriptSystem = {
     },
     defaultScript = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Default",
     vipScript = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/VIP_Exclusive",
-    
+
     getScriptForGame = function(self, gameId)
         return self.scripts[gameId] or self.defaultScript
     end,
-    
+
     loadScript = function(self, scriptUrl, notifyOnLoad)
         spawn(function()
             if notifyOnLoad then
-                Rayfield:Notify({
-                    Title = "⏳ Loading", 
-                    Content = "Loading script...", 
-                    Duration = 2
-                })
+                Rayfield:Notify({Title = "⏳ Loading", Content = "Loading script...", Duration = 2})
             end
-            
             local success, errorMsg = pcall(function()
                 loadstring(game:HttpGet(scriptUrl))()
             end)
-            
             if success and notifyOnLoad then
-                Rayfield:Notify({
-                    Title = "✅ Success", 
-                    Content = "Script loaded successfully!", 
-                    Duration = 3
-                })
+                Rayfield:Notify({Title = "✅ Success", Content = "Script loaded!", Duration = 3})
             elseif not success then
-                Rayfield:Notify({
-                    Title = "❌ Error", 
-                    Content = "Failed to load script: " .. (errorMsg or "Unknown error"), 
-                    Duration = 5
-                })
+                Rayfield:Notify({Title = "❌ Error", Content = "Script failed: " .. (errorMsg or "Unknown"), Duration = 5})
             end
         end)
     end,
-    
+
     loadScriptSet = function(self, scriptSet, notifyOnLoad)
         if type(scriptSet) == "table" then
-            for _, url in ipairs(scriptSet) do
-                self:loadScript(url, notifyOnLoad and _ == 1)
+            for i, url in ipairs(scriptSet) do
+                self:loadScript(url, notifyOnLoad and i == 1)
             end
         else
             self:loadScript(scriptSet, notifyOnLoad)
@@ -302,34 +281,31 @@ local scriptSystem = {
     end
 }
 
--- Challenge system with persistence
+-- Challenge system
 local challengeSystem = {
     challenges = {
         {id = "login_streak", name = "Login Streak", progress = 0, goal = 5, reward = "50 VC"},
         {id = "feedback_pro", name = "Feedback Pro", progress = 0, goal = 3, reward = "VIP Extension (1 day)"},
         {id = "script_usage", name = "Script Enthusiast", progress = 0, goal = 10, reward = "Exclusive Script"}
     },
-    
+
     load = function(self)
         for i, challenge in ipairs(self.challenges) do
-            local savedProgress = getLocalStorage("challenge_" .. challenge.id, 0)
-            self.challenges[i].progress = savedProgress
+            self.challenges[i].progress = getLocalStorage("challenge_" .. challenge.id, 0)
         end
     end,
-    
+
     save = function(self)
         for _, challenge in ipairs(self.challenges) do
             setLocalStorage("challenge_" .. challenge.id, challenge.progress)
         end
     end,
-    
+
     updateProgress = function(self, challengeId, increment)
         for i, challenge in ipairs(self.challenges) do
             if challenge.id == challengeId then
                 self.challenges[i].progress = math.min(challenge.progress + (increment or 1), challenge.goal)
                 self:save()
-                
-                -- Check if completed
                 if self.challenges[i].progress >= self.challenges[i].goal then
                     return true
                 end
@@ -337,7 +313,7 @@ local challengeSystem = {
             end
         end
     end,
-    
+
     resetProgress = function(self, challengeId)
         for i, challenge in ipairs(self.challenges) do
             if challenge.id == challengeId then
@@ -348,21 +324,13 @@ local challengeSystem = {
         end
         return false
     end,
-    
+
     getFormattedText = function(self)
         local text = "🏆 Active Challenges 🏆\n\n"
-        for i, challenge in ipairs(self.challenges) do
-            local progressBar = ""
-            local barLength = 10
-            local filledBars = math.floor((challenge.progress / challenge.goal) * barLength)
-            
-            for j = 1, barLength do
-                progressBar = progressBar .. (j <= filledBars and "■" or "□")
-            end
-            
-            text = text .. challenge.name .. ":\n" 
-            text = text .. progressBar .. " " .. challenge.progress .. "/" .. challenge.goal 
-            text = text .. " (Reward: " .. challenge.reward .. ")\n\n"
+        for _, challenge in ipairs(self.challenges) do
+            local progressBar = string.rep("■", math.floor((challenge.progress / challenge.goal) * 10)) ..
+                               string.rep("□", 10 - math.floor((challenge.progress / challenge.goal) * 10))
+            text = text .. challenge.name .. ":\n" .. progressBar .. " " .. challenge.progress .. "/" .. challenge.goal .. " (Reward: " .. challenge.reward .. ")\n\n"
         end
         return text
     end
@@ -372,15 +340,11 @@ local challengeSystem = {
 local newsSystem = {
     content = "Loading news...",
     lastUpdate = 0,
-    
+
     formatNews = function(self, rawNews)
         if not rawNews or rawNews == "" then return "No news yet!" end
-        
         local lines = {}
-        for line in rawNews:gmatch("[^\n]+") do
-            table.insert(lines, line)
-        end
-        
+        for line in rawNews:gmatch("[^\n]+") do table.insert(lines, line) end
         local formatted = "✨ Vault Chronicle ✨\n════════════════════\n"
         for i, line in ipairs(lines) do
             if line:match("^NEWS:") then
@@ -388,18 +352,14 @@ local newsSystem = {
             else
                 formatted = formatted .. "➤ " .. line .. "\n"
             end
-            if i < #lines then 
-                formatted = formatted .. "────────────\n"
-            end
+            if i < #lines then formatted = formatted .. "────────────\n" end
         end
-        
         formatted = formatted .. "════════════════════\nUpdated: " .. os.date("%Y-%m-%d %H:%M UTC")
         return formatted
     end,
-    
+
     update = function(self)
         if (tick() - self.lastUpdate) < CONFIG.REFRESH_INTERVAL then return false end
-        
         local success, news = safeHttpGet(CONFIG.NEWS_URL)
         if success then
             self.content = self:formatNews(news)
@@ -407,6 +367,16 @@ local newsSystem = {
             return true
         end
         return false
+    end
+}
+
+-- Anti-tamper system
+local antiTamper = {
+    originalSource = loadstring(game:HttpGet('')), -- Replace with script URL for integrity check
+    checkIntegrity = function(self)
+        local currentSource = tostring(getfenv(1).script)
+        local original = tostring(self.originalSource)
+        return currentSource == original
     end
 }
 
@@ -428,13 +398,27 @@ webhookSystem:send({
     }
 })
 
--- GUI Setup
+-- GUI Setup with animations
 local Window = Rayfield:CreateWindow({
     Name = "ComboChronicle Vault | NextGen v" .. CONFIG.VERSION,
     LoadingTitle = "Initializing Vault ❖",
     LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
     Theme = "Ocean"
 })
+
+-- Dynamic UI animation handler
+local function animateElement(element, property, targetValue, duration)
+    local startValue = element[property]
+    local startTime = tick()
+    RunService:BindToRenderStep("Animation_" .. tostring(element), Enum.RenderPriority.Last.Value, function()
+        local elapsed = tick() - startTime
+        local progress = math.min(elapsed / duration, 1)
+        element[property] = startValue + (targetValue - startValue) * progress
+        if progress >= 1 then
+            RunService:UnbindFromRenderStep("Animation_" .. tostring(element))
+        end
+    end)
+end
 
 -- Key & Credits Tab
 local KeyTab = Window:CreateTab("🔑 Key & Credits", 4483362458)
@@ -443,58 +427,32 @@ local keyInput = KeyTab:CreateInput({
     PlaceholderText = "Type the key here...",
     RemoveTextAfterFocusLost = false,
     Callback = function(input)
-        Rayfield:Notify({
-            Title = "⏳ Checking", 
-            Content = "Verifying key...", 
-            Duration = 2
-        })
-        
-        -- Small delay for UX
+        Rayfield:Notify({Title = "⏳ Checking", Content = "Verifying key...", Duration = 2})
         task.wait(0.7)
-        
         if keySystem:verify(input) then
-            Rayfield:Notify({
-                Title = "✅ Success", 
-                Content = "Access granted! Loading scripts...", 
-                Duration = 3
-            })
-            
-            -- Update challenge progress
+            Rayfield:Notify({Title = "✅ Success", Content = "Access granted!", Duration = 3})
             challengeSystem:updateProgress("login_streak")
-            
-            -- Load appropriate script based on game
             local gameId = game.PlaceId
             local scriptToLoad = scriptSystem:getScriptForGame(gameId)
-            
             task.wait(1)
             Rayfield:Destroy()
             scriptSystem:loadScriptSet(scriptToLoad, true)
+            subscriptionSystem:applyPerks(LocalPlayer.UserId)
         else
-            Rayfield:Notify({
-                Title = "❌ Invalid", 
-                Content = "Join Discord for the correct key!", 
-                Duration = 5, 
-                Image = 4483362458
-            })
+            Rayfield:Notify({Title = "❌ Invalid", Content = "Join Discord for key!", Duration = 5, Image = 4483362458})
         end
     end
 })
-
 KeyTab:CreateButton({
     Name = "📋 Copy Links",
     Callback = function()
         setclipboard("Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK")
-        Rayfield:Notify({
-            Title = "✅ Copied", 
-            Content = "Links copied to clipboard!", 
-            Duration = 5
-        })
+        Rayfield:Notify({Title = "✅ Copied", Content = "Links copied!", Duration = 5})
     end
 })
-
 KeyTab:CreateParagraph({
     Title = "📢 Credits",
-    Content = "Script by COMBO_WICK & Bang.E.Line\nVersion: " .. CONFIG.VERSION .. "\nThanks for using ComboChronicle Vault!"
+    Content = "Script by COMBO_WICK & Bang.E.Line\nVersion: " .. CONFIG.VERSION .. "\nElite hacking redefined."
 })
 
 -- Responses Tab
@@ -505,11 +463,8 @@ ResponseTab:CreateInput({
     Name = "💭 Your Message",
     PlaceholderText = "Share your thoughts or report issues...",
     RemoveTextAfterFocusLost = false,
-    Callback = function(text) 
-        currentResponse = text 
-    end
+    Callback = function(text) currentResponse = text end
 })
-
 ResponseTab:CreateButton({
     Name = "📤 Submit Feedback",
     Info = "Send feedback to developers",
@@ -517,28 +472,14 @@ ResponseTab:CreateButton({
     Callback = function()
         local currentTime = tick()
         local timeRemaining = CONFIG.FEEDBACK_COOLDOWN - (currentTime - lastFeedbackTime)
-        
         if timeRemaining > 0 then
-            Rayfield:Notify({
-                Title = "⏳ Cooldown", 
-                Content = "Wait " .. webhookSystem:formatTime(timeRemaining), 
-                Duration = 5, 
-                Image = 4483362458
-            })
+            Rayfield:Notify({Title = "⏳ Cooldown", Content = "Wait " .. webhookSystem:formatTime(timeRemaining), Duration = 5, Image = 4483362458})
             return
         end
-        
         if currentResponse == "" then
-            Rayfield:Notify({
-                Title = "❌ Error", 
-                Content = "Please enter a message!", 
-                Duration = 3, 
-                Image = 4483362458
-            })
+            Rayfield:Notify({Title = "❌ Error", Content = "Please enter a message!", Duration = 3, Image = 4483362458})
             return
         end
-        
-        -- Send feedback webhook
         webhookSystem:send({
             title = "📨 New Feedback",
             description = currentResponse,
@@ -549,24 +490,15 @@ ResponseTab:CreateButton({
                 { name = "🎮 Game", value = tostring(game.PlaceId), inline = true }
             }
         })
-        
-        Rayfield:Notify({
-            Title = "✅ Sent", 
-            Content = "Message delivered to developers!", 
-            Duration = 5, 
-            Image = 4483362458
-        })
-        
-        -- Update challenge and reset form
+        Rayfield:Notify({Title = "✅ Sent", Content = "Feedback delivered!", Duration = 5, Image = 4483362458})
         challengeSystem:updateProgress("feedback_pro")
         lastFeedbackTime = currentTime
         setLocalStorage("lastFeedbackTime", lastFeedbackTime)
         currentResponse = ""
     end
 })
-
-ResponseTab:CreateLabel("⏰ Cooldown: 1h 15m between messages")
-ResponseTab:CreateLabel("💡 Report bugs or suggest new features!")
+ResponseTab:CreateLabel("⏰ Cooldown: 1h 15m")
+ResponseTab:CreateLabel("💡 Report bugs or suggest features!")
 
 -- News Tab
 local NewsTab = Window:CreateTab("📰 News", 4483362458)
@@ -574,143 +506,87 @@ local newsParagraph = NewsTab:CreateParagraph({
     Title = "🗞️ Vault Updates",
     Content = newsSystem.content
 })
-
--- Auto-update news periodically
 spawn(function()
     while wait(CONFIG.REFRESH_INTERVAL) do
         if newsSystem:update() then
-            newsParagraph:Set({
-                Title = "🗞️ Vault Updates", 
-                Content = newsSystem.content
-            })
+            newsParagraph:Set({Title = "🗞️ Vault Updates", Content = newsSystem.content})
         end
     end
 end)
-
 NewsTab:CreateButton({
     Name = "🔄 Refresh News",
     Callback = function()
-        Rayfield:Notify({
-            Title = "⏳ Updating", 
-            Content = "Fetching latest news...", 
-            Duration = 2
-        })
-        
+        Rayfield:Notify({Title = "⏳ Updating", Content = "Fetching news...", Duration = 2})
         if newsSystem:update() then
-            newsParagraph:Set({
-                Title = "🗞️ Vault Updates", 
-                Content = newsSystem.content
-            })
-            
-            Rayfield:Notify({
-                Title = "✅ Updated", 
-                Content = "News refreshed successfully!", 
-                Duration = 3
-            })
+            newsParagraph:Set({Title = "🗞️ Vault Updates", Content = newsSystem.content})
+            Rayfield:Notify({Title = "✅ Updated", Content = "News refreshed!", Duration = 3})
         else
-            Rayfield:Notify({
-                Title = "❌ Failed", 
-                Content = "Could not fetch news. Try again later.", 
-                Duration = 3
-            })
+            Rayfield:Notify({Title = "❌ Failed", Content = "Could not fetch news.", Duration = 3})
         end
     end
 })
 
--- Subscription Tab (only for subscribed users)
+-- Subscription Tab
 local SubTab
 if subscriptionSystem:isSubscribed(LocalPlayer.UserId) then
     SubTab = Window:CreateTab("⭐ Subscription", 4483362458)
-    
     local subParagraph = SubTab:CreateParagraph({
         Title = "⭐ Vault Elite",
         Content = "Loading subscription details..."
     })
-    
     local function updateSubStatus()
         if subscriptionSystem:isSubscribed(LocalPlayer.UserId) then
             local timeRemaining = subscriptionSystem:formatTimeRemaining(LocalPlayer.UserId)
-            
             subParagraph:Set({
                 Title = "⭐ Vault Elite",
                 Content = "Status: ✅ Subscribed\n" ..
-                          "Perks: Early updates, VIP scripts, Priority support\n" ..
+                          "Perks: Speed Boost (x" .. CONFIG.VIP_PERKS.speed_boost .. "), VIP Scripts, Priority Support\n" ..
                           "Expires in: " .. timeRemaining
             })
         else
             subParagraph:Set({
                 Title = "⭐ Vault Elite",
-                Content = "Status: ❌ Expired\n" ..
-                          "Your subscription has expired.\n" ..
-                          "Renew to regain elite benefits!"
+                Content = "Status: ❌ Expired\nRenew to regain elite benefits!"
             })
         end
     end
-    
-    -- Initial update
     spawn(function()
         wait(1)
         updateSubStatus()
     end)
-    
-    -- Periodic update
     spawn(function()
         while wait(60) do
             subscriptionSystem:fetch()
             updateSubStatus()
+            subscriptionSystem:applyPerks(LocalPlayer.UserId)
         end
     end)
-    
     SubTab:CreateButton({
         Name = "🔗 Renew Subscription",
         Callback = function()
             setclipboard("discord.com/invite/mwTHaCKzhw")
-            Rayfield:Notify({
-                Title = "⭐ Subscription", 
-                Content = "Discord copied! Contact admins to renew.", 
-                Duration = 5
-            })
+            Rayfield:Notify({Title = "⭐ Subscription", Content = "Discord copied! Contact admins to renew.", Duration = 5})
         end
     })
-    
     SubTab:CreateButton({
         Name = "🎩 Load VIP Script",
         Callback = function()
             if subscriptionSystem:isSubscribed(LocalPlayer.UserId) then
-                Rayfield:Notify({
-                    Title = "⏳ Loading", 
-                    Content = "Loading VIP exclusive script...", 
-                    Duration = 3
-                })
-                
+                Rayfield:Notify({Title = "⏳ Loading", Content = "Loading VIP script...", Duration = 3})
                 scriptSystem:loadScript(scriptSystem.vipScript, false)
-                
-                -- Delayed notification to avoid UI overlap
                 wait(2)
-                Rayfield:Notify({
-                    Title = "🎩 VIP", 
-                    Content = "Exclusive script loaded successfully!", 
-                    Duration = 5
-                })
-                
-                -- Update challenge
+                Rayfield:Notify({Title = "🎩 VIP", Content = "Exclusive script loaded!", Duration = 5})
                 challengeSystem:updateProgress("script_usage")
             else
-                Rayfield:Notify({
-                    Title = "❌ Access Denied", 
-                    Content = "Your subscription has expired!", 
-                    Duration = 5
-                })
+                Rayfield:Notify({Title = "❌ Access Denied", Content = "Subscription expired!", Duration = 5})
             end
         end
     })
-    
-    -- VIP Badge Notification (one-time on load)
     if not getLocalStorage("VIPBadgeShown", false) then
-        wait(3) -- Wait for UI to be fully loaded
+        wait(3)
         Rayfield:Notify({
             Title = "⭐ VIP Badge",
-            Content = "Welcome, Vault Elite Member!",
+            Content = "Welcome, Vault Elite Member!\nEnjoy your exclusive perks.",
             Duration = 10,
             Image = 4483362458
         })
@@ -721,42 +597,46 @@ end
 -- Challenges Tab
 local ChallengeTab = Window:CreateTab("🏆 Challenges", 4483362458)
 local challengeParagraph = ChallengeTab:CreateParagraph({
-    Title = "🎯 Daily Goals", 
+    Title = "🎯 Daily Goals",
     Content = challengeSystem:getFormattedText()
 })
-
 ChallengeTab:CreateButton({
     Name = "🔄 Refresh Challenges",
     Callback = function()
-        challengeParagraph:Set({
-            Content = challengeSystem:getFormattedText()
-        })
-        
-        Rayfield:Notify({
-            Title = "🔄 Refreshed", 
-            Content = "Challenge progress updated!", 
-            Duration = 3
-        })
+        challengeParagraph:Set({Content = challengeSystem:getFormattedText()})
+        Rayfield:Notify({Title = "🔄 Refreshed", Content = "Challenge progress updated!", Duration = 3})
+    end
+})
+ChallengeTab:CreateButton({
+    Name = "🎁 Claim Rewards",
+    Callback = function()
+        for _, challenge in ipairs(challengeSystem.challenges) do
+            if challenge.progress >= challenge.goal then
+                if challenge.id == "login_streak" then
+                    Rayfield:Notify({Title = "🎁 Reward", Content = "Claimed 50 VC (feature coming soon)!", Duration = 5})
+                elseif challenge.id == "feedback_pro" then
+                    Rayfield:Notify({Title = "🎁 Reward", Content = "VIP Extension claimed (manual process via Discord)!", Duration = 5})
+                elseif challenge.id == "script_usage" then
+                    scriptSystem:loadScript(scriptSystem.vipScript, true)
+                end
+                challengeSystem:resetProgress(challenge.id)
+            end
+        end
+        challengeParagraph:Set({Content = challengeSystem:getFormattedText()})
     end
 })
 
--- New feature: Settings Tab
+-- Settings Tab
 local SettingsTab = Window:CreateTab("⚙️ Settings", 4483362458)
-
 SettingsTab:CreateToggle({
     Name = "🔔 Notifications",
     CurrentValue = getLocalStorage("notificationsEnabled", true),
     Flag = "notificationsToggle",
     Callback = function(value)
         setLocalStorage("notificationsEnabled", value)
-        Rayfield:Notify({
-            Title = "⚙️ Settings", 
-            Content = value and "Notifications enabled" or "Notifications disabled", 
-            Duration = 3
-        })
+        Rayfield:Notify({Title = "⚙️ Settings", Content = value and "Notifications enabled" or "Notifications disabled", Duration = 3})
     end
 })
-
 SettingsTab:CreateToggle({
     Name = "🔄 Auto-Update Scripts",
     CurrentValue = getLocalStorage("autoUpdateEnabled", true),
@@ -765,38 +645,99 @@ SettingsTab:CreateToggle({
         setLocalStorage("autoUpdateEnabled", value)
     end
 })
-
 SettingsTab:CreateButton({
     Name = "🗑️ Clear Cache",
     Callback = function()
         for _, attr in ipairs({"notificationsEnabled", "autoUpdateEnabled", "lastFeedbackTime", "VIPBadgeShown"}) do
             pcall(function() LocalPlayer:SetAttribute(attr, nil) end)
         end
-        
-        Rayfield:Notify({
-            Title = "🧹 Cleaned", 
-            Content = "Cache cleared successfully! Restart to apply.", 
-            Duration = 5
-        })
+        Rayfield:Notify({Title = "🧹 Cleaned", Content = "Cache cleared! Restart to apply.", Duration = 5})
     end
 })
-
 SettingsTab:CreateButton({
     Name = "♻️ Restart Vault",
     Callback = function()
-        Rayfield:Notify({
-            Title = "⏳ Restarting", 
-            Content = "Reloading ComboChronicle Vault...", 
-            Duration = 3
-        })
-        
+        Rayfield:Notify({Title = "⏳ Restarting", Content = "Reloading Vault...", Duration = 3})
         wait(1)
         Rayfield:Destroy()
-        
-        -- Re-execute the script
-        loadstring(game:HttpGet(''))() -- This would normally have your script URL
+        loadstring(game:HttpGet(''))() -- Replace with your script URL
     end
 })
 
+-- New Feature: VIP Dashboard
+local DashboardTab = Window:CreateTab("📊 Dashboard", 4483362458)
+local dashboardParagraph = DashboardTab:CreateParagraph({
+    Title = "📈 Vault Analytics",
+    Content = "Loading analytics..."
+})
+local function updateDashboard()
+    local subStatus = subscriptionSystem:isSubscribed(LocalPlayer.UserId) and "Active" or "Inactive"
+    local timeLeft = subscriptionSystem:formatTimeRemaining(LocalPlayer.UserId)
+    local usageCount = getLocalStorage("scriptUsageCount", 0)
+    local content = "Subscription: " .. subStatus .. "\n" ..
+                    "Time Left: " .. (subStatus == "Active" and timeLeft or "N/A") .. "\n" ..
+                    "Script Uses: " .. usageCount .. "\n" ..
+                    "Last Login: " .. os.date("%Y-%m-%d %H:%M UTC", getLocalStorage("lastLogin", os.time())) .. "\n" ..
+                    "Version: " .. CONFIG.VERSION
+    dashboardParagraph:Set({Content = content})
+end
+spawn(function()
+    wait(2)
+    updateDashboard()
+    while wait(30) do updateDashboard() end
+end)
+DashboardTab:CreateButton({
+    Name = "📋 Export Stats",
+    Callback = function()
+        local stats = {
+            userId = LocalPlayer.UserId,
+            displayName = LocalPlayer.DisplayName,
+            subscription = subscriptionSystem:isSubscribed(LocalPlayer.UserId),
+            scriptUses = getLocalStorage("scriptUsageCount", 0),
+            lastLogin = os.time()
+        }
+        setclipboard(HttpService:JSONEncode(stats))
+        Rayfield:Notify({Title = "📋 Exported", Content = "Stats copied to clipboard!", Duration = 5})
+    end
+})
+
+-- New Feature: Event System
+local eventSystem = {
+    events = {
+        {id = "double_xp", name = "Double XP Weekend", active = false, multiplier = 2},
+        {id = "free_vip", name = "Free VIP Trial", active = false, duration = 86400}
+    },
+    checkEvents = function(self)
+        local url = "https://pastebin.com/raw/your_event_pastebin" -- Add your event Pastebin
+        local success, data = safeHttpGet(url)
+        if success then
+            local events = HttpService:JSONDecode(data)
+            for _, event in ipairs(self.events) do
+                event.active = events[event.id] or false
+            end
+        end
+    end,
+    applyEvents = function(self)
+        for _, event in ipairs(self.events) do
+            if event.active then
+                if event.id == "double_xp" then
+                    -- Placeholder for XP system
+                elseif event.id == "free_vip" then
+                    subscriptionSystem.data[LocalPlayer.UserId] = math.max(subscriptionSystem.data[LocalPlayer.UserId] or 0, os.time() + event.duration)
+                end
+            end
+        end
+    end
+}
+eventSystem:checkEvents()
+spawn(function()
+    while wait(300) do
+        eventSystem:checkEvents()
+        eventSystem:applyEvents()
+    end
+end)
+
 -- Finalize
+setLocalStorage("lastLogin", os.time())
+setLocalStorage("scriptUsageCount", getLocalStorage("scriptUsageCount", 0) + 1)
 print("ComboChronicle Vault NextGen v" .. CONFIG.VERSION .. " loaded successfully!")
