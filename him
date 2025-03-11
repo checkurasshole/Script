@@ -9,7 +9,7 @@ local function getLatestKey()
     return success and response or "Key22Changed"
 end
 
--- Webhook function extracted from your document
+-- Webhook functions
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1348317540585308261/Odr4ATl9hJMK67GOxYmSLq4sTr4B43waCLUv48LtmHIRtpBEGqt-iT-rRN803Kjh5chF"
 local COOLDOWN_SECONDS = 4500 -- 1 hour and 15 minutes
 local lastFeedbackTime = 0
@@ -114,7 +114,7 @@ KeyTab:CreateInput({
             Rayfield:Notify({Title = "✅ Success", Content = "Loading script...", Duration = 3})
             Rayfield:Destroy()
             print("Loading script for game ID: " .. gameId)
-            if gameId == 5223287266 then -- Phoenix Grounds special case
+            if gameId == 5223287266 then
                 print("Loading multiple scripts for Phoenix Grounds")
                 local success1, err1 = pcall(function()
                     loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Phoenix%20Grounds"))()
@@ -146,7 +146,7 @@ KeyTab:CreateButton({
     end
 })
 
--- Responses Tab (Webhook Integration)
+-- Responses Tab
 local ResponseTab = Window:CreateTab("📝 Responses", 4483362458)
 local ResponseSection = ResponseTab:CreateSection("✉️ Message System")
 local currentResponse = ""
@@ -224,21 +224,32 @@ ResponseTab:CreateLabel("💡 Share your suggestions for new features or improve
 
 -- News Tab
 local NewsTab = Window:CreateTab("📰 News", 4483362458)
-NewsTab:CreateParagraph({
+local newsParagraph = NewsTab:CreateParagraph({
     Title = "Latest Updates",
     Content = "Fetching news..."
 })
 
+local function updateNews()
+    local success, news = pcall(function()
+        return game:HttpGet("https://pastebin.com/raw/vTKfsvCr")
+    end)
+    if success then
+        print("News fetched: " .. news) -- Debug print to confirm content
+        newsParagraph:Set({Title = "Latest Updates", Content = news})
+    else
+        warn("Failed to fetch news: " .. news) -- Debug warn for errors
+        newsParagraph:Set({Title = "Latest Updates", Content = "Failed to fetch news. Check back later!"})
+    end
+end
+
+-- Initial fetch
+updateNews()
+
+-- Periodic update
 spawn(function()
-    while wait(60) do -- Update every minute
-        local success, news = pcall(function()
-            return game:HttpGet("https://pastebin.com/raw/vTKfsvCr") -- Replace with your news Pastebin URL
-        end)
-        if success then
-            NewsTab:UpdateParagraph({Content = news})
-        else
-            NewsTab:UpdateParagraph({Content = "Failed to fetch news. Check back later!"})
-        end
+    while true do
+        wait(60) -- Update every minute
+        updateNews()
     end
 end)
 
