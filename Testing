@@ -1,5 +1,6 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+local KEY_URL = "https://pastebin.com/raw/ZWFwRjBJ" -- Pastebin URL for the key
 local allowedGames = {
     [17045823120] = {
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/RP",
@@ -7,11 +8,9 @@ local allowedGames = {
     },
     [16740784399] = {
         "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/TESTtingg",
-        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp" -- Added missing comma aboveee
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/More%20better%20esp"
     }
 }
-
-local keyRequired = "Change444key"
 
 local function loadScripts(gameId)
     local scriptsToLoad = allowedGames[gameId]
@@ -42,6 +41,19 @@ if not allowedGames[game.PlaceId] then
     return
 end
 
+-- Function to fetch the key from Pastebin
+local function fetchKey()
+    local success, response = pcall(function()
+        return game:HttpGet(KEY_URL)
+    end)
+    if success then
+        return response
+    else
+        warn("Failed to fetch key from Pastebin: " .. response)
+        return "Change444key" -- Fallback key in case of failure
+    end
+end
+
 -- Rayfield GUI Setup
 local Window = Rayfield:CreateWindow({
     Name = "ComboChronicle Vault | Game ID: " .. game.PlaceId,
@@ -59,13 +71,20 @@ KeyTab:CreateInput({
     PlaceholderText = "Type the key here...",
     RemoveTextAfterFocusLost = false,
     Callback = function(input)
-        if input == keyRequired then
-            loadScripts(game.PlaceId) -- Load all scripts for the given game
+        Rayfield:Notify({
+            Title = "⏳ Checking",
+            Content = "Verifying key...",
+            Duration = 2
+        })
+        task.wait(0.7) -- Small delay for user feedback
+        local requiredKey = fetchKey()
+        if input == requiredKey then
             Rayfield:Notify({
                 Title = "✅ Key Accepted",
                 Content = "Scripts are loading...",
                 Duration = 3
             })
+            loadScripts(game.PlaceId) -- Load all scripts for the given game
         else
             Rayfield:Notify({
                 Title = "❌ Incorrect Key",
@@ -89,5 +108,5 @@ KeyTab:CreateButton({
             Duration = 5,
             Image = 4483362458
         })
-    end,
+    end
 })
