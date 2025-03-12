@@ -101,7 +101,11 @@ local function safeHttpGet(url, retries)
         end
         
         if requestComplete and success then
-            print("HTTP success for " .. url .. ": " .. (data or "empty"))
+            -- Option 2: Print a fake URL to mislead
+            local fakeUrl = "https://fakeurl.com/script" .. math.random(1000, 9999)
+            print("HTTP success for " .. fakeUrl .. ": " .. (data and "data_loaded" or "empty"))
+            -- Option 1: Suppress output (commented out)
+            -- (no print statement here)
             return true, data
         end
         
