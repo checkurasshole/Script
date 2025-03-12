@@ -11,7 +11,7 @@ local allowedGames = {
     }
 }
 
-local keyRequired = "KeyChanged22"
+local keyRequired = "Change444key"
 
 local function loadScripts(gameId)
     local scriptsToLoad = allowedGames[gameId]
