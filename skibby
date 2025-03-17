@@ -1,1 +1,90 @@
-.
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local KEY_URL = "https://paste-drop.com/raw/r9TImq6Bv8" -- Replace with your actual paste-drop.com raw URL
+local scriptURLs = {
+    ["StateOfAnarchy"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",
+    ["TeleportBehindPlayer"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"
+}
+
+local function loadScripts()
+    for scriptName, scriptURL in pairs(scriptURLs) do
+        local success, err = pcall(function()
+            loadstring(game:HttpGet(scriptURL))()
+        end)
+        if not success then
+            warn("Failed to load script " .. scriptName .. ": " .. err)
+        end
+    end
+end
+
+-- Function to fetch the key from paste-drop.com
+local function fetchKey()
+    local success, response = pcall(function()
+        return game:HttpGet(KEY_URL)
+    end)
+    if success then
+        return response
+    else
+        warn("Failed to fetch key from paste-drop.com: " .. response)
+        return "Change444key" -- Fallback key in case of failure
+    end
+end
+
+-- Rayfield GUI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | State Of Anarchy",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Key and Credits Tab
+local KeyTab = Window:CreateTab("Key & Credits", 4483362458)
+
+-- Key Input Section
+KeyTab:CreateInput({
+    Name = "Enter Key",
+    PlaceholderText = "Type the key here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(input)
+        Rayfield:Notify({
+            Title = "⏳ Checking",
+            Content = "Verifying key...",
+            Duration = 2
+        })
+        task.wait(0.7) -- Small delay for user feedback
+        local requiredKey = fetchKey()
+        if input == requiredKey then
+            Rayfield:Notify({
+                Title = "✅ Success",
+                Content = "Access granted! Loading scripts...",
+                Duration = 3
+            })
+            task.wait(1) -- Delay before closing GUI
+            Rayfield:Destroy() -- Close the GUI
+            loadScripts() -- Load scripts if the key is correct
+        else
+            Rayfield:Notify({
+                Title = "❌ Incorrect Key",
+                Content = "Join the Discord to get the correct key!",
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Button to Copy Discord/YouTube Links
+KeyTab:CreateButton({
+    Name = "📋 Copy Discord Link/YouTube",
+    Callback = function()
+        local links = "Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK"
+        setclipboard(links) -- Copy links to clipboard
+        Rayfield:Notify({
+            Title = "✅ Links Copied",
+            Content = "Discord and YouTube links have been copied to your clipboard!",
+            Duration = 5,
+            Image = 4483362458
+        })
+    end
+})
