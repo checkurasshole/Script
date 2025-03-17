@@ -1,6 +1,6 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local KEY_URL = "https://paste-drop.com/raw/r9TImq6Bv8" -- Replace with your actual paste-drop.com raw URL
+local KEY_URL = "https://paste-drop.com/raw/r9TImq6Bv8" -- Your paste-drop.com raw URL
 local scriptURLs = {
     ["StateOfAnarchy"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/State%20Of%20Anarchy%20(In-Progress)",
     ["TeleportBehindPlayer"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Teleport%20Behind%20Player"
@@ -17,17 +17,61 @@ local function loadScripts()
     end
 end
 
--- Function to fetch the key from paste-drop.com
+-- Function to fetch the key with multiple methods
 local function fetchKey()
+    local key = nil
+    
+    -- Method 1: game:HttpGet (Roblox native)
     local success, response = pcall(function()
         return game:HttpGet(KEY_URL)
     end)
-    if success then
-        return response
+    if success and response and response ~= "" then
+        key = response
+        return key
     else
-        warn("Failed to fetch key from paste-drop.com: " .. response)
-        return "Change444key" -- Fallback key in case of failure
+        warn("Method 1 (game:HttpGet) failed: " .. (response or "No response"))
     end
+    
+    -- Method 2: syn.request (Synapse X or compatible)
+    if not key and syn and syn.request then
+        success, response = pcall(function()
+            local req = syn.request({
+                Url = KEY_URL,
+                Method = "GET"
+            })
+            return req.Body
+        end)
+        if success and response and response ~= "" then
+            key = response
+            return key
+        else
+            warn("Method 2 (syn.request) failed: " .. (response or "No response"))
+        end
+    end
+    
+    -- Method 3: http.request or other executor-specific methods
+    if not key then
+        local httpRequest = http and http.request or request or httprequest
+        if httpRequest then
+            success, response = pcall(function()
+                local req = httpRequest({
+                    Url = KEY_URL,
+                    Method = "GET"
+                })
+                return req.Body
+            end)
+            if success and response and response ~= "" then
+                key = response
+                return key
+            else
+                warn("Method 3 (http.request) failed: " .. (response or "No response"))
+            end
+        end
+    end
+    
+    -- Final fallback if all methods fail
+    warn("All key fetch methods failed. Using fallback key.")
+    return "Change444key"
 end
 
 -- Rayfield GUI Setup
