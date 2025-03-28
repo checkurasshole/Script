@@ -9,7 +9,7 @@ local DataStoreService = game:GetService("DataStoreService")
 
 local CONFIG = {
     WEBHOOK_URL = "https://discord.com/api/webhooks/1354219342840991964/kgyogYrGVoTXLoR472lDz7zM8KcKHK1EK46ss-Ppmg7tSOpUz0uYeujtrdGMD5Dfk1bw",
-    KEY_URL = "https://pastebin.com/raw/55RjjkTW", -- Your provided Pastebin URL
+    KEY_URL = "https://pastebin.com/raw/VHW3Fa9s", -- Your provided Pastebin URL
     KEY_FALLBACK_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/key_fallback", -- Backup URL (you can host this elsewhere)
     SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG",
     NEWS_URL = "https://pastebin.com/raw/vTKfsvCr",
