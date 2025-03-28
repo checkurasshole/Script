@@ -9,18 +9,18 @@ local DataStoreService = game:GetService("DataStoreService")
 
 local CONFIG = {
     WEBHOOK_URL = "https://discord.com/api/webhooks/1354219342840991964/kgyogYrGVoTXLoR472lDz7zM8KcKHK1EK46ss-Ppmg7tSOpUz0uYeujtrdGMD5Dfk1bw",
-    KEY_URL = "https://pastebin.com/raw/55RjjkTW",
-    SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG",
-    NEWS_URL = "https://pastebin.com/raw/vTKfsvCr",
-    BLACKLIST_URL = "https://pastebin.com/raw/3h23tX2Y",
-    WHITELIST_URL = "https://pastebin.com/raw/Qmp4r6es",
+    KEY_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Tune",
+    SUBSCRIPTION_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Subscription",
+    NEWS_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/News",
+    BLACKLIST_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Blacklist",
+    WHITELIST_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Whitelist",
     HTTP_TIMEOUT = 10,
     FEEDBACK_COOLDOWN = 4500,
     REFRESH_INTERVAL = 180,
     VERSION = "1.3.0",
     VIP_PERKS = {
         SCRIPT_BOOST = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/VIP_Boost",
-        EXCLUSIVE_UI = "https://pastebin.com/raw/your_exclusive_ui"
+        EXCLUSIVE_UI = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Exclusive_UI"
     }
 }
 
