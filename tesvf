@@ -9,7 +9,11 @@ local DataStoreService = game:GetService("DataStoreService")
 
 local CONFIG = {
     WEBHOOK_URL = "https://discord.com/api/webhooks/1354219342840991964/kgyogYrGVoTXLoR472lDz7zM8KcKHK1EK46ss-Ppmg7tSOpUz0uYeujtrdGMD5Dfk1bw",
-    KEY_URL = "https://pastebin.com/raw/VHW3Fa9s",
+    KEY_URLS = {
+        "https://pastebin.com/raw/VHW3Fa9s", -- Original Pastebin
+        "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Tune", -- GitHub (replace with your repo)
+        "https://hastebin.com/share/halokadamu" -- Additional fallback (replace with a real URL)
+    },
     SUBSCRIPTION_URL = "https://pastebin.com/raw/ThRPn5JG",
     NEWS_URL = "https://pastebin.com/raw/vTKfsvCr",
     BLACKLIST_URL = "https://pastebin.com/raw/3h23tX2Y",
@@ -17,7 +21,7 @@ local CONFIG = {
     HTTP_TIMEOUT = 10,
     FEEDBACK_COOLDOWN = 4500,
     REFRESH_INTERVAL = 180,
-    VERSION = "1.3.0",
+    VERSION = "1.3.1", -- Updated version to reflect changes
     VIP_PERKS = {
         SCRIPT_BOOST = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/VIP_Boost",
         EXCLUSIVE_UI = "https://pastebin.com/raw/your_exclusive_ui"
@@ -185,31 +189,58 @@ local keySystem = {
     key = nil,
     lastFetch = 0,
     isFetching = false,
+    fallbackKey = "Key22Changed", -- Hardcoded fallback key
     
     fetch = function(self)
-        if self.isFetching then return end
+        if self.isFetching then return self.key end
         self.isFetching = true
         
+        -- Check if we have a recent key
         if self.key and (tick() - self.lastFetch < 300) then
             self.isFetching = false
             return self.key
         end
         
-        Rayfield:Notify({Title = "Loading", Content = "Fetching key...", Duration = 2})
-        local success, response = safeHttpGet(CONFIG.KEY_URL)
-        if success then
-            self.key = response
+        Rayfield:Notify({Title = "Loading", Content = "Fetching key from sources...", Duration = 2})
+        local fetchedKey = nil
+        local lastError = nil
+        
+        -- Try each URL in sequence
+        for i, url in ipairs(CONFIG.KEY_URLS) do
+            local success, response = safeHttpGet(url)
+            if success then
+                fetchedKey = response:match("^%s*(.-)%s*$") -- Trim whitespace
+                Rayfield:Notify({Title = "Key Fetched", Content = "Key retrieved from source " .. i, Duration = 2})
+                break
+            else
+                lastError = response
+                Rayfield:Notify({Title = "Warning", Content = "Source " .. i .. " failed: " .. (response or "Unknown error"), Duration = 3})
+            end
+        end
+        
+        if fetchedKey then
+            self.key = fetchedKey
             self.lastFetch = tick()
         else
-            self.key = "Key22Changed"
-            Rayfield:Notify({Title = "Warning", Content = "Using fallback key.", Duration = 3})
+            self.key = self.fallbackKey
+            Rayfield:Notify({Title = "Fallback", Content = "All sources failed. Using fallback key: " .. self.fallbackKey, Duration = 5})
+            if lastError then
+                Rayfield:Notify({Title = "Error Details", Content = "Last error: " .. lastError, Duration = 5})
+            end
         end
+        
         self.isFetching = false
         return self.key
     end,
     
     verify = function(self, input)
-        return input == self:fetch()
+        local currentKey = self:fetch()
+        local inputTrimmed = input:match("^%s*(.-)%s*$") -- Trim whitespace from input
+        local isValid = inputTrimmed == currentKey
+        if not isValid then
+            Rayfield:Notify({Title = "Verification Failed", Content = "Expected: " .. currentKey .. "\nGot: " .. inputTrimmed, Duration = 5})
+        end
+        return isValid
     end
 }
 
@@ -597,7 +628,7 @@ local keyInput = KeyTab:CreateInput({
             Rayfield:Destroy()
             scriptSystem:loadScriptSet(scriptToLoad, true)
         else
-            Rayfield:Notify({Title = "Invalid", Content = "Join Discord for key!", Duration = 5, Image = 4483362458})
+            Rayfield:Notify({Title = "Invalid", Content = "Join Discord for key! Expected: " .. keySystem.key, Duration = 5, Image = 4483362458})
         end
     end
 })
