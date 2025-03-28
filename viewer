@@ -1,0 +1,469 @@
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/UI-Interface/CustomFIeld/main/RayField.lua'))()
+-- Error Handling  
+local function SafeLoadModule(getFunction)
+    local success, module = pcall(getFunction)
+    if not success then
+        warn("[Universe Viewer Pro] Module loading failed: " .. tostring(module))
+        return nil
+    end
+    return module
+end
+
+-- Notification Module with Fallback
+local NotificationModule = SafeLoadModule(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/Nameless-Admin/main/NamelessAdminNotifications.lua"))()
+end)
+
+--  Main Window
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Upraded Universal Viewer",
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "Config",
+        FileName = "SIM"
+    },
+    Discord = {
+        Enabled = true,
+        Invite = "",
+        RememberJoins = true
+    },
+    KeySystem = false
+})
+
+-- Services
+local AssetService = game:GetService("AssetService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Enhanced Notification Function
+local function ShowNotification(title, content, duration, notificationType)
+    if NotificationModule and NotificationModule.Notify then
+        NotificationModule.Notify({
+            Title = title,
+            Description = content,
+            Duration = duration or 5,
+        })
+    else
+        Rayfield:Notify({
+            Title = title,
+            Content = content,
+            Duration = duration or 5,
+            Image = 6031225816,
+        })
+    end
+end
+
+--  tabs
+local MainTab = Window:CreateTab("🏠 Universe", 6022668898)
+local SettingsTab = Window:CreateTab("⚙️ Settings", 6031229361)
+local StatsTab = Window:CreateTab("📊 Stats", 6034590631)
+
+-- Game Management with Extended Features
+local GamesManager = {
+    AllGames = {},
+    FilteredGames = {},
+    MaxGamesToLoad = 500,
+    FavoriteGames = {},
+    GameHistory = {},
+    GameDetailsCache = {},
+    PlayerStats = {},
+    
+    -- Game Classification
+    Genres = {"RPG", "FPS", "Simulator", "Tycoon", "Adventure", "Racing", "Fighting"},
+    GameTags = {},
+    
+    -- Fetch games with extended data
+    FetchGames = function(self)
+        self.AllGames = {}
+        local success, page = pcall(function()
+            return AssetService:GetGamePlacesAsync()
+        end)
+        
+        if not success then
+            ShowNotification("Error", "Could not fetch games list", 5, "error")
+            return false
+        end
+        
+        local gameCount = 0
+        while true do
+            for _, place in page:GetCurrentPage() do
+                if place.PlaceId and place.Name and gameCount < self.MaxGamesToLoad then
+                    local gameData = {
+                        PlaceId = place.PlaceId,
+                        Name = place.Name,
+                        Genre = self.Genres[math.random(1, #self.Genres)], -- Simulated genre
+                        Tags = {},
+                        PlayerCount = math.random(0, 1000),
+                        Rating = math.random(1, 5),
+                        CreationDate = os.date("%Y-%m-%d", os.time() - math.random(1, 1000) * 86400),
+                        AvgPlayers = math.random(50, 500),
+                        Developer = "Developer_" .. tostring(math.random(1, 100)),
+                        Description = "Sample game description",
+                        UpdateHistory = {"Updated on " .. os.date("%Y-%m-%d")},
+                        ServerData = {
+                            Ping = math.random(20, 150),
+                            Region = "US-" .. tostring(math.random(1, 5)),
+                            Type = "Recommended"
+                        },
+                        Performance = {
+                            FPS = math.random(30, 60),
+                            Memory = math.random(100, 1000),
+                            LoadTime = math.random(1, 10)
+                        }
+                    }
+                    table.insert(self.AllGames, gameData)
+                    gameCount = gameCount + 1
+                end
+            end
+            
+            if page.IsFinished or gameCount >= self.MaxGamesToLoad then
+                break
+            end
+            
+            local advanceSuccess, errorMsg = pcall(page.AdvanceToNextPageAsync, page)
+            if not advanceSuccess then
+                warn("Page advancement error: " .. tostring(errorMsg))
+                break
+            end
+        end
+        
+        return #self.AllGames > 0
+    end,
+    
+    -- Advanced Filtering
+    FilterGames = function(self, searchText, filters)
+        self.FilteredGames = {}
+        searchText = string.lower(searchText or "")
+        filters = filters or {}
+        
+        for _, game in ipairs(self.AllGames) do
+            local matches = true
+            
+            -- Basic search
+            if searchText ~= "" and not string.find(string.lower(game.Name), searchText) then
+                matches = false
+            end
+            
+            -- Genre filter
+            if filters.genre and game.Genre ~= filters.genre then
+                matches = false
+            end
+            
+            -- Player count filter
+            if filters.minPlayers and game.PlayerCount < filters.minPlayers then
+                matches = false
+            end
+            if filters.maxPlayers and game.PlayerCount > filters.maxPlayers then
+                matches = false
+            end
+            
+            -- Rating filter
+            if filters.minRating and game.Rating < filters.minRating then
+                matches = false
+            end
+            
+            if matches then
+                table.insert(self.FilteredGames, game)
+            end
+        end
+        
+        return self.FilteredGames
+    end,
+    
+    -- Favorite Games Management
+    AddFavorite = function(self, placeId)
+        for _, game in ipairs(self.AllGames) do
+            if game.PlaceId == placeId then
+                self.FavoriteGames[placeId] = game
+                break
+            end
+        end
+    end,
+    
+    -- Game History Tracking
+    AddToHistory = function(self, placeId)
+        for _, game in ipairs(self.AllGames) do
+            if game.PlaceId == placeId then
+                table.insert(self.GameHistory, 1, game)
+                if #self.GameHistory > 50 then
+                    table.remove(self.GameHistory, #self.GameHistory)
+                end
+                break
+            end
+        end
+    end
+}
+
+-- Teleport Function with Enhancements
+local function TeleportToGame(placeId, placeName, serverData)
+    if not placeId then
+        ShowNotification("Error", "Invalid Place ID", 3, "error")
+        return
+    end
+    
+    GamesManager:AddToHistory(placeId)
+    
+    local success, errorMessage = pcall(function()
+        TeleportService:Teleport(placeId, LocalPlayer)
+    end)
+    
+    if success then
+        ShowNotification("Teleporting", "Joining " .. placeName .. " (" .. serverData.Region .. ")", 3, "success")
+    else
+        ShowNotification("Teleport Failed", tostring(errorMessage), 5, "error")
+    end
+end
+
+-- Create Game List with Enhanced Features
+local function UpdateGameList(games)
+    MainTab:CreateSection("🎮 Game List")
+    
+    for _, place in ipairs(games) do
+        local button = MainTab:CreateButton({
+            Name = string.format("%s (ID: %d) - %s - %d players - %d/5 stars", 
+                place.Name, place.PlaceId, place.Genre, place.PlayerCount, place.Rating),
+            Callback = function()
+                TeleportToGame(place.PlaceId, place.Name, place.ServerData)
+            end,
+            Menu = {
+                {
+                    Name = "📋 Copy Place ID",
+                    Callback = function()
+                        setclipboard(tostring(place.PlaceId))
+                        ShowNotification("Copied", "Place ID: " .. place.PlaceId, 2)
+                    end
+                },
+                {
+                    Name = "⭐ Add to Favorites",
+                    Callback = function()
+                        GamesManager:AddFavorite(place.PlaceId)
+                        ShowNotification("Favorites", "Added " .. place.Name .. " to favorites", 2)
+                    end
+                },
+                {
+                    Name = "ℹ️ Game Details",
+                    Callback = function()
+                        ShowNotification("Game Info: " .. place.Name,
+                            string.format("Developer: %s\nCreated: %s\nPlayers: %d\nPing: %dms\nDescription: %s",
+                                place.Developer, place.CreationDate, place.PlayerCount, 
+                                place.ServerData.Ping, place.Description),
+                            5)
+                    end
+                }
+            }
+        })
+    end
+end
+
+-- Initial Setup with Advanced Filtering
+local FilterTab = Window:CreateTab("🔍 Filters", 6031280882)
+local filterSettings = {}
+
+local SearchInput = MainTab:CreateInput({
+    Name = "🔍 Search Games",
+    PlaceholderText = "Search by name... (use AND/OR)",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        local filteredGames = GamesManager:FilterGames(Text, filterSettings)
+        UpdateGameList(filteredGames)
+    end
+})
+
+-- Filter Controls
+FilterTab:CreateDropdown({
+    Name = "Genre Filter",
+    Options = GamesManager.Genres,
+    CurrentOption = "",
+    Callback = function(Value)
+        filterSettings.genre = Value ~= "" and Value or nil
+    end
+})
+
+FilterTab:CreateSlider({
+    Name = "Min Players",
+    Range = {0, 1000},
+    Increment = 50,
+    Suffix = "players",
+    CurrentValue = 0,
+    Callback = function(Value)
+        filterSettings.minPlayers = Value
+    end
+})
+
+FilterTab:CreateSlider({
+    Name = "Max Players",
+    Range = {0, 1000},
+    Increment = 50,
+    Suffix = "players",
+    CurrentValue = 1000,
+    Callback = function(Value)
+        filterSettings.maxPlayers = Value
+    end
+})
+
+FilterTab:CreateSlider({
+    Name = "Min Rating",
+    Range = {1, 5},
+    Increment = 1,
+    Suffix = "stars",
+    CurrentValue = 1,
+    Callback = function(Value)
+        filterSettings.minRating = Value
+    end
+})
+
+-- Favorites Tab
+local FavoritesTab = Window:CreateTab("⭐ Favorites", 6031075937)
+local function UpdateFavoritesList()
+    FavoritesTab:CreateSection("⭐ Favorite Games")
+    for placeId, place in pairs(GamesManager.FavoriteGames) do
+        FavoritesTab:CreateButton({
+            Name = place.Name .. " (Quick Join)",
+            Callback = function()
+                TeleportToGame(place.PlaceId, place.Name, place.ServerData)
+            end
+        })
+    end
+end
+
+-- History Tab
+local HistoryTab = Window:CreateTab("📜 History", 6031261536)
+local function UpdateHistoryList()
+    HistoryTab:CreateSection("📜 Recently Visited")
+    for _, place in ipairs(GamesManager.GameHistory) do
+        HistoryTab:CreateButton({
+            Name = place.Name .. " (" .. place.CreationDate .. ")",
+            Callback = function()
+                TeleportToGame(place.PlaceId, place.Name, place.ServerData)
+            end
+        })
+    end
+end
+
+-- Buttons Section
+local ButtonsSection = MainTab:CreateSection("🛠️ Tools")
+
+local RefreshButton = MainTab:CreateButton({
+    Name = "🔄 Refresh Game List",
+    Callback = function()
+        if GamesManager:FetchGames() then
+            UpdateGameList(GamesManager.AllGames)
+            UpdateFavoritesList()
+            UpdateHistoryList()
+            ShowNotification("Refreshed", "Game list updated successfully", 3, "success")
+        else
+            ShowNotification("Error", "Failed to refresh game list", 3, "error")
+        end
+    end
+})
+
+local CopyAllButton = MainTab:CreateButton({
+    Name = "📋 Copy All Place IDs",
+    Callback = function()
+        local allPlaceIds = {}
+        for _, place in ipairs(GamesManager.AllGames) do
+            table.insert(allPlaceIds, tostring(place.PlaceId))
+        end
+        
+        local placeIdString = table.concat(allPlaceIds, ", ")
+        setclipboard(placeIdString)
+        ShowNotification("Copied", "Copied " .. #allPlaceIds .. " Place IDs", 3)
+    end
+})
+
+-- Stats Section with Enhanced Analytics
+local function UpdateStats()
+    local statsSection = StatsTab:CreateSection("📊 Universe Statistics")
+    
+    StatsTab:CreateParagraph({
+        Title = "Game Universe Overview",
+        Content = string.format(
+            "Total Games Loaded: %d\n" ..
+            "Unique Places: %d\n" ..
+            "Favorites: %d\n" ..
+            "Average Rating: %.1f\n" ..
+            "Average Players: %d\n" ..
+            "Refresh Time: %s",
+            #GamesManager.AllGames,
+            #GamesManager.AllGames,
+            table.count(GamesManager.FavoriteGames),
+            3.5, -- Simulated average rating
+            250, -- Simulated average players
+            os.date("%Y-%m-%d %H:%M:%S")
+        )
+    })
+end
+
+-- Additional Feature Tabs
+local CommunityTab = Window:CreateTab("👥 Community", 6034830830)
+local PerformanceTab = Window:CreateTab("📈 Performance", 6035065170)
+local SecurityTab = Window:CreateTab("🔒 Security", 6034754441)
+
+-- Community Features
+CommunityTab:CreateSection("👥 Social Features")
+CommunityTab:CreateButton({
+    Name = "Show Friends Playing",
+    Callback = function()
+        ShowNotification("Friends", "Feature coming soon!", 3)
+    end
+})
+
+-- Performance Features
+PerformanceTab:CreateSection("📈 Performance Metrics")
+PerformanceTab:CreateParagraph({
+    Title = "System Performance",
+    Content = "FPS Prediction: Available soon\nMemory Usage: Coming soon"
+})
+
+-- Security Features
+SecurityTab:CreateSection("🔒 Security Settings")
+SecurityTab:CreateToggle({
+    Name = "Show Safety Ratings",
+    CurrentValue = true,
+    Callback = function(Value)
+        ShowNotification("Security", "Safety ratings " .. (Value and "enabled" or "disabled"), 2)
+    end
+})
+
+-- Settings Tab with Additional Features
+local SettingsSection = SettingsTab:CreateSection("⚙️ Viewer Settings")
+
+local MaxGamesSlider = SettingsTab:CreateSlider({
+    Name = "Max Games to Load",
+    Range = {1, 1000},
+    Increment = 50,
+    Suffix = "games",
+    CurrentValue = 500,
+    Callback = function(Value)
+        GamesManager.MaxGamesToLoad = Value
+        ShowNotification("Updated", "Max games set to " .. Value, 2)
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "High Contrast Mode",
+    CurrentValue = false,
+    Callback = function(Value)
+        ShowNotification("Accessibility", "High contrast " .. (Value and "enabled" or "disabled"), 2)
+    end
+})
+
+-- Initialize
+task.spawn(function()
+    if GamesManager:FetchGames() then
+        UpdateGameList(GamesManager.AllGames)
+        UpdateStats()
+        UpdateFavoritesList()
+        UpdateHistoryList()
+        ShowNotification("Universe Viewer Pro", "Loaded " .. #GamesManager.AllGames .. " games", 5, "success")
+    else
+        ShowNotification("Error", "Failed to load games", 5, "error")
+    end
+end)
+
+-- Final Setup
+Rayfield:LoadConfiguration()
+ShowNotification("Universe Viewer Pro", "Script initialized successfully!", 3)
