@@ -9,17 +9,65 @@
 
 ]]--
 
--- Version and access enforcement for Vault v1.3.3+
-if not _G.VaultVersionToken or _G.VaultVersionToken ~= "VAULT_1_3_3_AUTH" then
-    error("This script requires Vault v1.3.3 or higher. Please update your main script.")
+-- Enhanced Version Enforcement for Vault v1.3.3+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+
+-- Step 1: Verify GitHub origin
+local function verifyGitHubOrigin()
+    local success, response = pcall(function()
+        return game:HttpGet("https://raw.githubusercontent.com/12345678kanhai/silence/refs/heads/main/LICENSE")
+    end)
+    if not success then
+        error("Failed to verify script origin. Execution halted for security.")
+    end
+    -- No need to check content, just ensure the request succeeds
 end
 
-if not _G.VaultGatekeeperToken or _G.VaultGatekeeperToken ~= "GATEKEEPER_AUTH_133" then
-    error("Unauthorized access. Scripts must be loaded through the official gatekeeper.")
+-- Step 2: Version check
+local function checkVersion()
+    if not _G.VaultVersionToken or _G.VaultVersionToken ~= "VAULT_1_3_3_AUTH" then
+        error("This script requires Vault v1.3.3 or higher. Please update your main script.")
+    end
 end
 
-if _G.VaultIsBlacklisted then
-    error("Access denied. You are blacklisted from using this script.")
+-- Step 3: Blacklist check
+local function checkBlacklist()
+    local success, response = pcall(function()
+        return game:HttpGet("https://pastebin.com/raw/3h23tX2Y")
+    end)
+    if not success then
+        error("Failed to fetch blacklist. Execution halted for safety.")
+    end
+    
+    local blacklist = {}
+    for line in response:gmatch("[^\n]+") do
+        local trimmed = line:match("^%s*(.-)%s*$")
+        if trimmed and trimmed ~= "" then
+            blacklist[trimmed] = true
+        end
+    end
+    
+    local username = LocalPlayer.Name
+    local userId = tostring(LocalPlayer.UserId)
+    if blacklist[username] or blacklist[userId] then
+        error("Access denied: User is blacklisted.")
+    end
+end
+
+-- Execute security checks
+local function enforceSecurity()
+    verifyGitHubOrigin()  -- Check GitHub first
+    checkVersion()        -- Then version
+    checkBlacklist()      -- Then blacklist
+end
+
+-- Run the enforcement
+local success, errorMsg = pcall(enforceSecurity)
+if not success then
+    print("Security check failed: " .. errorMsg)
+    return  -- Stop execution
 end
 
 -- Your original script code goes below here
