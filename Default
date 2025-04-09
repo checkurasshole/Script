@@ -86,3 +86,26 @@ MainTab:CreateButton({
       })
    end,
 })
+
+-- Invisibility Button
+MainTab:CreateButton({
+   Name = "Activate Invisibility Mode",
+   Info = "Loads the Invisibility",
+   Callback = function()
+      loadstring(game:HttpGet('https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/invi'))()
+      Rayfield:Notify({
+         Title = "Invisibility Activated",
+         Content = "You are now hidden from sight. Stay stealthy.",
+         Duration = 3,
+         Image = 4483362458,
+         Actions = {
+            Ignore = {
+               Name = "OK",
+               Callback = function()
+                  -- The user acknowledged the notification
+               end
+            },
+         },
+      })
+   end,
+})
