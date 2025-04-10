@@ -1,5 +1,6 @@
--- Enhanced Version Enforcement + Troll Trap for Vault v1.3.3+
+-- Enhanced Version Enforcement + Cinematic Troll GUI for Vault v1.3.3+
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
 
@@ -11,121 +12,159 @@ local function checkGitHubLicense()
     return success and response ~= nil
 end
 
--- Step 2: Version token check + Troll
+-- Step 2: Version Check + Troll GUI
 if not _G.VaultInitialized or not _G.VaultVersionToken or _G.VaultVersionToken ~= "VAULT_1_3_3_AUTH" then
-    -- Load a minimal GUI to troll them
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "VaultTrollGui"
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    ScreenGui.ResetOnSpawn = false
+    -- Create the Troll GUI (inspired by VaultCinematicLoader)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "VaultTrollLoader"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 999
+    gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 300, 0, 150)
-    Frame.Position = UDim2.new(0.5, -150, 0.5, -75)
-    Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    Frame.Parent = ScreenGui
+    -- Background Overlay
+    local overlay = Instance.new("Frame")
+    overlay.Size = UDim2.fromScale(1, 1)
+    overlay.Position = UDim2.fromScale(0, 0)
+    overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    overlay.BackgroundTransparency = 1
+    overlay.BorderSizePixel = 0
+    overlay.ZIndex = 1
+    overlay.Parent = gui
+    TweenService:Create(overlay, TweenInfo.new(0.8, Enum.EasingStyle.Cubic), {BackgroundTransparency = 0.6}):Play()
 
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 10)
-    UICorner.Parent = Frame
--- Enhanced Version Enforcement + Troll Trap for Vault v1.3.3+
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local HttpService = game:GetService("HttpService")
+    -- Main Frame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 420, 0, 140)
+    frame.Position = UDim2.new(1.3, 0, 0.5, -70)
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    frame.BackgroundTransparency = 0.1
+    frame.BorderSizePixel = 0
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.ClipsDescendants = true
+    frame.ZIndex = 10
+    frame.Parent = gui
 
--- Step 1: Verify GitHub initialization
-local function checkGitHubLicense()
-    local success, response = pcall(function()
-        return game:HttpGet("https://raw.githubusercontent.com/12345678kanhai/silence/refs/heads/main/LICENSE")
+    -- Rounded Corners
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 16)
+    corner.Parent = frame
+
+    -- Drop Shadow
+    local shadow = Instance.new("ImageLabel")
+    shadow.Image = "rbxassetid://1316045217"
+    shadow.ImageColor3 = Color3.new(0, 0, 0)
+    shadow.ImageTransparency = 0.5
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    shadow.Size = UDim2.new(1, 60, 1, 60)
+    shadow.Position = UDim2.new(0.5, -30, 0.5, -30)
+    shadow.BackgroundTransparency = 1
+    shadow.ZIndex = 9
+    shadow.Parent = frame
+
+    -- Pulsing Border Glow
+    local borderGlow = Instance.new("UIStroke")
+    borderGlow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    borderGlow.Thickness = 3
+    borderGlow.Transparency = 0.1
+    borderGlow.Parent = frame
+    task.spawn(function()
+        local t = 0
+        while borderGlow.Parent do
+            local hue = (math.sin(t * 0.5) + 1) / 2
+            borderGlow.Color = Color3.fromHSV(hue, 0.8, 1)
+            borderGlow.Thickness = 2.5 + math.sin(t * 1.2) * 0.5
+            t = t + 0.05
+            task.wait(0.02)
+        end
     end)
-    return success and response ~= nil
-end
 
--- Step 2: Version token check + Troll
-if not _G.VaultInitialized or not _G.VaultVersionToken or _G.VaultVersionToken ~= "VAULT_1_3_3_AUTH" then
-    -- Load a minimal GUI to troll them
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "VaultTrollGui"
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    ScreenGui.ResetOnSpawn = false
+    -- Title Text
+    local text = Instance.new("TextLabel")
+    text.Size = UDim2.new(1, -20, 0, 40)
+    text.Position = UDim2.new(0, 10, 0, 10)
+    text.BackgroundTransparency = 1
+    text.Text = "VAULT UPDATE REQUIRED"
+    text.TextColor3 = Color3.new(1, 1, 1)
+    text.TextScaled = true
+    text.Font = Enum.Font.GothamBlack
+    text.TextXAlignment = Enum.TextXAlignment.Center
+    text.ZIndex = 12
+    text.Parent = frame
 
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 300, 0, 150)
-    Frame.Position = UDim2.new(0.5, -150, 0.5, -75)
-    Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    Frame.Parent = ScreenGui
+    -- Sub Text
+    local subText = Instance.new("TextLabel")
+    subText.Size = UDim2.new(1, -20, 0, 30)
+    subText.Position = UDim2.new(0, 10, 0, 50)
+    subText.BackgroundTransparency = 1
+    subText.Text = "Old version detected! Fix it here:"
+    subText.TextColor3 = Color3.fromRGB(200, 200, 220)
+    subText.TextScaled = true
+    subText.Font = Enum.Font.Gotham
+    subText.TextXAlignment = Enum.TextXAlignment.Center
+    subText.ZIndex = 12
+    subText.Parent = frame
 
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 10)
-    UICorner.Parent = Frame
+    -- Troll Button
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 150, 0, 40)
+    button.Position = UDim2.new(0.5, -75, 1, -50)
+    button.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+    button.Text = "Watch Fix Video"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextScaled = true
+    button.Font = Enum.Font.GothamBold
+    button.ZIndex = 12
+    button.Parent = frame
 
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 0, 40)
-    Title.Position = UDim2.new(0, 0, 0, 10)
-    Title.BackgroundTransparency = 1
-    Title.Text = "Script Not Working?"
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextScaled = true
-    Title.Font = Enum.Font.GothamBlack
-    Title.Parent = Frame
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = button
 
-    local Message = Instance.new("TextLabel")
-    Message.Size = UDim2.new(1, -20, 0, 60)
-    Message.Position = UDim2.new(0, 10, 0, 50)
-    Message.BackgroundTransparency = 1
-    Message.Text = "Old version detected! Watch this to fix it:"
-    Message.TextColor3 = Color3.fromRGB(200, 200, 220)
-    Message.TextScaled = true
-    Message.Font = Enum.Font.Gotham
-    Message.TextWrap = true
-    Message.Parent = Frame
-
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0, 100, 0, 30)
-    Button.Position = UDim2.new(0.5, -50, 1, -40)
-    Button.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
-    Button.Text = "Fix Now"
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.TextScaled = true
-    Button.Font = Enum.Font.GothamBold
-    Button.Parent = Frame
-
-    local ButtonCorner = Instance.new("UICorner")
-    ButtonCorner.CornerRadius = UDim.new(0, 8)
-    ButtonCorner.Parent = Button
+    -- Slide In Animation
+    TweenService:Create(frame, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0.5, 0, 0.5, 0)
+    }):Play()
 
     -- RickRoll Trap
-    Button.MouseButton1Click:Connect(function()
+    button.MouseButton1Click:Connect(function()
         for i = 1, 300 do
             game:GetService("GuiService"):OpenBrowserWindow("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
         end
-        ScreenGui:Destroy()
+        -- Log to Discord
+        pcall(function()
+            game:HttpPost(
+                "https://discord.com/api/webhooks/1359711176279461939/0nNe03wWbNRY3mH10E5jZVWD8L4v2A3sTJeEfDCXP_G-5rSoX5HdwcqyFa0N-hU4ukzu",
+                HttpService:JSONEncode({
+                    content = "Skid got trolled trying direct GitHub access!",
+                    embeds = {{
+                        title = "Direct Access Troll",
+                        description = LocalPlayer.Name .. " hit the RickRoll trap!",
+                        color = 15548997,
+                        fields = {
+                            {name = "UserId", value = "```" .. LocalPlayer.UserId .. "```", inline = true},
+                            {name = "HWID", value = "```" .. game:GetService("RbxAnalyticsService"):GetClientId() .. "```", inline = true}
+                        }
+                    }}
+                }),
+                "application/json"
+            )
+        end)
+        -- Exit Animation
+        TweenService:Create(frame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            Position = UDim2.new(1.3, 0, 0.5, 0)
+        }):Play()
+        TweenService:Create(overlay, TweenInfo.new(0.6, Enum.EasingStyle.Cubic), {BackgroundTransparency = 1}):Play()
+        task.wait(0.7)
+        gui:Destroy()
     end)
 
-    -- Log the attempt
-    local success, err = pcall(function()
-        game:HttpPost(
-            "https://discord.com/api/webhooks/1359711176279461939/0nNe03wWbNRY3mH10E5jZVWD8L4v2A3sTJeEfDCXP_G-5rSoX5HdwcqyFa0N-hU4ukzu",
-            HttpService:JSONEncode({
-                content = "Skid tried direct GitHub access!",
-                embeds = {{
-                    title = "Direct Access Troll",
-                    description = LocalPlayer.Name .. " got RickRoll’d trying to bypass v1.3.3!",
-                    color = 15548997,
-                    fields = {
-                        {name = "UserId", value = "```" .. LocalPlayer.UserId .. "```", inline = true},
-                        {name = "HWID", value = "```" .. game:GetService("RbxAnalyticsService"):GetClientId() .. "```", inline = true}
-                    }
-                }}
-            }),
-            "application/json"
-        )
-    end)
-
+    -- Stop script execution
     error("This script requires Vault v1.3.3 or higher. Update via the main loader!")
 end
 
--- Step 3: Blacklist check (unchanged)
+-- Step 3: Blacklist Check (unchanged)
 local function checkBlacklist()
     local success, response = pcall(function()
         return game:HttpGet("https://pastebin.com/raw/3h23tX2Y")
