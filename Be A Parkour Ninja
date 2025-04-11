@@ -1,4 +1,4 @@
--- Enhanced Version Enforcement + Cinematic Troll GUI for Vault v1.3.3+
+-- Enhanced Version Enforcement + Redirect to Troll Site for Vault v1.3.3+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
@@ -12,9 +12,9 @@ local function checkGitHubLicense()
     return success and response ~= nil
 end
 
--- Step 2: Version Check + Troll GUI
+-- Step 2: Version Check + Redirect GUI
 if not _G.VaultInitialized or not _G.VaultVersionToken or _G.VaultVersionToken ~= "VAULT_1_3_3_AUTH" then
-    -- Create the Troll GUI (inspired by VaultCinematicLoader)
+    -- Create the Redirect GUI (cinematic loader style)
     local gui = Instance.new("ScreenGui")
     gui.Name = "VaultTrollLoader"
     gui.ResetOnSpawn = false
@@ -98,7 +98,7 @@ if not _G.VaultInitialized or not _G.VaultVersionToken or _G.VaultVersionToken ~
     subText.Size = UDim2.new(1, -20, 0, 30)
     subText.Position = UDim2.new(0, 10, 0, 50)
     subText.BackgroundTransparency = 1
-    subText.Text = "Old version detected! Fix it here:"
+    subText.Text = "Old version detected! Redirecting..."
     subText.TextColor3 = Color3.fromRGB(200, 200, 220)
     subText.TextScaled = true
     subText.Font = Enum.Font.Gotham
@@ -106,41 +106,25 @@ if not _G.VaultInitialized or not _G.VaultVersionToken or _G.VaultVersionToken ~
     subText.ZIndex = 12
     subText.Parent = frame
 
-    -- Troll Button
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 150, 0, 40)
-    button.Position = UDim2.new(0.5, -75, 1, -50)
-    button.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
-    button.Text = "Watch Fix Video"
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.TextScaled = true
-    button.Font = Enum.Font.GothamBold
-    button.ZIndex = 12
-    button.Parent = frame
-
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 8)
-    buttonCorner.Parent = button
-
     -- Slide In Animation
     TweenService:Create(frame, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
         Position = UDim2.new(0.5, 0, 0.5, 0)
     }):Play()
 
-    -- RickRoll Trap
-    button.MouseButton1Click:Connect(function()
-        for i = 1, 300 do
-            game:GetService("GuiService"):OpenBrowserWindow("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-        end
+    -- Redirect to Troll Site
+    task.spawn(function()
+        task.wait(2) -- Fake delay
+        subText.Text = "Get clapped, skid!"
+        game:GetService("GuiService"):OpenBrowserWindow("https://v0-rickroll-website-x12md9.vercel.app/")
         -- Log to Discord
         pcall(function()
             game:HttpPost(
-                "https://discord.com/api/webhooks/1359711176279461939/0nNe03wWbNRY3mH10E5jZVWD8L4v2A3sTJeEfDCXP_G-5rSoX5HdwcqyFa0N-hU4ukzu",
+                "https://discord.com/api/webhooks/[your-new-webhook-id]/[your-new-webhook-token]",
                 HttpService:JSONEncode({
-                    content = "Skid got trolled trying direct GitHub access!",
+                    content = "Skid redirected to troll site!",
                     embeds = {{
-                        title = "Direct Access Troll",
-                        description = LocalPlayer.Name .. " hit the RickRoll trap!",
+                        title = "Redirect Troll",
+                        description = LocalPlayer.Name .. " hit the Vault trap!",
                         color = 15548997,
                         fields = {
                             {name = "UserId", value = "```" .. LocalPlayer.UserId .. "```", inline = true},
