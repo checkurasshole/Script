@@ -1,0 +1,192 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Updates",
+    Icon = 12345678901,
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "By COMBO_WICK | Bang.E.Line",
+    Theme = "Ocean"
+})
+
+-- Main Tab
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+-- Warning Label
+local WarningLabel = MainTab:CreateLabel("WARNING: For Auto Obby, you can get banned if you complete the obby too fast. Wait until about 1 or 2 people complete the obby to avoid suspicion :skull:", 4483362458, Color3.fromRGB(255, 0, 0), false)
+
+-- Auto Collect Eggs Button
+local AutoCollectEggsButton = MainTab:CreateButton({
+    Name = "Auto Collect Eggs",
+    Callback = function()
+        local success, errorMsg = pcall(function()
+            local Players = game:GetService("Players")
+            local player = Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+            -- Check if EasterLobby.Eggs exists
+            if not workspace:FindFirstChild("EasterLobby") or not workspace.EasterLobby:FindFirstChild("Eggs") then
+                warn("EasterLobby.Eggs not found in workspace!")
+                return
+            end
+
+            -- List of Egg Parts
+            local eggs = {
+                workspace.EasterLobby.Eggs,
+                workspace.EasterLobby.Eggs["10"],
+                workspace.EasterLobby.Eggs["11"],
+                workspace.EasterLobby.Eggs["12"],
+                workspace.EasterLobby.Eggs["13"],
+                workspace.EasterLobby.Eggs["14"],
+                workspace.EasterLobby.Eggs["15"],
+                workspace.EasterLobby.Eggs["16"],
+                workspace.EasterLobby.Eggs["17"],
+                workspace.EasterLobby.Eggs["18"],
+                workspace.EasterLobby.Eggs["19"],
+                workspace.EasterLobby.Eggs["2"],
+                workspace.EasterLobby.Eggs["20"],
+                workspace.EasterLobby.Eggs["21"],
+                workspace.EasterLobby.Eggs["22"],
+                workspace.EasterLobby.Eggs["23"],
+                workspace.EasterLobby.Eggs["24"],
+                workspace.EasterLobby.Eggs["25"],
+                workspace.EasterLobby.Eggs["3"],
+                workspace.EasterLobby.Eggs["4"],
+                workspace.EasterLobby.Eggs["5"],
+                workspace.EasterLobby.Eggs["6"],
+                workspace.EasterLobby.Eggs["7"],
+                workspace.EasterLobby.Eggs["8"],
+                workspace.EasterLobby.Eggs["9"],
+                workspace.EasterLobby.Eggs["1"],
+            }
+
+            -- Function to simulate touch
+            local function fireTouch(part)
+                if part and part:IsA("BasePart") then
+                    pcall(function()
+                        firetouchinterest(humanoidRootPart, part, 0) -- Touch begin
+                        task.wait()
+                        firetouchinterest(humanoidRootPart, part, 1) -- Touch end
+                    end)
+                end
+            end
+
+            -- Fire touch on each egg
+            for _, egg in ipairs(eggs) do
+                fireTouch(egg)
+            end
+        end)
+
+        if not success then
+            warn("Error in Auto Collect Eggs: " .. tostring(errorMsg))
+        end
+    end,
+})
+
+-- Auto Obby Button
+local AutoObbyButton = MainTab:CreateButton({
+    Name = "Auto Obby",
+    Callback = function()
+        local success, errorMsg = pcall(function()
+            local Players = game:GetService("Players")
+            local player = Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local root = character:WaitForChild("HumanoidRootPart")
+
+            -- Check if Map exists
+            if not workspace:FindFirstChild("Map") then
+                warn("Map not found in workspace!")
+                return
+            end
+
+            -- Safely simulate a touch
+            local function touch(part)
+                if part and part:IsA("BasePart") then
+                    pcall(function()
+                        firetouchinterest(root, part, 0)
+                        task.wait(0.05)
+                        firetouchinterest(root, part, 1)
+                    end)
+                end
+            end
+
+            -- List of specific win parts
+            local specificWinParts = {
+                "5223adba-4165-43cf-bff0-dcd3c13a63b7", -- Arcade Adventure
+                "90c41781-c7b9-4ac7-b9c4-0347b4b213ab", -- Pastel Paradise
+                "cb3215fb-8201-415b-b763-81b657d910ec", -- Honeycomb Kingdom
+                "7c3eb497-19e3-4357-a83c-ec63d5565172", -- Eggicted Easter
+                "907cfa09-1422-484b-8639-793a62c7e080", -- Spring Fever 1
+                "d42196c2-e9c8-44ea-b31e-10f06791252a", -- Spring Fever 2
+                "6e795a30-d636-4dd1-91f7-c03b1766d450", -- Pixelated Parkour
+                "500aff13-b65b-4edd-aa3c-b719cd7f061d", -- Night of Stars
+                "41470dc8-6521-4e8e-8bf7-279ef611eaa3", -- Island Paradise
+                "15850df7-0a08-4392-9f3e-47a274a12809", -- Chocolate River 1
+                "75ba64ee-08a0-4a6b-bddc-e325ef402c99", -- Chocolate River 2 (Win)
+                "de5b4773-2d1a-4c83-818c-8e2e324c4c7e", -- Dreary Evening (Win)
+                "e88a8df0-7a37-49a4-88f3-7f15739f35a3", -- Malignant Mountain (Win)
+                "bec9ad96-2957-4038-9466-068dd92f882c", -- Eggsthetic Land
+                "fcb754dd-8413-43bb-a2df-6760dc996c1a", -- Happy Easter
+                "6ad5b822-22c8-47cc-88dd-6cff686c046f", -- Magenta Metropolis (Win)
+                "01dd0a04-5f01-49c4-9e1e-b32803b8d639", -- Lunar Valley (Win)
+                "5f442350-495e-4a03-aa4b-f3a26e6b23b0", -- Grassy Obstacle (Win)
+                "0c0915f2-5709-4ce7-b12d-3caf07db122a", -- Ecstatic Easter (Win)
+                "918342d2-4598-4fe4-9641-e97069a560bb", -- Magma Core 1
+                "8eee3754-34a6-4bdd-8faa-18478ca45295", -- Acid Wasteland
+                "0fa17567-16d1-4f21-b3ab-2bcd099a948f",
+                "97603c15-c2c1-4254-9264-d70f58a2411f", -- choco factory
+                "5bffb366-e045-4f58-9de4-cc57e476d146", -- Corrupt Isles
+                "dd872efe-ebcf-472c-b4df-b3978d7bc1ee",
+                "5c75d63a-9f32-4a7b-8a4b-9814fc86d3e1",
+                "760408ce-429e-4006-9290-e46022d0a894", -- stud bby
+                "d9b2b9e4-20c0-449a-b53c-aa5a3c82adfc", -- LAVA OBBY
+                "2460f228-7e52-42a6-8ba3-2f063c4e98f0"
+            }
+
+            -- Loop through each map folder
+            for _, mapFolder in pairs(workspace.Map:GetChildren()) do
+                if mapFolder:IsA("Folder") or mapFolder:IsA("Model") then
+                    local antiCheatFolder = mapFolder:FindFirstChild("AntiCheat")
+
+                    -- STEP 1: Fire all valid parts in AntiCheat (deep search)
+                    if antiCheatFolder then
+                        local antiParts = antiCheatFolder:GetDescendants()
+                        table.insert(antiParts, antiCheatFolder) -- Include root AntiCheat folder itself
+                        for _, part in ipairs(antiParts) do
+                            if part:IsA("BasePart") then
+                                touch(part)
+                            end
+                        end
+                    end
+
+                    task.wait(0.2)
+
+                    -- STEP 2: Fire touch on each specific win part from the list
+                    for _, partID in ipairs(specificWinParts) do
+                        local specificWinPart = mapFolder:FindFirstChild(partID)
+                        if specificWinPart and specificWinPart:IsA("BasePart") then
+                            touch(specificWinPart)
+                        end
+                    end
+
+                    -- STEP 3: Fire on every other part in the map EXCEPT AntiCheat
+                    for _, part in pairs(mapFolder:GetDescendants()) do
+                        if not (antiCheatFolder and antiCheatFolder:IsAncestorOf(part)) then
+                            if part:IsA("BasePart") then
+                                touch(part)
+                            end
+                        end
+                    end
+
+                    task.wait(0.3)
+                end
+            end
+        end)
+
+        if not success then
+            warn("Error in Auto Obby: " .. tostring(errorMsg))
+        end
+    end,
+})
+
+-- Keep the UI loaded
+Rayfield:LoadConfiguration()
