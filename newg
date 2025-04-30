@@ -13,102 +13,211 @@ local MainTab = Window:CreateTab("Main", 4483362458)
 -- Warning Label
 local WarningLabel = MainTab:CreateLabel("WARNING: For Auto Obby, you can get banned if you complete the obby too fast. Wait until about 1 or 2 people complete the obby to avoid suspicion :skull:", 4483362458, Color3.fromRGB(255, 0, 0), false)
 
--- Auto Collect Eggs Button
+-- Create a utility section for common functions
+local Utilities = {
+    -- Safe touch function to handle errors gracefully
+    Touch = function(part, root, delay)
+        delay = delay or 0.05
+        if part and part:IsA("BasePart") and root then
+            pcall(function()
+                firetouchinterest(root, part, 0) -- Touch begin
+                task.wait(delay)
+                firetouchinterest(root, part, 1) -- Touch end
+            end)
+            return true
+        end
+        return false
+    end,
+    
+    -- Get character root part safely
+    GetRoot = function()
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        return character:WaitForChild("HumanoidRootPart")
+    end,
+    
+    -- Notification function
+    Notify = function(title, content, duration)
+        Rayfield:Notify({
+            Title = title,
+            Content = content,
+            Duration = duration or 3,
+            Image = 4483362458
+        })
+    end
+}
+
+-- Storage for custom win parts (persistent across script executions)
+local CustomWinParts = {}
+
+-- Load saved custom win parts from file if possible
+pcall(function()
+    if isfile and readfile and isfile("ComboChronicleCustomParts.json") then
+        CustomWinParts = game:GetService("HttpService"):JSONDecode(readfile("ComboChronicleCustomParts.json"))
+    end
+end)
+
+-- Function to save custom win parts
+local function SaveCustomWinParts()
+    pcall(function()
+        if writefile then
+            writefile("ComboChronicleCustomParts.json", game:GetService("HttpService"):JSONEncode(CustomWinParts))
+        end
+    end)
+end
+
+-- Auto Collect Eggs Button (Improved)
 local AutoCollectEggsButton = MainTab:CreateButton({
     Name = "Auto Collect Eggs",
     Callback = function()
         local success, errorMsg = pcall(function()
-            local Players = game:GetService("Players")
-            local player = Players.LocalPlayer
-            local character = player.Character or player.CharacterAdded:Wait()
-            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
+            local root = Utilities.GetRoot()
+            
             -- Check if EasterLobby.Eggs exists
             if not workspace:FindFirstChild("EasterLobby") or not workspace.EasterLobby:FindFirstChild("Eggs") then
-                warn("EasterLobby.Eggs not found in workspace!")
+                Utilities.Notify("Error", "EasterLobby.Eggs not found in workspace!", 3)
                 return
             end
-
-            -- List of Egg Parts
-            local eggs = {
-                workspace.EasterLobby.Eggs,
-                workspace.EasterLobby.Eggs["10"],
-                workspace.EasterLobby.Eggs["11"],
-                workspace.EasterLobby.Eggs["12"],
-                workspace.EasterLobby.Eggs["13"],
-                workspace.EasterLobby.Eggs["14"],
-                workspace.EasterLobby.Eggs["15"],
-                workspace.EasterLobby.Eggs["16"],
-                workspace.EasterLobby.Eggs["17"],
-                workspace.EasterLobby.Eggs["18"],
-                workspace.EasterLobby.Eggs["19"],
-                workspace.EasterLobby.Eggs["2"],
-                workspace.EasterLobby.Eggs["20"],
-                workspace.EasterLobby.Eggs["21"],
-                workspace.EasterLobby.Eggs["22"],
-                workspace.EasterLobby.Eggs["23"],
-                workspace.EasterLobby.Eggs["24"],
-                workspace.EasterLobby.Eggs["25"],
-                workspace.EasterLobby.Eggs["3"],
-                workspace.EasterLobby.Eggs["4"],
-                workspace.EasterLobby.Eggs["5"],
-                workspace.EasterLobby.Eggs["6"],
-                workspace.EasterLobby.Eggs["7"],
-                workspace.EasterLobby.Eggs["8"],
-                workspace.EasterLobby.Eggs["9"],
-                workspace.EasterLobby.Eggs["1"],
-            }
-
-            -- Function to simulate touch
-            local function fireTouch(part)
-                if part and part:IsA("BasePart") then
-                    pcall(function()
-                        firetouchinterest(humanoidRootPart, part, 0) -- Touch begin
-                        task.wait()
-                        firetouchinterest(humanoidRootPart, part, 1) -- Touch end
-                    end)
+            
+            local eggFolder = workspace.EasterLobby.Eggs
+            local collectedCount = 0
+            
+            -- Smart egg collection - get all children and filter only BaseParts
+            for _, egg in pairs(eggFolder:GetChildren()) do
+                if egg:IsA("BasePart") then
+                    if Utilities.Touch(egg, root) then
+                        collectedCount = collectedCount + 1
+                    end
+                    task.wait(0.05) -- Small delay between eggs
                 end
             end
-
-            -- Fire touch on each egg
-            for _, egg in ipairs(eggs) do
-                fireTouch(egg)
-            end
+            
+            Utilities.Notify("Success", "Collected " .. collectedCount .. " eggs!", 3)
         end)
 
         if not success then
-            warn("Error in Auto Collect Eggs: " .. tostring(errorMsg))
+            Utilities.Notify("Error", "Failed to collect eggs: " .. tostring(errorMsg), 3)
         end
     end,
 })
 
--- Auto Obby Button
-local AutoObbyButton = MainTab:CreateButton({
-    Name = "Auto Obby",
+-- Manually Win Section (New)
+local ManualWinSection = MainTab:CreateSection("Manually Win")
+
+-- Input box for custom win parts
+local ManualWinInput = MainTab:CreateInput({
+    Name = "Add Custom Win Part ID",
+    PlaceholderText = "Paste win part ID here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(winPartID)
+        if winPartID and winPartID:len() > 0 then
+            -- Add to custom win parts if not already there
+            if not table.find(CustomWinParts, winPartID) then
+                table.insert(CustomWinParts, winPartID)
+                SaveCustomWinParts()
+                Utilities.Notify("Success", "Added win part ID: " .. winPartID, 3)
+            else
+                Utilities.Notify("Info", "This win part ID is already in your list", 3)
+            end
+        end
+    end,
+})
+
+-- Button to view/remove custom win parts
+local ViewCustomPartsButton = MainTab:CreateButton({
+    Name = "View/Remove Custom Win Parts",
+    Callback = function()
+        -- Create a temporary window to view/manage custom win parts
+        local CustomPartsWindow = Rayfield:CreateWindow({
+            Name = "COMBO_WICK - UGC",
+            LoadingTitle = "Loading Custom Parts",
+            LoadingSubtitle = "Manage your custom win part IDs",
+            Theme = "Ocean"
+        })
+        
+        local CustomPartsTab = CustomPartsWindow:CreateTab("Custom Parts", 4483362458)
+        
+        -- Add buttons for each custom part
+        for i, partID in ipairs(CustomWinParts) do
+            CustomPartsTab:CreateButton({
+                Name = i .. ". " .. partID,
+                Callback = function()
+                    -- Remove this part ID
+                    table.remove(CustomWinParts, i)
+                    SaveCustomWinParts()
+                    Utilities.Notify("Removed", "Removed win part ID from your list", 3)
+                    -- Close and reopen the window to refresh
+                    CustomPartsWindow:Destroy()
+                    ViewCustomPartsButton.Callback()
+                end,
+            })
+        end
+        
+        -- Add close button
+        CustomPartsTab:CreateButton({
+            Name = "Close",
+            Callback = function()
+                CustomPartsWindow:Destroy()
+            end,
+        })
+    end,
+})
+
+-- Test Single Win Part
+local TestWinPartButton = MainTab:CreateButton({
+    Name = "Test Single Win Part",
     Callback = function()
         local success, errorMsg = pcall(function()
-            local Players = game:GetService("Players")
-            local player = Players.LocalPlayer
-            local character = player.Character or player.CharacterAdded:Wait()
-            local root = character:WaitForChild("HumanoidRootPart")
-
-            -- Check if Map exists
-            if not workspace:FindFirstChild("Map") then
-                warn("Map not found in workspace!")
+            local winPartID = ManualWinInput.Value
+            if not winPartID or winPartID:len() == 0 then
+                Utilities.Notify("Error", "Please enter a win part ID first", 3)
                 return
             end
-
-            -- Safely simulate a touch
-            local function touch(part)
-                if part and part:IsA("BasePart") then
-                    pcall(function()
-                        firetouchinterest(root, part, 0)
-                        task.wait(0.05)
-                        firetouchinterest(root, part, 1)
-                    end)
+            
+            local root = Utilities.GetRoot()
+            local foundPart = false
+            
+            -- Search for the part in all maps
+            for _, mapFolder in pairs(workspace.Map:GetChildren()) do
+                if mapFolder:IsA("Folder") or mapFolder:IsA("Model") then
+                    local targetPart = mapFolder:FindFirstChild(winPartID)
+                    if targetPart and targetPart:IsA("BasePart") then
+                        Utilities.Touch(targetPart, root, 0.1)
+                        Utilities.Notify("Success", "Touched win part in: " .. mapFolder.Name, 3)
+                        foundPart = true
+                        break
+                    end
                 end
             end
+            
+            if not foundPart then
+                Utilities.Notify("Not Found", "Win part ID not found in any current map", 3)
+            end
+        end)
+        
+        if not success then
+            Utilities.Notify("Error", "Failed to test win part: " .. tostring(errorMsg), 3)
+        end
+    end,
+})
 
+-- Auto Obby Section
+local AutoObbySection = MainTab:CreateSection("Auto Obby")
+
+-- Auto Obby Button (Improved)
+local AutoObbyButton = MainTab:CreateButton({
+    Name = "Auto Complete All Obbies",
+    Callback = function()
+        local success, errorMsg = pcall(function()
+            local root = Utilities.GetRoot()
+            
+            -- Check if Map exists
+            if not workspace:FindFirstChild("Map") then
+                Utilities.Notify("Error", "Map not found in workspace!", 3)
+                return
+            end
+            
             -- List of specific win parts
             local specificWinParts = {
                 "5223adba-4165-43cf-bff0-dcd3c13a63b7", -- Arcade Adventure
@@ -130,6 +239,7 @@ local AutoObbyButton = MainTab:CreateButton({
                 "01dd0a04-5f01-49c4-9e1e-b32803b8d639", -- Lunar Valley (Win)
                 "5f442350-495e-4a03-aa4b-f3a26e6b23b0", -- Grassy Obstacle (Win)
                 "0c0915f2-5709-4ce7-b12d-3caf07db122a", -- Ecstatic Easter (Win)
+                "e75b44ef-4a31-44b9-865b-8ae046d2a68a", -- ecastic easter again"
                 "918342d2-4598-4fe4-9641-e97069a560bb", -- Magma Core 1
                 "8eee3754-34a6-4bdd-8faa-18478ca45295", -- Acid Wasteland
                 "0fa17567-16d1-4f21-b3ab-2bcd099a948f",
@@ -139,51 +249,148 @@ local AutoObbyButton = MainTab:CreateButton({
                 "5c75d63a-9f32-4a7b-8a4b-9814fc86d3e1",
                 "760408ce-429e-4006-9290-e46022d0a894", -- stud bby
                 "d9b2b9e4-20c0-449a-b53c-aa5a3c82adfc", -- LAVA OBBY
-                "2460f228-7e52-42a6-8ba3-2f063c4e98f0"
+                "2460f228-7e52-42a6-8ba3-2f063c4e98f0",
+                "23518c99-f0bd-48a2-978f-d4fce5889967",
+                "d66c9444-5282-43aa-9454-80c91c24fa59", -- temp lab
+                "4245e7f7-a9d4-4df3-8163-2a45c3e42b35", -- Eggicted Easter
+                "ff9eff69-e640-4b57-b968-64ee8d899709",
+                "69c0be1c-2239-467d-baa4-808d56283f59", --choco river
+                "23994adb-102b-410e-9b53-e0979f3e353a",
+                "f330766b-4c66-468f-9ade-87fd51742e46", -- candy
+                "9e92ee25-03ea-4aa5-ab60-a27f671dca1d", --Ethereal Island
+                "929c0527-e9c8-41f9-afa1-2db2ca513af9", -- happy easter
+                "ebb918a1-a798-45c6-ac2d-9109080648d1" -- Totem Island
             }
-
+            
+            -- Add custom win parts to the list
+            for _, customPartID in ipairs(CustomWinParts) do
+                if not table.find(specificWinParts, customPartID) then
+                    table.insert(specificWinParts, customPartID)
+                end
+            end
+            
+            local completedCount = 0
+            
+            -- Create progress indicator
+            local progressLabel = MainTab:CreateLabel("Progress: Processing maps...", 4483362458)
+            
             -- Loop through each map folder
-            for _, mapFolder in pairs(workspace.Map:GetChildren()) do
+            for i, mapFolder in pairs(workspace.Map:GetChildren()) do
                 if mapFolder:IsA("Folder") or mapFolder:IsA("Model") then
+                    -- Update progress
+                    progressLabel:Set("Progress: Processing " .. mapFolder.Name .. " (" .. i .. "/" .. #workspace.Map:GetChildren() .. ")")
+                    
+                    local mapCompleted = false
                     local antiCheatFolder = mapFolder:FindFirstChild("AntiCheat")
 
                     -- STEP 1: Fire all valid parts in AntiCheat (deep search)
                     if antiCheatFolder then
                         local antiParts = antiCheatFolder:GetDescendants()
-                        table.insert(antiParts, antiCheatFolder) -- Include root AntiCheat folder itself
                         for _, part in ipairs(antiParts) do
                             if part:IsA("BasePart") then
-                                touch(part)
+                                Utilities.Touch(part, root, 0.03)
                             end
                         end
                     end
 
-                    task.wait(0.2)
+                    task.wait(0.1)
 
-                    -- STEP 2: Fire touch on each specific win part from the list
+                    -- STEP 2: Try to find the win part with a smarter approach
+                    -- First, check specifically named win parts
                     for _, partID in ipairs(specificWinParts) do
                         local specificWinPart = mapFolder:FindFirstChild(partID)
                         if specificWinPart and specificWinPart:IsA("BasePart") then
-                            touch(specificWinPart)
+                            if Utilities.Touch(specificWinPart, root, 0.1) then
+                                completedCount = completedCount + 1
+                                mapCompleted = true
+                                break
+                            end
                         end
                     end
-
-                    -- STEP 3: Fire on every other part in the map EXCEPT AntiCheat
-                    for _, part in pairs(mapFolder:GetDescendants()) do
-                        if not (antiCheatFolder and antiCheatFolder:IsAncestorOf(part)) then
-                            if part:IsA("BasePart") then
-                                touch(part)
+                    
+                    -- If not found, look for parts with name patterns that might indicate win parts
+                    if not mapCompleted then
+                        -- Look for parts with "win" in the name
+                        for _, part in pairs(mapFolder:GetDescendants()) do
+                            if part:IsA("BasePart") and (
+                               string.match(string.lower(part.Name), "win") or
+                               string.match(string.lower(part.Name), "finish") or
+                               string.match(string.lower(part.Name), "end") or
+                               part.Name:find("%-") -- Many UUID parts contain hyphens
+                            ) then
+                                if Utilities.Touch(part, root, 0.1) then
+                                    -- Add this part to custom win parts if successful
+                                    if not table.find(CustomWinParts, part.Name) and
+                                       not table.find(specificWinParts, part.Name) then
+                                        table.insert(CustomWinParts, part.Name)
+                                        SaveCustomWinParts()
+                                    end
+                                    completedCount = completedCount + 1
+                                    mapCompleted = true
+                                    break
+                                end
                             end
                         end
                     end
 
-                    task.wait(0.3)
+                    -- Brief wait between maps to avoid detection
+                    task.wait(0.2)
                 end
             end
+            
+            -- Update final progress
+            progressLabel:Set("Completed " .. completedCount .. " maps!")
+            
+            Utilities.Notify("Auto Obby Complete", "Successfully completed " .. completedCount .. " obbies!", 5)
         end)
 
         if not success then
-            warn("Error in Auto Obby: " .. tostring(errorMsg))
+            Utilities.Notify("Error", "Auto Obby failed: " .. tostring(errorMsg), 5)
+        end
+    end,
+})
+
+-- Scan for New Win Parts Button
+local ScanWinPartsButton = MainTab:CreateButton({
+    Name = "Scan For New Win Parts",
+    Callback = function()
+        local success, errorMsg = pcall(function()
+            local root = Utilities.GetRoot()
+            
+            if not workspace:FindFirstChild("Map") then
+                Utilities.Notify("Error", "Map not found in workspace!", 3)
+                return
+            end
+            
+            local scanLabel = MainTab:CreateLabel("Scanning: Starting scan...", 4483362458)
+            local foundParts = 0
+            
+            -- Look through all maps
+            for i, mapFolder in pairs(workspace.Map:GetChildren()) do
+                if mapFolder:IsA("Folder") or mapFolder:IsA("Model") then
+                    scanLabel:Set("Scanning: " .. mapFolder.Name)
+                    
+                    -- Look for parts that match UUID pattern
+                    for _, part in pairs(mapFolder:GetChildren()) do
+                        if part:IsA("BasePart") and 
+                           string.match(part.Name, "%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x") then
+                            -- This looks like a UUID - likely a win part
+                            if not table.find(CustomWinParts, part.Name) then
+                                table.insert(CustomWinParts, part.Name)
+                                foundParts = foundParts + 1
+                            end
+                        end
+                    end
+                end
+            end
+            
+            SaveCustomWinParts()
+            scanLabel:Set("Scan complete! Found " .. foundParts .. " new potential win parts")
+            Utilities.Notify("Scan Complete", "Added " .. foundParts .. " new win parts to database", 5)
+        end)
+        
+        if not success then
+            Utilities.Notify("Error", "Scan failed: " .. tostring(errorMsg), 3)
         end
     end,
 })
