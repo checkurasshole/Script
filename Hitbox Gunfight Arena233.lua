@@ -1,8 +1,8 @@
--- optimization and variables
+-- Silent Aim Variables
 local game = game
 local players = game:GetService("Players")
 local player = players.LocalPlayer
-local teams = game:GetService("Teams");
+local teams = game:GetService("Teams")
 local rs = game:GetService("RunService")
 local camera = workspace.CurrentCamera
 local vector2 = Vector2.new
@@ -11,7 +11,7 @@ local silentaim = false
 local silentkeybindtoggle = false
 local silentkeybind = false
 
--- functions
+-- Silent Aim Functions
 local get_closest_player = function()
     local closest = nil
     local closest_distance = math.huge
@@ -89,3 +89,40 @@ old_namecall = hookmetamethod(game, "__namecall", function(self, caller, message
 
     return old_namecall(self, caller, message, ...)
 end)
+
+-- Rayfield UI for Silent Aim
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:GetWindow("ComboChronicle Vault | Gunfight Arena")
+local silentAimTab = Window:GetTab("Silent Aim")
+
+local aimSection = silentAimTab:CreateSection("Silent Aim")
+aimSection:Set("Silent Aim Controls")
+
+silentAimTab:CreateToggle({
+    Name = "Silent Aim",
+    CurrentValue = false,
+    Flag = "SilentAimToggle",
+    Callback = function(value)
+        silentaim = value
+    end
+})
+
+silentAimTab:CreateToggle({
+    Name = "Silent Aim Keybind Toggle",
+    CurrentValue = false,
+    Flag = "SilentKeybindToggle",
+    Callback = function(value)
+        silentkeybindtoggle = value
+    end
+})
+
+silentAimTab:CreateKeybind({
+    Name = "Silent Aim Keybind",
+    CurrentKeybind = "E",
+    Flag = "SilentAimKeybind",
+    Callback = function()
+        if silentkeybindtoggle then
+            silentkeybind = not silentkeybind
+        end
+    end
+})
