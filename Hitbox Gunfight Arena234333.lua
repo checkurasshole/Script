@@ -1,8 +1,8 @@
--- Silent Aim Variables
+-- optimization and variables
 local game = game
 local players = game:GetService("Players")
 local player = players.LocalPlayer
-local teams = game:GetService("Teams")
+local teams = game:GetService("Teams");
 local rs = game:GetService("RunService")
 local camera = workspace.CurrentCamera
 local vector2 = Vector2.new
@@ -11,7 +11,7 @@ local silentaim = false
 local silentkeybindtoggle = false
 local silentkeybind = false
 
--- Silent Aim Functions
+-- functions
 local get_closest_player = function()
     local closest = nil
     local closest_distance = math.huge
@@ -90,37 +90,46 @@ old_namecall = hookmetamethod(game, "__namecall", function(self, caller, message
     return old_namecall(self, caller, message, ...)
 end)
 
--- Add Silent Aim Tab to Existing Rayfield UI
-local silentAimTab = Rayfield:CreateTab("Silent Aim", 4483362458)
+-- OrionLib UI for Silent Aim
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
 
-local aimSection = silentAimTab:CreateSection("Silent Aim")
-aimSection:Set("Silent Aim Controls")
+local Window = OrionLib:MakeWindow({Name = "Gunfight Arena - Silent Aim", HidePremium = false, SaveConfig = false, ConfigFolder = "gunfightarena"})
 
-silentAimTab:CreateToggle({
-    Name = "Silent Aim",
-    CurrentValue = false,
-    Flag = "SilentAimToggle",
-    Callback = function(value)
-        silentaim = value
-    end
+local aimtab = Window:MakeTab({
+	Name = "Aim",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
 })
 
-silentAimTab:CreateToggle({
-    Name = "Silent Aim Keybind Toggle",
-    CurrentValue = false,
-    Flag = "SilentKeybindToggle",
-    Callback = function(value)
-        silentkeybindtoggle = value
-    end
+local aimsection = aimtab:AddSection({
+	Name = "SilentAim"
 })
 
-silentAimTab:CreateKeybind({
-    Name = "Silent Aim Keybind",
-    CurrentKeybind = "E",
-    Flag = "SilentAimKeybind",
-    Callback = function()
+aimsection:AddToggle({
+	Name = "Silent Aim (credit to dementia)",
+	Default = false,
+	Callback = function(Value)
+		silentaim = Value
+	end    
+})
+
+aimsection:AddToggle({
+	Name = "SilentAim keybind toggle",
+	Default = false,
+	Callback = function(Value)
+		silentkeybindtoggle = Value
+	end    
+})
+
+aimsection:AddBind({
+	Name = "silent aim keybind",
+	Default = enum.E,
+	Hold = false,
+	Callback = function()
         if silentkeybindtoggle then
             silentkeybind = not silentkeybind
         end
-    end
+	end    
 })
+
+OrionLib:Init()
