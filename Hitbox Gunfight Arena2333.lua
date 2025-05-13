@@ -90,10 +90,8 @@ old_namecall = hookmetamethod(game, "__namecall", function(self, caller, message
     return old_namecall(self, caller, message, ...)
 end)
 
--- Rayfield UI for Silent Aim
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Window = Rayfield:GetWindow("ComboChronicle Vault | Gunfight Arena")
-local silentAimTab = Window:GetTab("Silent Aim")
+-- Add Silent Aim Tab to Existing Rayfield UI
+local silentAimTab = Rayfield:CreateTab("Silent Aim", 4483362458)
 
 local aimSection = silentAimTab:CreateSection("Silent Aim")
 aimSection:Set("Silent Aim Controls")
