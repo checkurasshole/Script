@@ -1,0 +1,707 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "COMBO CHRONICLE VAULT | Noice",
+    Icon = 12345678901,
+    LoadingTitle = "Enjoy!",
+    LoadingSubtitle = "By COMBO_WICK",
+    Theme = "Ocean"
+})
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local localplr = Players.LocalPlayer
+local mouse = localplr:GetMouse()
+
+-- Configuration
+local autoPlaceBlock = false
+local heightOffset = -3.5
+local noSlapEffect = false
+local antiVoid = true
+local antiTimeStop = false
+local autoWin = false
+local winMultiplier = 1
+local flingXYZ = Vector3.new(0, 10, 0)
+local autoSpamBricks = false
+local autoSpamBlackHoles = false
+local autoSpamSwapper = false
+local noKillbrickDamage = false
+local makeBlocks = true
+local otherBuildSystem = false
+local blockDistance = 10
+local snapRotation = false
+local connections = {}
+local originalDestroyHeight = workspace.FallenPartsDestroyHeight
+workspace.FallenPartsDestroyHeight = -500000
+local playerNames = {}
+local players = {}
+local partCFrames = {}
+local on = true
+local obs = false
+local mb = true
+local dist = 10
+local snapcf = false
+local deq = false
+local singleframe = 1/60
+local credit = " (BY 2AreYouMental110)"
+
+-- Anti-Void
+table.insert(connections, RunService.Stepped:Connect(function()
+    if antiVoid and localplr.Character and localplr.Character:FindFirstChild("HumanoidRootPart") then
+        local root = localplr.Character.HumanoidRootPart
+        if root.Position.Y <= originalDestroyHeight + 25 then
+            root.Velocity = root.Velocity + Vector3.new(0, 250, 0)
+        end
+    end
+end))
+
+-- Anti-Time Stop and No Slap Effect
+local function handleDescendant(child)
+    if noSlapEffect and string.find(child.Name, "Velocity") then
+        child:Destroy()
+        if localplr.Character then
+            localplr.Character.Humanoid.Sit = false
+            localplr.Character.Humanoid.PlatformStand = false
+        end
+    end
+    if child:IsA("BasePart") and antiTimeStop then
+        child:GetPropertyChangedSignal("Anchored"):Connect(function()
+            if child.Anchored then
+                child.Anchored = false
+            end
+        end)
+    elseif child:IsA("Humanoid") and antiTimeStop then
+        child:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if child.WalkSpeed < 16 then
+                child.WalkSpeed = 16
+            end
+        end)
+        child:GetPropertyChangedSignal("JumpPower"):Connect(function()
+            if child.JumpPower < 50 then
+                child.JumpPower = 50
+            end
+        end)
+    end
+end
+
+local function onCharacterAdded(char)
+    table.insert(connections, char.DescendantAdded:Connect(handleDescendant))
+    table.insert(connections, char.ChildAdded:Connect(handleDescendant))
+    for _, v in pairs(char:GetChildren()) do
+        handleDescendant(v)
+    end
+end
+
+if localplr.Character then
+    onCharacterAdded(localplr.Character)
+end
+table.insert(connections, localplr.CharacterAdded:Connect(onCharacterAdded))
+
+-- No Killbrick Damage
+local function updateKillbrickDamage()
+    for _, v in pairs(workspace:GetChildren()) do
+        if v:IsA("BasePart") and (v.Color == Color3.fromRGB(175,0,175) or v.Color == Color3.fromRGB(17,17,17) or v.Color == Color3.fromRGB(107,50,124) or v.Color == Color3.fromRGB(255,0,0)) and v:FindFirstChildWhichIsA("TouchTransmitter") then
+            v.CanTouch = not noKillbrickDamage
+        elseif v:IsA("Model") then
+            for _, part in pairs(v:GetChildren()) do
+                if part:IsA("BasePart") and (part.Color == Color3.fromRGB(175,0,175) or part.Color == Color3.fromRGB(17,17,17) or part.Color == Color3.fromRGB(107,50,124) or part.Color == Color3.fromRGB(255,0,0)) and part:FindFirstChildWhichIsA("TouchTransmitter") then
+                    part.CanTouch = not noKillbrickDamage
+                end
+            end
+        end
+    end
+end
+
+-- Auto Place Block
+task.spawn(function()
+    while true do
+        if autoPlaceBlock then
+            pcall(function()
+                local blockSlap = workspace:FindFirstChild("BlockSlap", true) or Players:FindFirstChild("BlockSlap", true)
+                if blockSlap then
+                    blockSlap.PlaceBlock:FireServer((localplr.Character.HumanoidRootPart.CFrame + Vector3.new(0, heightOffset, 0)) * CFrame.fromEulerAnglesYXZ(math.rad(90), 0, 0))
+                end
+            end)
+            task.wait()
+        else
+            task.wait(0.1)
+        end
+    end
+end)
+
+-- Auto Win
+task.spawn(function()
+    local winpad = nil
+    for _, v in pairs(workspace:GetChildren()) do
+        if v:IsA("BasePart") and v.Color == Color3.fromRGB(0, 255, 0) and v:FindFirstChildWhichIsA("ProximityPrompt") then
+            winpad = v
+            break
+        end
+    end
+    while true do
+        if autoWin and winpad then
+            for i = 1, winMultiplier do
+                pcall(function()
+                    localplr.Character:PivotTo(winpad.CFrame)
+                    winpad.ProximityPrompt.HoldDuration = 0
+                    fireproximityprompt(winpad.ProximityPrompt, 0)
+                end)
+            end
+            task.wait()
+        else
+            task.wait(0.1)
+        end
+    end
+end)
+
+-- Auto Spam Bricks
+task.spawn(function()
+    while true do
+        if autoSpamBricks then
+            pcall(function()
+                local brickSlap = workspace:FindFirstChild("BrickSlap", true) or Players:FindFirstChild("BrickSlap", true)
+                if brickSlap then
+                    brickSlap.Event:FireServer("lego")
+                end
+            end)
+            task.wait()
+        else
+            task.wait(0.1)
+        end
+    end
+end)
+
+-- Auto Spam Black Holes
+task.spawn(function()
+    while true do
+        if autoSpamBlackHoles then
+            pcall(function()
+                local galaxySlap = workspace:FindFirstChild("GalaxySlap", true) or Players:FindFirstChild("GalaxySlap", true)
+                if galaxySlap then
+                    galaxySlap.BlackholeEvent:FireServer()
+                end
+            end)
+            task.wait()
+        else
+            task.wait(0.1)
+        end
+    end
+end)
+
+-- Auto Spam Swapper
+task.spawn(function()
+    local resetsw = 0
+    while true do
+        if autoSpamSwapper then
+            resetsw = resetsw + 1
+            local event = nil
+            if resetsw % 3 == 0 then
+                if localplr.Character:FindFirstChild("SwapperSlap") then
+                    localplr.Character.SwapperSlap:Destroy()
+                elseif localplr.Backpack:FindFirstChild("SwapperSlap") then
+                    localplr.Backpack.SwapperSlap:Destroy()
+                end
+                ReplicatedStorage.EquipSlapEvent:FireServer("SwapperSlap")
+                localplr.Backpack:WaitForChild("SwapperSlap", 99999).Parent = localplr.Character
+                event = localplr.Character.SwapperSlap.Event
+            else
+                if localplr.Character:FindFirstChild("SwapperSlap") then
+                    event = localplr.Character.SwapperSlap.Event
+                elseif localplr.Backpack:FindFirstChild("SwapperSlap") then
+                    event = localplr.Backpack.SwapperSlap.Event
+                end
+            end
+            if event then
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v.Character and v ~= localplr then
+                        pcall(function()
+                            event:FireServer("swap", v.Character.HumanoidRootPart.Position, localplr.Character.HumanoidRootPart.Position, v)
+                        end)
+                    end
+                end
+            end
+            task.wait(0.2)
+        else
+            task.wait(0.1)
+        end
+    end
+end)
+
+-- Player Dropdowns
+local function getName(plr)
+    if plr and plr.DisplayName == plr.Name then
+        return plr.Name
+    elseif plr then
+        return plr.DisplayName .. "/" .. plr.Name
+    end
+end
+
+local function updatePlayerDropdown(plr, noSort)
+    local name = getName(plr)
+    if name then
+        table.insert(playerNames, name)
+        players[name] = plr
+        if not noSort then
+            table.sort(playerNames, function(a, b) return a:lower() < b:lower() end)
+        end
+    end
+end
+
+for _, v in pairs(Players:GetPlayers()) do
+    updatePlayerDropdown(v, true)
+end
+table.sort(playerNames, function(a, b) return a:lower() < b:lower() end)
+
+table.insert(connections, Players.PlayerAdded:Connect(updatePlayerDropdown))
+table.insert(connections, Players.PlayerRemoving:Connect(function(plr)
+    local name = getName(plr)
+    if name then
+        players[name] = nil
+        table.remove(playerNames, table.find(playerNames, name))
+        table.sort(playerNames, function(a, b) return a:lower() < b:lower() end)
+    end
+end))
+
+-- Build System
+local display = Instance.new("Part")
+display.Anchored = true
+display.Transparency = 1
+display.Color = Color3.fromRGB(117, 112, 116)
+display.Size = Vector3.new(8, 10, 1)
+display.CanCollide = false
+display.CastShadow = false
+display.Name = "DisplayBuild"
+display.CanQuery = false
+display.Parent = workspace
+
+local display2 = Instance.new("Highlight")
+display2.FillTransparency = 1
+display2.OutlineColor = Color3.fromRGB(255, 0, 0)
+display2.DepthMode = Enum.HighlightDepthMode.Occluded
+display2.Parent = game.CoreGui
+
+local function convrot(int)
+    return (int * 360) / (math.pi * 2)
+end
+
+local function snap(cframe)
+    local x, y, z = cframe:ToOrientation()
+    local cfr2 = {math.rad(math.round(convrot(x) / 45) * 45), math.rad(math.round(convrot(y) / 45) * 45), math.rad(math.round(convrot(z) / 45) * 45)}
+    return CFrame.new(cframe.Position) * CFrame.fromOrientation(table.unpack(cfr2))
+end
+
+local function getpos()
+    local cfr = (CFrame.new(((mouse.Hit.Position - localplr.Character:GetPivot().Position).Unit * dist)) * mouse.Hit.Rotation) + localplr.Character:GetPivot().Position
+    if snapcf then
+        cfr = snap(cfr)
+    end
+    return cfr
+end
+
+coroutine.wrap(function()
+    while on do
+        task.wait()
+        pcall(function()
+            if obs then
+                display.CFrame = getpos()
+            else
+                local hit = mouse.Hit
+                if snapcf then
+                    hit = snap(hit)
+                end
+                display.CFrame = hit
+            end
+            if mouse.Target and mouse.Target.Name == "PlacedBlock" and deq then
+                display2.Adornee = mouse.Target
+            else
+                display2.Adornee = nil
+            end
+        end)
+    end
+end)()
+
+coroutine.wrap(function()
+    while on do
+        task.wait(2 - (#partCFrames / 10) * singleframe)
+        if mb and (workspace:FindFirstChild("PlaceBlock", true) or Players:FindFirstChild("PlaceBlock", true)) then
+            local plcbl = workspace:FindFirstChild("PlaceBlock", true) or Players:FindFirstChild("PlaceBlock", true)
+            for i, v in pairs(partCFrames) do
+                if i % 15 == 0 then
+                    task.wait()
+                end
+                plcbl:FireServer(v)
+            end
+        elseif localplr.Backpack:FindFirstChild("funny build" .. credit) or localplr.Character:FindFirstChild("funny build" .. credit) then
+            ReplicatedStorage.EquipSlapEvent:FireServer("BlockSlap")
+        end
+    end
+end)()
+
+-- Player Folder
+local playerFolder = Instance.new("Folder")
+playerFolder.Name = "PLRFOLDER"
+playerFolder.Parent = workspace
+mouse.TargetFilter = playerFolder
+
+local function onPlayerCharacterAdded(char)
+    char.Parent = playerFolder
+end
+
+for _, v in pairs(Players:GetPlayers()) do
+    if v.Character then
+        onPlayerCharacterAdded(v.Character)
+    end
+    table.insert(connections, v.CharacterAdded:Connect(onPlayerCharacterAdded))
+end
+table.insert(connections, Players.PlayerAdded:Connect(function(p)
+    table.insert(connections, p.CharacterAdded:Connect(onPlayerCharacterAdded))
+end))
+
+-- UI
+local MainTab = Window:CreateTab("Main", "home")
+local CreditsTab = Window:CreateTab("Credits", "star")
+
+MainTab:CreateSection("Core Features")
+
+MainTab:CreateToggle({
+    Name = "Auto Place Block",
+    CurrentValue = false,
+    Flag = "AutoPlaceBlockToggle",
+    Callback = function(value)
+        autoPlaceBlock = value
+    end
+})
+
+MainTab:CreateInput({
+    Name = "Height Offset",
+    PlaceholderText = "-3.5",
+    Flag = "HeightOffsetInput",
+    Callback = function(value)
+        heightOffset = tonumber(value) or -3.5
+    end
+})
+
+MainTab:CreateLabel("Note: Requires Block Glove for Auto Place Block")
+
+MainTab:CreateToggle({
+    Name = "No Slap Effect/Fling",
+    CurrentValue = false,
+    Flag = "NoSlapEffectToggle",
+    Callback = function(value)
+        noSlapEffect = value
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Anti-Void",
+    CurrentValue = true,
+    Flag = "AntiVoidToggle",
+    Callback = function(value)
+        antiVoid = value
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Anti-Time Stop (Client)",
+    CurrentValue = false,
+    Flag = "AntiTimeStopToggle",
+    Callback = function(value)
+        antiTimeStop = value
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Win",
+    CurrentValue = false,
+    Flag = "AutoWinToggle",
+    Callback = function(value)
+        autoWin = value
+    end
+})
+
+MainTab:CreateInput({
+    Name = "Win Multiplier",
+    PlaceholderText = "1 (Max 10)",
+    Flag = "WinMultiplierInput",
+    Callback = function(value)
+        winMultiplier = math.min(tonumber(value) or 1, 10)
+    end
+})
+
+MainTab:CreateLabel("Note: High Win Multiplier may crash game")
+
+MainTab:CreateSection("Player Actions")
+
+MainTab:CreateInput({
+    Name = "Fling XYZ (x,y,z)",
+    PlaceholderText = "0,10,0",
+    Flag = "FlingXYZInput",
+    Callback = function(value)
+        local xyz = string.split(value, ",")
+        flingXYZ = Vector3.new(tonumber(xyz[1]) or 0, tonumber(xyz[2]) or 10, tonumber(xyz[3]) or 0)
+    end
+})
+
+MainTab:CreateButton({
+    Name = "Fling All Players",
+    Callback = function()
+        local event = nil
+        for _, v in pairs(Players:GetPlayers()) do
+            if v:FindFirstChild("Backpack") and v.Backpack:FindFirstChild("IsSlapTool", true) then
+                event = v.Backpack:FindFirstChild("IsSlapTool", true).Parent.Event
+                break
+            elseif v.Character and v.Character:FindFirstChild("IsSlapTool", true) then
+                event = v.Character:FindFirstChild("IsSlapTool", true).Parent.Event
+                break
+            end
+        end
+        if event then
+            for _, v in pairs(Players:GetPlayers()) do
+                if v.Character and v ~= localplr then
+                    task.wait()
+                    event:FireServer("slash", v.Character, flingXYZ)
+                end
+            end
+        end
+    end
+})
+
+MainTab:CreateDropdown({
+    Name = "Fling Player",
+    Options = playerNames,
+    CurrentOption = {},
+    MultipleOptions = false,
+    Flag = "FlingPlayerDropdown",
+    Callback = function(options)
+        local plr = players[options[1]]
+        if plr then
+            local event = nil
+            for _, v in pairs(Players:GetPlayers()) do
+                if v:FindFirstChild("Backpack") and v.Backpack:FindFirstChild("IsSlapTool", true) then
+                    event = v.Backpack:FindFirstChild("IsSlapTool", true).Parent.Event
+                    break
+                elseif v.Character and v.Character:FindFirstChild("IsSlapTool", true) then
+                    event = v.Character:FindFirstChild("IsSlapTool", true).Parent.Event
+                    break
+                end
+            end
+            if event and plr.Character then
+                event:FireServer("slash", plr.Character, flingXYZ)
+            end
+        end
+    end
+})
+
+MainTab:CreateButton({
+    Name = "Bring All Players",
+    Callback = function()
+        local event = nil
+        if not localplr.Character:FindFirstChild("SwapperSlap") and not localplr.Backpack:FindFirstChild("SwapperSlap") then
+            ReplicatedStorage.EquipSlapEvent:FireServer("SwapperSlap")
+            localplr.Backpack:WaitForChild("SwapperSlap", 99999).Parent = localplr.Character
+            event = localplr.Character.SwapperSlap.Event
+        elseif localplr.Backpack:FindFirstChild("SwapperSlap") then
+            localplr.Backpack.SwapperSlap.Parent = localplr.Character
+            event = localplr.Character.SwapperSlap.Event
+        end
+        if event then
+            for _, v in pairs(Players:GetPlayers()) do
+                if v.Character and v ~= localplr then
+                    event:FireServer("swap", localplr.Character.HumanoidRootPart.Position, localplr.Character.HumanoidRootPart.Position, v)
+                end
+            end
+        end
+    end
+})
+
+MainTab:CreateDropdown({
+    Name = "Bring Player",
+    Options = playerNames,
+    CurrentOption = {},
+    MultipleOptions = false,
+    Flag = "BringPlayerDropdown",
+    Callback = function(options)
+        local plr = players[options[1]]
+        if plr then
+            local event = nil
+            if not localplr.Character:FindFirstChild("SwapperSlap") and not localplr.Backpack:FindFirstChild("SwapperSlap") then
+                ReplicatedStorage.EquipSlapEvent:FireServer("SwapperSlap")
+                localplr.Backpack:WaitForChild("SwapperSlap", 99999).Parent = localplr.Character
+                event = localplr.Character.SwapperSlap.Event
+            elseif localplr.Backpack:FindFirstChild("SwapperSlap") then
+                localplr.Backpack.SwapperSlap.Parent = localplr.Character
+                event = localplr.Character.SwapperSlap.Event
+            end
+            if event and plr.Character then
+                event:FireServer("swap", localplr.Character.HumanoidRootPart.Position, localplr.Character.HumanoidRootPart.Position, plr)
+            end
+        end
+    end
+})
+
+MainTab:CreateSection("Spam Features")
+
+MainTab:CreateToggle({
+    Name = "Auto Spam Bricks",
+    CurrentValue = false,
+    Flag = "AutoSpamBricksToggle",
+    Callback = function(value)
+        autoSpamBricks = value
+    end
+})
+
+MainTab:CreateLabel("Note: Requires Brick Glove for Auto Spam Bricks")
+
+MainTab:CreateToggle({
+    Name = "Auto Spam Black Holes",
+    CurrentValue = false,
+    Flag = "AutoSpamBlackHolesToggle",
+    Callback = function(value)
+        autoSpamBlackHoles = value
+    end
+})
+
+MainTab:CreateLabel("Note: Requires Galaxy Glove for Auto Spam Black Holes")
+
+MainTab:CreateToggle({
+    Name = "Auto Spam Swapper",
+    CurrentValue = false,
+    Flag = "AutoSpamSwapperToggle",
+    Callback = function(value)
+        autoSpamSwapper = value
+    end
+})
+
+MainTab:CreateLabel("Note: Auto Spam Swapper may cause permanent damage")
+
+MainTab:CreateToggle({
+    Name = "No Killbrick Damage",
+    CurrentValue = false,
+    Flag = "NoKillbrickDamageToggle",
+    Callback = function(value)
+        noKillbrickDamage = value
+        updateKillbrickDamage()
+    end
+})
+
+MainTab:CreateSection("Build Tools")
+
+MainTab:CreateButton({
+    Name = "Get Build Tools",
+    Callback = function()
+        if localplr.Backpack:FindFirstChild("funny build" .. credit) then
+            localplr.Backpack["funny build" .. credit]:Destroy()
+        end
+        if localplr.Character:FindFirstChild("funny build" .. credit) then
+            localplr.Character["funny build" .. credit]:Destroy()
+        end
+        if localplr.Backpack:FindFirstChild("funny delete" .. credit) then
+            localplr.Backpack["funny delete" .. credit]:Destroy()
+        end
+        if localplr.Character:FindFirstChild("funny delete" .. credit) then
+            localplr.Character["funny delete" .. credit]:Destroy()
+        end
+        local fb = Instance.new("Tool")
+        fb.Name = "funny build" .. credit
+        fb.RequiresHandle = false
+        fb.Equipped:Connect(function()
+            display.Transparency = 0.6
+        end)
+        fb.Unequipped:Connect(function()
+            display.Transparency = 1
+        end)
+        fb.Parent = localplr.Backpack
+        fb.Activated:Connect(function()
+            local hit = mouse.Hit
+            if snapcf then
+                hit = snap(hit)
+            end
+            if obs then
+                hit = getpos()
+            end
+            table.insert(partCFrames, hit)
+            local plcbl = workspace:FindFirstChild("PlaceBlock", true) or Players:FindFirstChild("PlaceBlock", true)
+            if plcbl then
+                plcbl:FireServer(hit)
+            end
+        end)
+        local fb = Instance.new("Tool")
+        fb.Name = "funny delete" .. credit
+        fb.RequiresHandle = false
+        fb.Equipped:Connect(function()
+            deq = true
+        end)
+        fb.Unequipped:Connect(function()
+            deq = false
+        end)
+        fb.Parent = localplr.Backpack
+        fb.Activated:Connect(function()
+            if display2.Adornee ~= nil then
+                for i, v in pairs(partCFrames) do
+                    if v.Position == display2.Adornee.Position then
+                        partCFrames[i] = nil
+                        break
+                    end
+                end
+            end
+        end)
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Make Blocks",
+    CurrentValue = true,
+    Flag = "MakeBlocksToggle",
+    Callback = function(value)
+        mb = value
+    end
+})
+
+MainTab:CreateButton({
+    Name = "Delete Last Block",
+    Callback = function()
+        partCFrames[#partCFrames] = nil
+    end
+})
+
+MainTab:CreateButton({
+    Name = "Delete All Blocks",
+    Callback = function()
+        partCFrames = {}
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Use Other Build System",
+    CurrentValue = false,
+    Flag = "OtherBuildSystemToggle",
+    Callback = function(value)
+        obs = value
+    end
+})
+
+MainTab:CreateSlider({
+    Name = "Set Block Distance",
+    Range = {0, 50},
+    Increment = 1,
+    Suffix = "studs",
+    CurrentValue = 10,
+    Flag = "BlockDistanceSlider",
+    Callback = function(value)
+        dist = value
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Snap Rotation",
+    CurrentValue = false,
+    Flag = "SnapRotationToggle",
+    Callback = function(value)
+        snapcf = value
+    end
+})
+
+CreditsTab:CreateSection("Credits")
+
+CreditsTab:CreateLabel("Credits to @areyoumental110 W aura")
+CreditsTab:CreateLabel("ALT Accounts: normalxsx_casual1, normalxsx_casual2, normalxsx_casual3, normalxsx_casual4, normalxsx_casual5")
