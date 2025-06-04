@@ -1,0 +1,955 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | Gunfight Arena",
+    Icon = 12345678901,
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "Enjoy!",
+    Theme = "Ocean"
+})
+
+-- Services
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Teams = game:GetService("Teams")
+
+-- Local Player
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
+
+-- Silent Aim Variables
+local game = game
+local players = Players
+local player = LocalPlayer
+local teams = Teams
+local rs = RunService
+local camera = Camera
+local vector2 = Vector2.new
+local enum = Enum.KeyCode
+local silentaim = false
+local silentkeybindtoggle = false
+local silentkeybind = false
+
+-- Toggles
+local aimbotEnabled = false
+local npcAimbotEnabled = false
+local autoLockEnabled = false
+local trickshotMode = false
+local npcESPEnabled = false
+local npcHitboxEnabled = false
+local gunModEnabled = false
+
+-- Variables
+local espEnabled = false
+local hitboxEnabled = false
+local aimPart = "Head"
+local smoothingFactor = 5
+local targetEnemiesOnly = true
+local preferHeadshots = true
+local checkInterval = 0.5
+local teleportDistance = 10
+local aimAssistEnabled = false
+local teamCheck = true
+local hitChance = 100
+local aimRandomization = 0.1
+local aimPrediction = 0.1
+
+-- Weapon and Camo Variables
+local weapons = {}
+for _, v in pairs(ReplicatedStorage.Weapons:GetChildren()) do
+    table.insert(weapons, v.Name)
+end
+local camos = {}
+for _, v in pairs(ReplicatedStorage.Camos:GetChildren()) do
+    table.insert(camos, v.Name)
+end
+local primary
+local secondary
+local primarycamo
+local secondarycamo
+
+-- Global Variables
+getgenv().Aimbot = {
+    Enabled = false,
+    TeamCheck = true,
+    TargetPart = "Head",
+    Smoothness = 0.5
+}
+
+-- Silent Aim Functions
+local get_closest_player = function()
+    local closest = nil
+    local closest_distance = math.huge
+
+    for _, character in workspace.GetChildren(workspace) do
+        local player = players.FindFirstChild(players, character.Name)
+        local root_part = character.FindFirstChild(character, "HumanoidRootPart")
+
+        if (not player) or (not root_part) then
+            continue
+        end
+
+        if (character.Humanoid.Health <= 0) then
+            continue
+        end
+
+        local team_attribute = player.GetAttribute(player, "Team")
+
+        if (not team_attribute) then
+            continue
+        end
+
+        if (teams[team_attribute] == players.LocalPlayer.Team) then
+            continue
+        end
+
+        local position, on_screen = camera.WorldToViewportPoint(camera, root_part.Position)
+
+        if (not on_screen) then
+            continue
+        end
+
+        local center = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+        local distance = (Vector2.new(position.X, position.Y) - center).Magnitude
+
+        if (closest_distance > distance) then
+            closest = character
+            closest_distance = distance
+        end
+    end
+
+    return closest
+end
+
+local events = {
+    ["ShootEvent"] = function(arg)
+        return (typeof(arg) == "Instance" and arg.Name and (string.find(arg.Name, players.LocalPlayer.Name)))
+    end,
+}
+
+local old_namecall
+old_namecall = hookmetamethod(game, "__namecall", function(self, caller, message, ...)
+    local method = getnamecallmethod()
+
+    if (method == "Fire" and self.Name == "Sync") then
+        for event, identify in events do
+            if (event == "ShootEvent" and identify(message)) then
+                local closest_player = get_closest_player()
+                local ammo, cframe, id, weapon, projectile = ...
+
+                if (closest_player and closest_player.FindFirstChild(closest_player, "Head")) and silentaim then
+                    if silentkeybindtoggle then
+                        if silentkeybind then
+                            cframe = closest_player.Head.CFrame
+                        end
+                    else
+                        cframe = closest_player.Head.CFrame
+                    end
+                end
+
+                return old_namecall(self, caller, message, ammo, cframe, id, weapon, projectile, ...)
+            end
+        end
+    end
+
+    return old_namecall(self, caller, message, ...)
+end)
+
+-- Gun Modifiers
+local s = player.PlayerScripts.Vortex.Modifiers.Steadiness
+local m = player.PlayerScripts.Vortex.Modifiers.Mobility
+local function r()
+    if s and s.Value > 0 then s.Value = 0 end
+    if m and m.Value > 0 then m.Value = 0 end
+end
+if s then s.Changed:Connect(r) end
+if m then m.Changed:Connect(r) end
+r()
+
+-- Helper Functions
+local function getClosestTarget()
+    local localPlayer = Players.LocalPlayer
+    local camera = Workspace.CurrentCamera
+    local mousePos = vector2(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+    local closestDistance = math.huge
+    local target = nil
+    for _, player in pairs(Players:GetPlayers()) do
+        if player == localPlayer then continue end
+        if not player.Character then continue end
+        if teamCheck and player.Team == localPlayer.Team then continue end
+        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+        if not humanoid or humanoid.Health <= 0 then continue end
+        local targetPart
+        if aimPart == "Random" then
+            local parts = {"Head", "HumanoidRootPart", "UpperTorso", "Torso", "LowerTorso"}
+            for _, partName in ipairs(parts) do
+                local part = player.Character:FindFirstChild(partName)
+                if part then
+                    targetPart = part
+                    break
+                end
+            end
+        elseif aimPart == "Torso" then
+            targetPart = player.Character:FindFirstChild("Torso") or player.Character:FindFirstChild("UpperTorso")
+        else
+            targetPart = player.Character:FindFirstChild(aimPart)
+        end
+        if not targetPart then continue end
+        local screenPos, onScreen = camera:WorldToScreenPoint(targetPart.Position)
+        if not onScreen then continue end
+        local distance = (vector2(screenPos.X, screenPos.Y) - mousePos).Magnitude
+        if distance < closestDistance then
+            closestDistance = distance
+            target = targetPart
+        end
+    end
+    if target and math.random(1, 100) > hitChance then
+        return nil
+    end
+    return target
+end
+
+local function predictPosition(part)
+    if not part or aimPrediction <= 0 then return part.Position end
+    local character = part.Parent
+    if not character then return part.Position end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return part.Position end
+    local velocity = humanoid.MoveDirection * humanoid.WalkSpeed
+    return part.Position + (velocity * aimPrediction)
+end
+
+local function randomizeAim(position)
+    if aimRandomization <= 0 then return position end
+    local randomOffset = Vector3.new(
+        (math.random() * 2 - 1) * aimRandomization,
+        (math.random() * 2 - 1) * aimRandomization,
+        (math.random() * 2 - 1) * aimRandomization
+    )
+    return position + randomOffset
+end
+
+-- Hook Setup for Aim Assist
+local hookSuccess = false
+pcall(function()
+    local mt = getrawmetatable(game)
+    if not mt then return end
+    local oldNamecall = mt.__namecall
+    setreadonly(mt, false)
+    mt.__namecall = newcclosure(function(self, ...)
+        local args = {...}
+        local method = getnamecallmethod()
+        if not aimAssistEnabled then return oldNamecall(self, unpack(args)) end
+        if (method == "FireServer" or method == "InvokeServer") and (self:IsA("RemoteEvent") or self:IsA("RemoteFunction")) then
+            for i, arg in ipairs(args) do
+                if typeof(arg) == "Ray" then
+                    local target = getClosestTarget()
+                    if target then
+                        local targetPos = predictPosition(target)
+                        targetPos = randomizeAim(targetPos)
+                        local origin = Workspace.CurrentCamera.CFrame.Position
+                        local direction = (targetPos - origin).Unit * 2000
+                        args[i] = Ray.new(origin, direction)
+                    end
+                elseif type(arg) == "table" and arg.Origin and arg.Direction then
+                    local target = getClosestTarget()
+                    if target then
+                        local targetPos = predictPosition(target)
+                        targetPos = randomizeAim(targetPos)
+                        local origin = arg.Origin
+                        arg.Direction = (targetPos - origin).Unit * 2000
+                    end
+                elseif i < #args and typeof(arg) == "Vector3" and typeof(args[i + 1]) == "Vector3" then
+                    local target = getClosestTarget()
+                    if target then
+                        local targetPos = predictPosition(target)
+                        targetPos = randomizeAim(targetPos)
+                        args[i + 1] = (targetPos - arg).Unit * 2000
+                    end
+                end
+            end
+        end
+        if aimAssistEnabled and (method == "FindPartOnRayWithIgnoreList" or method == "FindPartOnRay" or method == "Raycast") then
+            local target = getClosestTarget()
+            if target then
+                local targetPos = predictPosition(target)
+                targetPos = randomizeAim(targetPos)
+                local origin = Workspace.CurrentCamera.CFrame.Position
+                local direction = (targetPos - origin).Unit * 2000
+                if method == "Raycast" then
+                    args[1] = origin
+                    args[2] = direction
+                else
+                    args[1] = Ray.new(origin, direction)
+                end
+            end
+        end
+        return oldNamecall(self, unpack(args))
+    end)
+    hookSuccess = true
+end)
+
+-- Camera Control
+local originalCameraCFrame
+RunService.RenderStepped:Connect(function()
+    if not aimAssistEnabled then
+        originalCameraCFrame = nil
+        return
+    end
+    local target = getClosestTarget()
+    if not target then
+        originalCameraCFrame = nil
+        return
+    end
+    local camera = Workspace.CurrentCamera
+    if not originalCameraCFrame then
+        originalCameraCFrame = camera.CFrame
+    end
+    if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local targetPos = predictPosition(target)
+        targetPos = randomizeAim(targetPos)
+        local currentCFrame = camera.CFrame
+        local targetCFrame = CFrame.new(currentCFrame.Position, targetPos)
+        camera.CFrame = currentCFrame:Lerp(targetCFrame, 0.2)
+    else
+        originalCameraCFrame = nil
+    end
+end)
+
+print("Universal aim assist loaded successfully!")
+if hookSuccess then
+    print("Hook methods installed successfully")
+else
+    warn("Some hook methods might have failed - aim assist might work partially")
+end
+
+-- Helper Function
+local function GetClosest()
+    local Target = nil
+    local Closest = math.huge
+    local mousePos = vector2(Workspace.CurrentCamera.ViewportSize.X / 2, Workspace.CurrentCamera.ViewportSize.Y / 2)
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= Players.LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 and v.Character:FindFirstChild(getgenv().Aimbot.TargetPart) then
+            if getgenv().Aimbot.TeamCheck and v.Team == Players.LocalPlayer.Team then
+                continue
+            end
+            local pos = Workspace.CurrentCamera:WorldToViewportPoint(v.Character[getgenv().Aimbot.TargetPart].Position)
+            local Magnitude = (vector2(pos.X, pos.Y) - mousePos).Magnitude
+            if Magnitude < Closest then
+                Closest = Magnitude
+                Target = v
+            end
+        end
+    end
+    return Target
+end
+
+-- Render Loop
+RunService.RenderStepped:Connect(function()
+    if getgenv().Aimbot.Enabled and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local Target = GetClosest()
+        if Target and Target.Character and Target.Character:FindFirstChild(getgenv().Aimbot.TargetPart) then
+            local pos = Target.Character[getgenv().Aimbot.TargetPart].Position
+            local camera = Workspace.CurrentCamera
+            camera.CFrame = camera.CFrame:Lerp(CFrame.lookAt(camera.CFrame.Position, pos), getgenv().Aimbot.Smoothness)
+        end
+    end
+end)
+
+-- Existing Hitbox Function
+local function adjustHitbox(character)
+    if not character then return end
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if rootPart then
+        rootPart.Size = Vector3.new(10, 10, 10)
+        rootPart.Transparency = 0.5
+        rootPart.CanCollide = false
+    end
+    local head = character:FindFirstChild("Head")
+    if head then
+        head.Size = Vector3.new(9, 9, 9)
+        head.Transparency = 0.5
+        head.CanCollide = false
+    end
+end
+
+local function monitorPlayer(player)
+    local localPlayer = Players.LocalPlayer
+    if player.Team == localPlayer.Team then return end
+    if player.Character then
+        adjustHitbox(player.Character)
+    end
+    player.CharacterAdded:Connect(function(character)
+        adjustHitbox(character)
+    end)
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= Players.LocalPlayer then
+        monitorPlayer(player)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if player ~= Players.LocalPlayer then
+        monitorPlayer(player)
+    end
+end)
+
+task.spawn(function()
+    while task.wait(1) do
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Players.LocalPlayer and player.Team ~= Players.LocalPlayer.Team and player.Character then
+                adjustHitbox(player.Character)
+            end
+        end
+    end
+end)
+
+-- Existing ESP Function
+local function addESP(character, isTeammate)
+    if character and character:FindFirstChild("Head") then
+        if not character:FindFirstChild("ESP_Highlight") then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "ESP_Highlight"
+            highlight.Adornee = character
+            highlight.FillColor = isTeammate and Color3.new(0, 0, 0) or Color3.new(1, 0, 0)
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.Parent = character
+        end
+    end
+end
+
+local function isTeammate(player)
+    local localPlayer = Players.LocalPlayer
+    return player.Team == localPlayer.Team
+end
+
+local function monitorPlayerForESP(player)
+    local localPlayer = Players.LocalPlayer
+    if player == localPlayer then return end
+    if espEnabled and player.Character then
+        addESP(player.Character, isTeammate(player))
+    end
+    player.CharacterAdded:Connect(function(character)
+        if espEnabled then
+            addESP(character, isTeammate(player))
+        end
+        if hitboxEnabled and not isTeammate(player) then
+            adjustHitbox(character)
+        end
+    end)
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+    monitorPlayerForESP(player)
+end
+
+Players.PlayerAdded:Connect(function(player)
+    monitorPlayerForESP(player)
+end)
+
+task.spawn(function()
+    while task.wait(1) do
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Character then
+                addESP(player.Character, isTeammate(player))
+            end
+        end
+    end
+end)
+
+-- Helper Functions
+local function getClosestEnemyTarget()
+    local localPlayer = Players.LocalPlayer
+    local mouse = localPlayer:GetMouse()
+    local closestDistance = math.huge
+    local closestPlayer = nil
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild(aimPart) then
+            local targetPart = player.Character[aimPart]
+            if player.Team ~= localPlayer.Team then
+                local screenPosition, onScreen = Workspace.CurrentCamera:WorldToScreenPoint(targetPart.Position)
+                if onScreen then
+                    local distance = (vector2(screenPosition.X, screenPosition.Y) - vector2(mouse.X, mouse.Y)).Magnitude
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestPlayer = targetPart
+                    end
+                end
+            end
+        end
+    end
+    return closestPlayer
+end
+
+local function getClosestNPCTarget()
+    local localPlayer = Players.LocalPlayer
+    local mouse = localPlayer:GetMouse()
+    local closestDistance = math.huge
+    local closestNPC = nil
+    for _, npc in pairs(Workspace:GetChildren()) do
+        if isNPC(npc) and npc:FindFirstChild(aimPart) then
+            local targetPart = npc[aimPart]
+            local screenPosition, onScreen = Workspace.CurrentCamera:WorldToScreenPoint(targetPart.Position)
+            if onScreen then
+                local distance = (vector2(screenPosition.X, screenPosition.Y) - vector2(mouse.X, mouse.Y)).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestNPC = targetPart
+                end
+            end
+        end
+    end
+    return closestNPC
+end
+
+local function aimAtTarget(target)
+    if target then
+        local camera = Workspace.CurrentCamera
+        local targetPosition = target.Position
+        local currentPosition = camera.CFrame.Position
+        local direction = (targetPosition - currentPosition).Unit
+        local newCFrame = CFrame.new(currentPosition, currentPosition + direction)
+        camera.CFrame = camera.CFrame:Lerp(newCFrame, 1 / smoothingFactor)
+    end
+end
+
+-- Aimbot Loop
+local function aimbotLoop()
+    while task.wait() do
+        if aimbotEnabled then
+            local target = getClosestEnemyTarget()
+            aimAtTarget(target)
+        end
+        if npcAimbotEnabled then
+            local npcTarget = getClosestNPCTarget()
+            aimAtTarget(npcTarget)
+        end
+    end
+end
+
+task.spawn(aimbotLoop)
+
+-- Gun Modification Function
+local function gunModificationLoop()
+    while task.wait() do
+        if gunModEnabled then
+            r()
+        end
+    end
+end
+
+task.spawn(gunModificationLoop)
+
+-- NPC Functions
+local function isNPC(character)
+    if character and character:IsA("Model") then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid and not Players:GetPlayerFromCharacter(character) then
+            return true
+        end
+    end
+    return false
+end
+
+local function addNPCESP(character)
+    if not character or character:FindFirstChild("ESPBox") then return end
+    local esp = Instance.new("BillboardGui")
+    esp.Name = "ESPBox"
+    esp.AlwaysOnTop = true
+    esp.Size = UDim2.new(4, 0, 2, 0)
+    esp.StudsOffset = Vector3.new(0, 2, 0)
+    local text = Instance.new("TextLabel", esp)
+    text.Size = UDim2.new(1, 0, 1, 0)
+    text.BackgroundTransparency = 1
+    text.Text = "NPC"
+    text.TextColor3 = Color3.fromRGB(255, 0, 0)
+    text.TextStrokeTransparency = 0
+    text.Font = Enum.Font.GothamBold
+    text.TextSize = 16
+    local target = character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
+    if target then
+        esp.Parent = target
+    else
+        esp:Destroy()
+    end
+end
+
+local function expandNPCHitbox(character)
+    if not character or CollectionService:HasTag(character, "ModifiedNPC") then return end
+    local head = character:FindFirstChild("Head")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if head then
+        head.Size = Vector3.new(9, 9, 9)
+        head.Transparency = 0.5
+        head.Material = Enum.Material.ForceField
+        head.CanCollide = false
+    end
+    if rootPart then
+        rootPart.Size = Vector3.new(8, 8, 8)
+        rootPart.Transparency = 0.5
+        rootPart.Material = Enum.Material.ForceField
+        rootPart.CanCollide = false
+    end
+    CollectionService:AddTag(character, "ModifiedNPC")
+end
+
+local function scanForNPCs()
+    for _, v in pairs(Workspace:GetDescendants()) do
+        if isNPC(v) then
+            if npcESPEnabled then
+                addNPCESP(v)
+            end
+            if npcHitboxEnabled then
+                expandNPCHitbox(v)
+            end
+        end
+    end
+end
+
+-- Main Tab
+local mainTab = Window:CreateTab("Main", 4483362458)
+
+mainTab:CreateLabel("NOTE: More Features Coming")
+
+mainTab:CreateToggle({
+    Name = "Enable ESP",
+    CurrentValue = false,
+    Flag = "espToggle",
+    Callback = function(value)
+        espEnabled = value
+        if espEnabled then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character then
+                    addESP(player.Character, isTeammate(player))
+                end
+            end
+        else
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("ESP_Highlight") then
+                    player.Character.ESP_Highlight:Destroy()
+                end
+            end
+        end
+    end
+})
+
+mainTab:CreateToggle({
+    Name = "Enable Hitbox",
+    CurrentValue = false,
+    Flag = "hitboxToggle",
+    Callback = function(value)
+        hitboxEnabled = value
+        if hitboxEnabled then
+            for _, player in pairs(Players:GetPlayers()) do
+                if not isTeammate(player) and player.Character then
+                    adjustHitbox(player.Character)
+                end
+            end
+        else
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local rootPart = player.Character.HumanoidRootPart
+                    rootPart.Size = Vector3.new(2, 2, 1)
+                    rootPart.Transparency = 0
+                    rootPart.CanCollide = true
+                end
+            end
+        end
+    end
+})
+
+mainTab:CreateToggle({
+    Name = "NPC ESP",
+    CurrentValue = false,
+    Flag = "npcESPToggle",
+    Callback = function(value)
+        npcESPEnabled = value
+        if value then
+            scanForNPCs()
+        else
+            for _, v in pairs(Workspace:GetDescendants()) do
+                if v.Name == "ESPBox" then
+                    v:Destroy()
+                end
+            end
+        end
+    end
+})
+
+mainTab:CreateToggle({
+    Name = "NPC Hitbox Expander",
+    CurrentValue = false,
+    Flag = "npcHitboxToggle",
+    Callback = function(value)
+        npcHitboxEnabled = value
+        if value then
+            scanForNPCs()
+        else
+            for _, v in pairs(Workspace:GetDescendants()) do
+                if isNPC(v) and CollectionService:HasTag(v, "ModifiedNPC") then
+                    local head = v:FindFirstChild("Head")
+                    local rootPart = v:FindFirstChild("HumanoidRootPart")
+                    if head then
+                        head.Size = Vector3.new(1, 1, 1)
+                        head.Transparency = 0
+                        head.Material = Enum.Material.Plastic
+                    end
+                    if rootPart then
+                        rootPart.Size = Vector3.new(2, 2, 1)
+                        rootPart.Transparency = 0
+                        rootPart.Material = Enum.Material.Plastic
+                    end
+                    CollectionService:RemoveTag(v, "ModifiedNPC")
+                end
+            end
+        end
+    end
+})
+
+mainTab:CreateToggle({
+    Name = "Gun Modification",
+    CurrentValue = false,
+    Flag = "gunModToggle",
+    Callback = function(value)
+        gunModEnabled = value
+    end
+})
+
+local silentAimSection = mainTab:CreateSection("SilentAim")
+silentAimSection:Set("SilentAim")
+
+mainTab:CreateToggle({
+    Name = "Silent Aim",
+    CurrentValue = false,
+    Flag = "SilentAimToggle",
+    Callback = function(value)
+        silentaim = value
+    end
+})
+
+-- Weapons Tab
+local weaponsTab = Window:CreateTab("Weapons", 4483345998)
+
+local primaryWeaponSection = weaponsTab:CreateSection("Primary Weapon Changer")
+primaryWeaponSection:Set("Primary Weapon Changer")
+
+weaponsTab:CreateDropdown({
+    Name = "Gun Selector",
+    Options = weapons,
+    CurrentOption = {weapons[1]},
+    MultipleOptions = false,
+    Flag = "PrimaryWeaponDropdown",
+    Callback = function(options)
+        primary = options[1]
+    end
+})
+
+weaponsTab:CreateButton({
+    Name = "Equip Gun",
+    Callback = function()
+        if primary then
+            LocalPlayer:SetAttribute("Primary", primary)
+        end
+    end
+})
+
+local primaryCamoSection = weaponsTab:CreateSection("Primary Weapon Camo Changer")
+primaryCamoSection:Set("Primary Weapon Camo Changer")
+
+weaponsTab:CreateDropdown({
+    Name = "Camo Selector",
+    Options = camos,
+    CurrentOption = {camos[1]},
+    MultipleOptions = false,
+    Flag = "PrimaryCamoDropdown",
+    Callback = function(options)
+        primarycamo = options[1]
+    end
+})
+
+weaponsTab:CreateButton({
+    Name = "Equip Camo",
+    Callback = function()
+        if primarycamo then
+            LocalPlayer:SetAttribute("PrimaryCamo", primarycamo)
+        end
+    end
+})
+
+local secondaryWeaponSection = weaponsTab:CreateSection("Secondary Weapon Changer")
+secondaryWeaponSection:Set("Secondary Weapon Changer")
+
+weaponsTab:CreateDropdown({
+    Name = "Gun Selector",
+    Options = weapons,
+    CurrentOption = {weapons[1]},
+    MultipleOptions = false,
+    Flag = "SecondaryWeaponDropdown",
+    Callback = function(options)
+        secondary = options[1]
+    end
+})
+
+weaponsTab:CreateButton({
+    Name = "Equip Gun",
+    Callback = function()
+        if secondary then
+            LocalPlayer:SetAttribute("Secondary", secondary)
+        end
+    end
+})
+
+local secondaryCamoSection = weaponsTab:CreateSection("Secondary Weapon Camo Changer")
+secondaryCamoSection:Set("Secondary Weapon Camo Changer")
+
+weaponsTab:CreateDropdown({
+    Name = "Camo Selector",
+    Options = camos,
+    CurrentOption = {camos[1]},
+    MultipleOptions = false,
+    Flag = "SecondaryCamoDropdown",
+    Callback = function(options)
+        secondarycamo = options[1]
+    end
+})
+
+weaponsTab:CreateButton({
+    Name = "Equip Camo",
+    Callback = function()
+        if secondarycamo then
+            LocalPlayer:SetAttribute("SecondaryCamo", secondarycamo)
+        end
+    end
+})
+
+-- Aimbot Tab
+local aimbotTab = Window:CreateTab("Aimbot+", 12345678)
+
+local AimAssistSection = aimbotTab:CreateSection("Aim Assist V1")
+AimAssistSection:Set("Aim Assist Beta")
+
+aimbotTab:CreateToggle({
+    Name = "Enable Aim Assist",
+    CurrentValue = false,
+    Flag = "AimAssistToggle",
+    Callback = function(value)
+        aimAssistEnabled = value
+    end
+})
+
+aimbotTab:CreateToggle({
+    Name = "Team Check",
+    CurrentValue = true,
+    Flag = "AimAssistTeamCheck",
+    Callback = function(value)
+        teamCheck = value
+    end
+})
+
+aimbotTab:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "HumanoidRootPart", "Torso", "Random"},
+    CurrentOption = {aimPart},
+    MultipleOptions = false,
+    Flag = "AimAssistPart",
+    Callback = function(options)
+        aimPart = options[1]
+    end
+})
+
+local AutoAimSection = aimbotTab:CreateSection("Auto Aim V2")
+AutoAimSection:Set("Auto Aim Beta")
+
+aimbotTab:CreateToggle({
+    Name = "Enable Auto Aim",
+    CurrentValue = false,
+    Flag = "AutoAimToggle",
+    Callback = function(value)
+        aimbotEnabled = value
+    end
+})
+
+aimbotTab:CreateToggle({
+    Name = "Enable Auto-Lock",
+    CurrentValue = false,
+    Flag = "AutoLockToggle",
+    Callback = function(value)
+        autoLockEnabled = value
+    end
+})
+
+aimbotTab:CreateToggle({
+    Name = "Enable Trickshot Mode",
+    CurrentValue = false,
+    Flag = "TrickshotToggle",
+    Callback = function(value)
+        trickshotMode = value
+    end
+})
+
+aimbotTab:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "Torso", "Random"},
+    CurrentOption = {aimPart},
+    MultipleOptions = false,
+    Flag = "AutoAimPart",
+    Callback = function(options)
+        aimPart = options[1]
+    end
+})
+
+local ManualAimSection = aimbotTab:CreateSection("Manual Aim V3")
+ManualAimSection:Set("Manual Aim Beta")
+
+aimbotTab:CreateToggle({
+    Name = "Enable Manual Aim",
+    CurrentValue = false,
+    Flag = "ManualAimToggle",
+    Callback = function(value)
+        getgenv().Aimbot.Enabled = value
+    end
+})
+
+aimbotTab:CreateToggle({
+    Name = "Team Check",
+    CurrentValue = true,
+    Flag = "ManualAimTeamCheck",
+    Callback = function(value)
+        getgenv().Aimbot.TeamCheck = value
+    end
+})
+
+aimbotTab:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "HumanoidRootPart", "Torso"},
+    CurrentOption = {getgenv().Aimbot.TargetPart},
+    MultipleOptions = false,
+    Flag = "ManualAimPart",
+    Callback = function(options)
+        getgenv().Aimbot.TargetPart = options[1]
+    end
+})
+
+-- Monitor new NPCs
+Workspace.DescendantAdded:Connect(function(child)
+    task.wait(0.1)
+    if isNPC(child) or (child.Parent and isNPC(child.Parent)) then
+        local npc = isNPC(child) and child or child.Parent
+        if npcESPEnabled then
+            addNPCESP(npc)
+        end
+        if npcHitboxEnabled then
+            expandNPCHitbox(npc)
+        end
+    end
+end)
+
+-- Initial scan
+scanForNPCs()
