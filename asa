@@ -1,0 +1,474 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "ComboChronicle Vault | UPDATES",
+    Icon = 12345678901,
+    LoadingTitle = "Loading ComboChronicle Vault ❖",
+    LoadingSubtitle = "Enjoy!",
+    Theme = "Ocean"
+})
+
+-- Create Main Tab
+local MainTab = Window:CreateTab("Main Functions", 4483362458)
+
+-- Create Info Tab
+local InfoTab = Window:CreateTab("Information", 4483362458)
+
+-- Variables
+local swimming = false
+local autoCollectEnabled = false
+local autoLockBaseEnabled = false
+local HIP_HEIGHT = 0
+local BASE_HIP_HEIGHT = 0
+local oldgrav = workspace.Gravity
+local swimbeat = nil
+local gravReset = nil
+local swimBodyVelocity = nil
+local swimBodyAngularVelocity = nil
+
+-- Swimming configuration
+local SWIM_CONFIG = {
+    maxSpeed = 50,
+    acceleration = 25,
+    buoyancy = 0.4,
+    maxHeight = 500,
+    minHeight = -200,
+    spaceSwimSpeed = 25
+}
+
+-- Auto Collect Function
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Plots = workspace:WaitForChild("Plots")
+
+local function fireTouch(part)
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+    if hrp and part then
+        firetouchinterest(hrp, part, 0)
+        task.wait(0.1)
+        firetouchinterest(hrp, part, 1)
+    end
+end
+
+local function getCurrentBase()
+    for _, plot in pairs(Plots:GetChildren()) do
+        local plotSign = plot:FindFirstChild("PlotSign")
+        if plotSign and plotSign:FindFirstChild("SurfaceGui") then
+            local frame = plotSign.SurfaceGui:FindFirstChild("Frame")
+            if frame and frame:FindFirstChild("TextLabel") then
+                local text = frame.TextLabel.Text
+                if text:lower():find(LocalPlayer.Name:lower()) then
+                    return plot
+                end
+            end
+        end
+    end
+    return nil
+end
+
+local function activateAnimalPodiums(base)
+    local podiums = base:FindFirstChild("AnimalPodiums")
+    if podiums then
+        for _, obj in pairs(podiums:GetDescendants()) do
+            if obj:IsA("BasePart") and obj:FindFirstChildOfClass("TouchTransmitter") then
+                fireTouch(obj)
+            end
+        end
+    else
+        warn("No AnimalPodiums found in base.")
+    end
+end
+
+-- Auto Lock Base Function
+local function fireTouchPurchase(part)
+    local character = LocalPlayer.Character
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    if hrp and part then
+        firetouchinterest(hrp, part, 0)
+        task.wait(0.1)
+        firetouchinterest(hrp, part, 1)
+    end
+end
+
+local function getCurrentBasePurchase()
+    for _, plot in pairs(Plots:GetChildren()) do
+        local sign = plot:FindFirstChild("PlotSign")
+        if sign and sign:FindFirstChild("SurfaceGui") then
+            local frame = sign.SurfaceGui:FindFirstChild("Frame")
+            local label = frame and frame:FindFirstChild("TextLabel")
+            if label and label.Text:lower():find(LocalPlayer.Name:lower()) then
+                return plot
+            end
+        end
+    end
+    return nil
+end
+
+local function timerDone(plotBlock)
+    local mainPart = plotBlock:FindFirstChild("Main")
+    if not mainPart then return false end
+    local gui = mainPart:FindFirstChild("BillboardGui")
+    if not gui then return false end
+    local remainingTime = gui:FindFirstChild("RemainingTime")
+    if not remainingTime then return false end
+    local text = remainingTime.Text:lower()
+    return text == "0s" or text == "0" or text == "ready" or text == ""
+end
+
+local function activatePurchases(base)
+    local purchases = base:FindFirstChild("Purchases")
+    if not purchases then return end
+
+    for _, plotBlock in pairs(purchases:GetChildren()) do
+        if plotBlock:IsA("Model") then
+            local hitbox = plotBlock:FindFirstChild("Hitbox")
+            if hitbox and hitbox:FindFirstChildOfClass("TouchTransmitter") then
+                if timerDone(plotBlock) then
+                    fireTouchPurchase(hitbox)
+                end
+            end
+        end
+    end
+end
+
+local function autoCollect()
+    local base = nil
+    repeat
+        base = getCurrentBase()
+        if not base then
+            warn("Waiting for your base to be detected...")
+        end
+        task.wait(1)
+    until base
+
+    while autoCollectEnabled do
+        activateAnimalPodiums(base)
+        activatePurchases(base)
+        task.wait(1)
+    end
+end
+
+local function autoLockBase()
+    local base = nil
+    repeat
+        base = getCurrentBasePurchase()
+        if not base then
+            warn("Waiting for your base to be detected...")
+        end
+        task.wait(1)
+    until base
+
+    while autoLockBaseEnabled do
+        activatePurchases(base)
+        task.wait(1)
+    end
+end
+
+-- Swimming Functions
+local function createSwimForces(character)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return nil, nil end
+    
+    local bodyVel = Instance.new("BodyVelocity")
+    bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bodyVel.Velocity = Vector3.new(0, 0, 0)
+    bodyVel.Parent = humanoidRootPart
+    
+    local bodyAngVel = Instance.new("BodyAngularVelocity")
+    bodyAngVel.MaxTorque = Vector3.new(0, math.huge, 0)
+    bodyAngVel.AngularVelocity = Vector3.new(0, 0, 0)
+    bodyAngVel.Parent = humanoidRootPart
+    
+    return bodyVel, bodyAngVel
+end
+
+local function getHeightConstraints(character)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return 0, math.huge end
+    
+    local spawnPoint = workspace.SpawnLocation or workspace:FindFirstChild("SpawnLocation")
+    local baseHeight = spawnPoint and spawnPoint.Position.Y or 0
+    
+    return baseHeight + SWIM_CONFIG.minHeight, baseHeight + SWIM_CONFIG.maxHeight
+end
+
+local function startSwimming()
+    local player = game.Players.LocalPlayer
+    if not swimming and player and player.Character and player.Character:FindFirstChildWhichIsA("Humanoid") then
+        local character = player.Character
+        local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        
+        if not humanoidRootPart then return end
+        
+        oldgrav = workspace.Gravity
+        workspace.Gravity = 0
+        
+        local swimDied = function()
+            workspace.Gravity = oldgrav
+            swimming = false
+            if swimBodyVelocity then swimBodyVelocity:Destroy() end
+            if swimBodyAngularVelocity then swimBodyAngularVelocity:Destroy() end
+        end
+        
+        gravReset = humanoid.Died:Connect(swimDied)
+        
+        local enums = Enum.HumanoidStateType:GetEnumItems()
+        table.remove(enums, table.find(enums, Enum.HumanoidStateType.None))
+        for i, v in pairs(enums) do
+            humanoid:SetStateEnabled(v, false)
+        end
+        humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+        
+        swimBodyVelocity, swimBodyAngularVelocity = createSwimForces(character)
+        
+        local currentVelocity = Vector3.new()
+        
+        swimbeat = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
+            pcall(function()
+                if not character.Parent or not humanoidRootPart.Parent then return end
+                
+                local moveVector = humanoid.MoveDirection
+                local isSpacePressed = game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space)
+                local isShiftPressed = game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift)
+                
+                local minY, maxY = getHeightConstraints(character)
+                local currentY = humanoidRootPart.Position.Y
+                
+                local targetVelocity = Vector3.new()
+                
+                if moveVector.Magnitude > 0 then
+                    local characterCFrame = humanoidRootPart.CFrame
+                    local forwardVector = characterCFrame.LookVector
+                    local rightVector = characterCFrame.RightVector
+                    
+                    local moveDirection = (forwardVector * -moveVector.Z + rightVector * moveVector.X).Unit
+                    targetVelocity = moveDirection * SWIM_CONFIG.maxSpeed
+                end
+                
+                if isSpacePressed and not isShiftPressed then
+                    targetVelocity = targetVelocity + Vector3.new(0, SWIM_CONFIG.spaceSwimSpeed, 0)
+                elseif isShiftPressed and not isSpacePressed then
+                    targetVelocity = targetVelocity + Vector3.new(0, -SWIM_CONFIG.spaceSwimSpeed, 0)
+                else
+                    targetVelocity = targetVelocity + Vector3.new(0, SWIM_CONFIG.buoyancy, 0)
+                end
+                
+                if currentY >= maxY and targetVelocity.Y > 0 then
+                    targetVelocity = Vector3.new(targetVelocity.X, 0, targetVelocity.Z)
+                elseif currentY <= minY and targetVelocity.Y < 0 then
+                    targetVelocity = Vector3.new(targetVelocity.X, 0, targetVelocity.Z)
+                end
+                
+                local isMoving = moveVector.Magnitude > 0 or isSpacePressed or isShiftPressed
+                local lerpSpeed = isMoving and SWIM_CONFIG.acceleration or SWIM_CONFIG.acceleration
+                
+                currentVelocity = currentVelocity:Lerp(targetVelocity, lerpSpeed * deltaTime)
+                
+                if swimBodyVelocity then
+                    swimBodyVelocity.Velocity = currentVelocity
+                end
+                
+                if swimBodyAngularVelocity then
+                    swimBodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+                end
+            end)
+        end)
+        
+        swimming = true
+    end
+end
+
+local function stopSwimming()
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChildWhichIsA("Humanoid") then
+        workspace.Gravity = oldgrav
+        swimming = false
+        
+        if gravReset then
+            gravReset:Disconnect()
+            gravReset = nil
+        end
+        
+        if swimbeat then
+            swimbeat:Disconnect()
+            swimbeat = nil
+        end
+        
+        if swimBodyVelocity then
+            swimBodyVelocity:Destroy()
+            swimBodyVelocity = nil
+        end
+        
+        if swimBodyAngularVelocity then
+            swimBodyAngularVelocity:Destroy()
+            swimBodyAngularVelocity = nil
+        end
+        
+        local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
+        local enums = Enum.HumanoidStateType:GetEnumItems()
+        table.remove(enums, table.find(enums, Enum.HumanoidStateType.None))
+        for i, v in pairs(enums) do
+            humanoid:SetStateEnabled(v, true)
+        end
+    end
+end
+
+-- Hip Height Functions
+local function updateHipHeight()
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChildWhichIsA("Humanoid") then
+        local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
+        humanoid.HipHeight = BASE_HIP_HEIGHT + HIP_HEIGHT
+    end
+end
+
+local function initializeBaseHeight()
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChildWhichIsA("Humanoid") then
+        local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
+        BASE_HIP_HEIGHT = humanoid.HipHeight
+    end
+end
+
+-- Main Tab Elements
+local AutoCollectToggle = MainTab:CreateToggle({
+   Name = "Auto Collect",
+   CurrentValue = false,
+   Flag = "AutoCollect",
+   Callback = function(Value)
+       autoCollectEnabled = Value
+       if Value then
+           Rayfield:Notify({
+              Title = "Auto Collect",
+              Content = "Auto collect enabled!",
+              Duration = 3,
+              Image = 4483362458,
+           })
+           
+           task.spawn(autoCollect)
+       else
+           Rayfield:Notify({
+              Title = "Auto Collect",
+              Content = "Auto collect disabled!",
+              Duration = 3,
+              Image = 4483362458,
+           })
+       end
+   end,
+})
+
+local AutoLockBaseToggle = MainTab:CreateToggle({
+   Name = "Auto Lock Base(Activate First)",
+   CurrentValue = false,
+   Flag = "AutoLockBase",
+   Callback = function(Value)
+       autoLockBaseEnabled = Value
+       if Value then
+           Rayfield:Notify({
+              Title = "Auto Lock Base",
+              Content = "Auto lock base enabled!",
+              Duration = 3,
+              Image = 4483362458,
+           })
+           
+           task.spawn(autoLockBase)
+       else
+           Rayfield:Notify({
+              Title = "Auto Lock Base",
+              Content = "Auto lock base disabled!",
+              Duration = 3,
+              Image = 4483362458,
+           })
+       end
+   end,
+})
+
+local SwimToggle = MainTab:CreateToggle({
+    Name = "Enable Swimming(Beta)",
+    CurrentValue = false,
+    Flag = "Swimming (Beta)",
+    Callback = function(Value)
+        if Value then
+            startSwimming()
+        else
+            stopSwimming()
+        end
+    end,
+})
+
+local CharacterSection = MainTab:CreateSection("Character Hip Height")
+
+local HipHeightSlider = MainTab:CreateSlider({
+    Name = "Hip Height",
+    Range = {0, 50},
+    Increment = 0.5,
+    CurrentValue = HIP_HEIGHT,
+    Flag = "HipHeight",
+    Callback = function(Value)
+        HIP_HEIGHT = Value
+        updateHipHeight()
+    end,
+})
+
+MainTab:CreateButton({
+    Name = "Reset to Default",
+    Callback = function()
+        HIP_HEIGHT = 0
+        HipHeightSlider:Set(0)
+        updateHipHeight()
+    end,
+})
+
+local QuickSettings = MainTab:CreateSection("Quick Height")
+
+MainTab:CreateButton({
+    Name = "Tall Character",
+    Callback = function()
+        HIP_HEIGHT = 10
+        HipHeightSlider:Set(10)
+        updateHipHeight()
+    end,
+})
+
+MainTab:CreateButton({
+    Name = "Short Character", 
+    Callback = function()
+        HIP_HEIGHT = 2
+        HipHeightSlider:Set(2)
+        updateHipHeight()
+    end,
+})
+
+MainTab:CreateButton({
+    Name = "Very Tall",
+    Callback = function()
+        HIP_HEIGHT = 25
+        HipHeightSlider:Set(25)
+        updateHipHeight()
+    end,
+})
+
+-- Auto-cleanup on character death/respawn
+game.Players.LocalPlayer.CharacterAdded:Connect(function()
+    if swimming then
+        swimming = false
+        SwimToggle:Set(false)
+    end
+    wait(1)
+    initializeBaseHeight()
+    updateHipHeight()
+end)
+
+-- Initialize base height when script first runs
+if game.Players.LocalPlayer.Character then
+    initializeBaseHeight()
+end
+
+-- Notification on load
+Rayfield:Notify({
+   Title = "Script Loaded",
+   Content = "Game Automation Hub loaded successfully!",
+   Duration = 5,
+   Image = 4483362458,
+})
