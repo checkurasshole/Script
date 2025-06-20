@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://gist.githubusercontent.com/checkurasshole/f94efb33c1a14600fc073fdc93d0c842/raw/a48f6bdeae9ae96201591e9f0d4865ba77a18fa1/Brainrotmodded.lua"))()
