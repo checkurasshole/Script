@@ -241,6 +241,7 @@ local function manualCheck()
 		Farm = { TotalValue = farmValue, Count = farmCount },
 		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue }
 	}
+	return Data
 end
 
 -- Cleanup
@@ -255,7 +256,9 @@ end)
 
 return {
 	GetData = function() return Data end,
-	GetTracerComponents = function() return { SelectionBox = selectionBox, Beam = beam, TracerPart = tracerPart } end,
-	ManualCheck = function() manualCheck() end,
-	SetTracer = function(state) tracerEnabled = state; updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled) end
+	ManualCheck = function() return manualCheck() end,
+	SetTracer = function(state)
+		tracerEnabled = state
+		updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled)
+	end
 }
