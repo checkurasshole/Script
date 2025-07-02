@@ -221,27 +221,19 @@ local function updateTracer(targetFruit, tracerEnabled)
 	selectionBox.Adornee = adorneePart
 end
 
--- Data management
-local Data = {
-	Inventory = { TotalValue = 0, Count = 0 },
-	Farm = { TotalValue = 0, Count = 0 },
-	MostExpensiveFruit = { Fruit = nil, Value = 0 }
-}
-local tracerEnabled = true
-
 -- Manual check function
 local function manualCheck()
 	local invValue, invCount = checkInventoryValue()
 	local farmValue, farmCount = checkFarmValue()
 	local bestFruit, fruitValue = findMostExpensiveFruit()
-	updateTracer(bestFruit, tracerEnabled)
 
-	Data = {
+	local data = {
 		Inventory = { TotalValue = invValue, Count = invCount },
 		Farm = { TotalValue = farmValue, Count = farmCount },
 		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue }
 	}
-	return Data
+
+	return data
 end
 
 -- Cleanup
@@ -255,10 +247,8 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 return {
-	GetData = function() return Data end,
 	ManualCheck = function() return manualCheck() end,
 	SetTracer = function(state)
-		tracerEnabled = state
-		updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled)
+		updateTracer(manualCheck().MostExpensiveFruit.Fruit, state)
 	end
 }
