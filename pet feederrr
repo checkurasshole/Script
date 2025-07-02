@@ -1,0 +1,220 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Backpack = LocalPlayer:WaitForChild("Backpack")
+
+local feedDelay = 2
+local autoFeed = true
+local lastFeedCount = 0
+
+-- Cache frequently accessed objects
+local gameEvents = ReplicatedStorage:WaitForChild("GameEvents", 9e9)
+local activePetService = gameEvents:WaitForChild("ActivePetService", 9e9)
+local petsPhysical = workspace:WaitForChild("PetsPhysical", 9e9)
+local farmFolder = workspace:WaitForChild("Farm", 9e9)
+
+-- Cache farm and pet area
+local cachedFarm = nil
+local cachedPetArea = nil
+
+local function updateCharacterReference()
+    Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
+
+LocalPlayer.CharacterAdded:Connect(updateCharacterReference)
+
+local function holdFoodItem()
+    -- First, unequip any currently held food items
+    for _, item in ipairs(Character:GetChildren()) do
+        if item:IsA("Tool") and string.find(item.Name, "%d+%.?%d*kg") then
+            item.Parent = Backpack
+        end
+    end
+    
+    -- Then equip up to 3 food items
+    local itemsEquipped = 0
+    local maxItems = 3
+    
+    for _, item in ipairs(Backpack:GetChildren()) do
+        if itemsEquipped >= maxItems then break end
+        if item:IsA("Tool") and string.find(item.Name, "%d+%.?%d*kg") then
+            local success = pcall(function()
+                item.Parent = Character
+            end)
+            if success then
+                itemsEquipped = itemsEquipped + 1
+            end
+        end
+    end
+    
+    return itemsEquipped > 0
+end
+
+local function findLocalPlayerFarm()
+    -- Use cached farm if still valid
+    if cachedFarm and cachedFarm.Parent then
+        local data = cachedFarm:FindFirstChild("Important") and cachedFarm.Important:FindFirstChild("Data")
+        if data and data:FindFirstChild("Owner") and data.Owner.Value == LocalPlayer.Name then
+            return cachedFarm
+        end
+    end
+    
+    -- Search for farm and cache it
+    for _, farm in ipairs(farmFolder:GetChildren()) do
+        local data = farm:FindFirstChild("Important") and farm.Important:FindFirstChild("Data")
+        if data and data:FindFirstChild("Owner") and data.Owner.Value == LocalPlayer.Name then
+            cachedFarm = farm
+            cachedPetArea = farm:FindFirstChild("PetArea")
+            return farm
+        end
+    end
+    
+    cachedFarm = nil
+    cachedPetArea = nil
+    return nil
+end
+
+local function isPositionInPart(part, pos)
+    local relative = part.CFrame:PointToObjectSpace(pos)
+    local size = part.Size / 2
+    return math.abs(relative.X) <= size.X and math.abs(relative.Y) <= size.Y and math.abs(relative.Z) <= size.Z
+end
+
+local function findUUID(pet)
+    local attr = pet:GetAttribute("UUID") or pet:GetAttribute("PetUUID")
+    if attr then return attr end
+    
+    local uuidValue = pet:FindFirstChild("UUID")
+    if uuidValue and uuidValue:IsA("StringValue") then
+        return uuidValue.Value
+    end
+    
+    return nil
+end
+
+local function getNearbyPets(petArea)
+    local pets = {}
+    local petAreaPos = petArea.Position
+    local petAreaSize = petArea.Size
+    
+    -- Pre-calculate bounds for faster position checking
+    local minBounds = petAreaPos - petAreaSize/2
+    local maxBounds = petAreaPos + petAreaSize/2
+    
+    for _, mover in ipairs(petsPhysical:GetChildren()) do
+        local uuid = findUUID(mover)
+        if uuid then
+            -- Quick position check using primary part or first part found
+            local primaryPart = mover.PrimaryPart or mover:FindFirstChildOfClass("BasePart")
+            if primaryPart then
+                local pos = primaryPart.Position
+                -- Fast AABB check first
+                if pos.X >= minBounds.X and pos.X <= maxBounds.X and
+                   pos.Y >= minBounds.Y and pos.Y <= maxBounds.Y and
+                   pos.Z >= minBounds.Z and pos.Z <= maxBounds.Z then
+                    if isPositionInPart(petArea, pos) then
+                        table.insert(pets, {UUID = uuid})
+                    end
+                end
+            end
+        end
+    end
+    
+    return pets
+end
+
+local function feedPets()
+    local farm = findLocalPlayerFarm()
+    if not farm then return 0 end
+    
+    local petArea = cachedPetArea or farm:FindFirstChild("PetArea")
+    if not petArea or not petArea:IsA("BasePart") then return 0 end
+    
+    local pets = getNearbyPets(petArea)
+    if #pets == 0 then return 0 end
+    
+    local fedCount = 0
+    
+    -- Hold food items once for all pets
+    local hasFood = holdFoodItem()
+    if not hasFood then return 0 end
+    
+    -- Feed all pets in batches
+    for i, pet in ipairs(pets) do
+        local success = pcall(function()
+            activePetService:FireServer("Feed", pet.UUID)
+        end)
+        
+        if success then
+            fedCount = fedCount + 1
+        end
+        
+        -- Small delay between feeds to prevent rate limiting
+        if i % 5 == 0 then -- Every 5 pets
+            task.wait(0.1)
+        end
+    end
+    
+    return fedCount
+end
+
+-- Optimized auto-feed loop
+local feedLoop = nil
+local function startFeedLoop()
+    if feedLoop then
+        task.cancel(feedLoop)
+    end
+    
+    feedLoop = task.spawn(function()
+        while autoFeed do
+            local startTime = tick()
+            lastFeedCount = feedPets()
+            local endTime = tick()
+            
+            -- Adaptive delay - if feeding took long, reduce delay
+            local executionTime = endTime - startTime
+            local actualDelay = math.max(feedDelay - executionTime, 0.1)
+            
+            task.wait(actualDelay)
+        end
+    end)
+end
+
+-- Start the loop
+startFeedLoop()
+
+-- Cleanup
+Players.PlayerRemoving:Connect(function(player)
+    if player == LocalPlayer then
+        if feedLoop then
+            task.cancel(feedLoop)
+        end
+    end
+end)
+
+return {
+    GetData = function() 
+        return { FedCount = lastFeedCount } 
+    end,
+    ManualFeed = function() 
+        lastFeedCount = feedPets() 
+        return lastFeedCount
+    end,
+    SetAutoFeed = function(state) 
+        autoFeed = state
+        if state then
+            startFeedLoop()
+        elseif feedLoop then
+            task.cancel(feedLoop)
+            feedLoop = nil
+        end
+    end,
+    SetFeedDelay = function(value) 
+        feedDelay = math.max(value, 0.1) -- Minimum 0.1 second delay
+        if autoFeed then
+            startFeedLoop() -- Restart loop with new delay
+        end
+    end
+}
