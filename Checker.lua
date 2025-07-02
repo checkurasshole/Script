@@ -7,6 +7,39 @@ local LocalPlayer = Players.LocalPlayer
 local ItemModule = require(ReplicatedStorage:WaitForChild("Item_Module"))
 local MutationHandler = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("MutationHandler"))
 
+-- Tracer Setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FruitTracker"
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local selectionBox = Instance.new("SelectionBox")
+selectionBox.LineThickness = 0.05
+selectionBox.Color3 = Color3.new(1, 0, 0) -- Red outline
+selectionBox.SurfaceTransparency = 0.7
+selectionBox.Parent = screenGui
+
+local tracerPart = Instance.new("Part")
+tracerPart.Name = "FruitTracer"
+tracerPart.Material = Enum.Material.Neon
+tracerPart.BrickColor = BrickColor.new("Bright red")
+tracerPart.Anchored = true
+tracerPart.CanCollide = false
+tracerPart.TopSurface = Enum.SurfaceType.Smooth
+tracerPart.BottomSurface = Enum.SurfaceType.Smooth
+tracerPart.Parent = workspace
+
+local beamAttachment1 = Instance.new("Attachment")
+local beamAttachment2 = Instance.new("Attachment")
+local beam = Instance.new("Beam")
+beam.Color = ColorSequence.new(Color3.new(1, 0, 0), Color3.new(1, 1, 0)) -- Red to Yellow gradient
+beam.Width0 = 0.5
+beam.Width1 = 0.1
+beam.Transparency = NumberSequence.new(0.3)
+beam.FaceCamera = true
+beam.Attachment0 = beamAttachment1
+beam.Attachment1 = beamAttachment2
+beam.Parent = workspace
+
 -- Calculate plant/fruit value
 local function CalculatePlantValue(obj)
 	local itemStr = obj:FindFirstChild("Item_String")
@@ -141,51 +174,104 @@ local function findMostExpensiveFruit()
 	return bestFruit, ownerName, highestValue
 end
 
-local function getFruitPosition(fruit)
-	if not fruit then return nil end
-	for _, child in pairs(fruit:GetChildren()) do
+-- Update tracer
+local function updateTracer(targetFruit)
+	if not targetFruit or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		tracerPart.Transparency = 1
+		beam.Enabled = false
+		return nil
+	end
+
+	local character = LocalPlayer.Character
+	local humanoidRootPart = character.HumanoidRootPart
+	
+	local fruitPosition = nil
+	for _, child in pairs(targetFruit:GetChildren()) do
 		if child:IsA("BasePart") then
-			return child.Position
+			fruitPosition = child.Position
+			break
 		end
 	end
-	return nil
+	
+	if not fruitPosition then
+		tracerPart.Transparency = 1
+		beam.Enabled = false
+		return nil
+	end
+
+	local playerPosition = humanoidRootPart.Position
+	local direction = (fruitPosition - playerPosition)
+	local distance = direction.Magnitude
+	local midPoint = playerPosition + direction * 0.5
+
+	-- Update tracer part
+	tracerPart.Size = Vector3.new(0.2, 0.2, distance)
+	tracerPart.CFrame = CFrame.lookAt(midPoint, fruitPosition)
+	tracerPart.Transparency = 0.3
+
+	-- Update beam tracer
+	beamAttachment1.Parent = humanoidRootPart
+	beamAttachment2.WorldPosition = fruitPosition
+	beam.Enabled = true
+
+	-- Update selection box
+	local adorneePart = nil
+	for _, child in pairs(targetFruit:GetChildren()) do
+		if child:IsA("BasePart") then
+			adorneePart = child
+			break
+		end
+	end
+	selectionBox.Adornee = adorneePart
+
+	return distance
 end
 
 -- Data return for Rayfield
-local function getData()
-	local invValue, invCount = checkInventoryValue()
-	local farmValue, farmCount = checkFarmValue()
-	local bestFruit, owner, fruitValue = findMostExpensiveFruit()
-	local fruitPosition = getFruitPosition(bestFruit)
-	local distance = fruitPosition and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and (fruitPosition - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude or nil
-
-	return {
-		Inventory = {
-			TotalValue = invValue,
-			Count = invCount
-		},
-		Farm = {
-			TotalValue = farmValue,
-			Count = farmCount
-		},
-		MostExpensiveFruit = {
-			Fruit = bestFruit,
-			Owner = owner,
-			Value = fruitValue,
-			Distance = distance
-		}
-	}
-end
-
--- Main loop to provide data periodically
 local Data = {}
+local tracerLoop
+
 task.spawn(function()
 	while true do
-		Data = getData()
-		task.wait(2) -- Update every 2 seconds
+		local invValue, invCount = checkInventoryValue()
+		local farmValue, farmCount = checkFarmValue()
+		local bestFruit, owner, fruitValue = findMostExpensiveFruit()
+		local distance = updateTracer(bestFruit)
+
+		Data = {
+			Inventory = {
+				TotalValue = invValue,
+				Count = invCount
+			},
+			Farm = {
+				TotalValue = farmValue,
+				Count = farmCount
+			},
+			MostExpensiveFruit = {
+				Fruit = bestFruit,
+				Owner = owner,
+				Value = fruitValue,
+				Distance = distance
+			}
+		}
+		task.wait(2)
+	end
+end)
+
+-- Cleanup
+Players.PlayerRemoving:Connect(function(player)
+	if player == LocalPlayer then
+		if tracerLoop then
+			task.cancel(tracerLoop)
+		end
+		tracerPart:Destroy()
+		beam:Destroy()
+		selectionBox:Destroy()
+		screenGui:Destroy()
 	end
 end)
 
 return {
-	GetData = function() return Data end
+	GetData = function() return Data end,
+	GetTracerComponents = function() return { SelectionBox = selectionBox, Beam = beam, TracerPart = tracerPart } end
 }
