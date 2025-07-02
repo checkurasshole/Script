@@ -1,0 +1,141 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Find player's farm
+local function findLocalPlayerFarm()
+    for _, farm in ipairs(workspace:WaitForChild("Farm", 9e9):GetChildren()) do
+        local data = farm:FindFirstChild("Important") and farm.Important:FindFirstChild("Data")
+        if data and data:FindFirstChild("Owner") and data.Owner.Value == LocalPlayer.Name then
+            return farm
+        end
+    end
+    return nil
+end
+
+-- Check if position is within a part
+local function isPositionInPart(part, pos)
+    local relative = part.CFrame:PointToObjectSpace(pos)
+    local size = part.Size / 2
+    return math.abs(relative.X) <= size.X and math.abs(relative.Y) <= size.Y and math.abs(relative.Z) <= size.Z
+end
+
+-- Find pet UUID
+local function findUUID(pet)
+    local attr = pet:GetAttribute("UUID") or pet:GetAttribute("PetUUID")
+    if attr then return attr end
+    for _, v in ipairs(pet:GetDescendants()) do
+        if v.Name == "UUID" and v:IsA("StringValue") then return v.Value end
+    end
+    return nil
+end
+
+-- Get nearby pets in the pet area
+local function getNearbyPets(petArea)
+    local pets = {}
+    for _, mover in ipairs(workspace:WaitForChild("PetsPhysical", 9e9):GetChildren()) do
+        local uuid = findUUID(mover)
+        if uuid then
+            for _, part in ipairs(mover:GetDescendants()) do
+                if part:IsA("BasePart") and isPositionInPart(petArea, part.Position) then
+                    table.insert(pets, {UUID = uuid})
+                    break
+                end
+            end
+        end
+    end
+    return pets
+end
+
+-- Equip food items (up to 3)
+local function holdFoodItem()
+    local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local Backpack = LocalPlayer:WaitForChild("Backpack")
+    local equippedCount = 0
+    for _, item in ipairs(Character:GetChildren()) do
+        if item:IsA("Tool") and string.find(item.Name, "%d+%.?%d*kg") then
+            item.Parent = Backpack
+        end
+    end
+    local itemsEquipped = 0
+    local maxItems = 3
+    for _, item in ipairs(Backpack:GetChildren()) do
+        if itemsEquipped >= maxItems then break end
+        if item:IsA("Tool") and string.find(item.Name, "%d+%.?%d*kg") then
+            pcall(function()
+                item.Parent = LocalPlayer.Character
+                itemsEquipped = itemsEquipped + 1
+            end)
+            task.wait(0.05)
+        end
+    end
+    return itemsEquipped
+end
+
+-- Feed pets
+local function feedPets()
+    local farm = findLocalPlayerFarm()
+    if not farm then return 0, 0 end
+    local petArea = farm:FindFirstChild("PetArea")
+    if not petArea or not petArea:IsA("BasePart") then return 0, 0 end
+    local pets = getNearbyPets(petArea)
+    local petsFed = 0
+    local itemsEquipped = holdFoodItem()
+    if itemsEquipped > 0 then
+        for _, pet in ipairs(pets) do
+            pcall(function()
+                ReplicatedStorage:WaitForChild("GameEvents", 9e9):WaitForChild("ActivePetService", 9e9):FireServer("Feed", pet.UUID)
+            end)
+            petsFed = petsFed + 1
+            task.wait(0.15)
+        end
+    end
+    return petsFed, itemsEquipped
+end
+
+-- Data management
+local Data = {
+    PetsFed = 0,
+    ItemsEquipped = 0
+}
+local autoFeed = false
+local feedDelay = 2
+local autoFeedLoop
+
+-- Manual feed function
+local function manualFeed()
+    local petsFed, itemsEquipped = feedPets()
+    Data = {
+        PetsFed = petsFed,
+        ItemsEquipped = itemsEquipped
+    }
+end
+
+-- Auto-feed loop
+task.spawn(function()
+    while true do
+        if autoFeed then
+            manualFeed()
+            task.wait(feedDelay)
+        else
+            task.wait(1)
+        end
+    end
+end)
+
+-- Cleanup
+Players.PlayerRemoving:Connect(function(player)
+    if player == LocalPlayer then
+        if autoFeedLoop then
+            task.cancel(autoFeedLoop)
+        end
+    end
+end)
+
+return {
+    GetData = function() return Data end,
+    ManualFeed = function() manualFeed() end,
+    SetAutoFeed = function(state) autoFeed = state end,
+    SetFeedDelay = function(delay) feedDelay = delay end
+}
