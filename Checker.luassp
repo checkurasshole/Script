@@ -1,3 +1,4 @@
+-- Complete Plant Checker Script for Rayfield
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
@@ -6,38 +7,7 @@ local LocalPlayer = Players.LocalPlayer
 local ItemModule = require(ReplicatedStorage:WaitForChild("Item_Module"))
 local MutationHandler = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("MutationHandler"))
 
--- Tracer Setup
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "FruitTracker"
-screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-
-local selectionBox = Instance.new("SelectionBox")
-selectionBox.LineThickness = 0.05
-selectionBox.Color3 = Color3.new(1, 0, 0)
-selectionBox.SurfaceTransparency = 0.7
-selectionBox.Parent = screenGui
-
-local tracerPart = Instance.new("Part")
-tracerPart.Name = "FruitTracer"
-tracerPart.Material = Enum.Material.Neon
-tracerPart.BrickColor = BrickColor.new("Bright red")
-tracerPart.Anchored = true
-tracerPart.CanCollide = false
-tracerPart.TopSurface = Enum.SurfaceType.Smooth
-tracerPart.BottomSurface = Enum.SurfaceType.Smooth
-tracerPart.Parent = workspace
-
-local beamAttachment1 = Instance.new("Attachment")
-local beamAttachment2 = Instance.new("Attachment")
-local beam = Instance.new("Beam")
-beam.Color = ColorSequence.new(Color3.new(1, 0, 0), Color3.new(1, 1, 0))
-beam.Width0 = 0.5
-beam.Width1 = 0.1
-beam.Transparency = NumberSequence.new(0.3)
-beam.FaceCamera = true
-beam.Attachment0 = beamAttachment1
-beam.Attachment1 = beamAttachment2
-beam.Parent = workspace
+local PlantChecker = {}
 
 -- Calculate plant/fruit value
 local function CalculatePlantValue(obj)
@@ -77,7 +47,7 @@ local function getInventoryItems()
 	return items
 end
 
-local function checkInventoryValue()
+function PlantChecker.GetInventoryValue()
 	local items = getInventoryItems()
 	local totalValue = 0
 	local count = 0
@@ -121,7 +91,7 @@ local function getAllFarmPlants()
 	return items
 end
 
-local function checkFarmValue()
+function PlantChecker.GetFarmValue()
 	local farmPlants = getAllFarmPlants()
 	local totalValue = 0
 	local count = 0
@@ -135,13 +105,14 @@ local function checkFarmValue()
 	return totalValue, count
 end
 
--- Most expensive fruit checker
-local function findMostExpensiveFruit()
+-- Most expensive fruit checker (excluding own farm)
+function PlantChecker.FindMostExpensiveFruit()
 	local farmFolder = workspace:FindFirstChild("Farm")
-	if not farmFolder then return nil, 0 end
+	if not farmFolder then return nil, "Unknown", 0 end
 
 	local highestValue = 0
 	local bestFruit = nil
+	local ownerName = "Unknown"
 
 	for _, farm in pairs(farmFolder:GetChildren()) do
 		local important = farm:FindFirstChild("Important")
@@ -151,6 +122,7 @@ local function findMostExpensiveFruit()
 			local owner = data and data:FindFirstChild("Owner")
 			local ownerVal = owner and owner.Value or "Unknown"
 
+			-- Only check other players' farms, not your own
 			if plants and ownerVal ~= LocalPlayer.Name then
 				for _, plant in pairs(plants:GetChildren()) do
 					local fruitsFolder = plant:FindFirstChild("Fruits")
@@ -160,6 +132,7 @@ local function findMostExpensiveFruit()
 							if val > highestValue then
 								highestValue = val
 								bestFruit = fruit
+								ownerName = ownerVal
 							end
 						end
 					end
@@ -168,11 +141,83 @@ local function findMostExpensiveFruit()
 		end
 	end
 
-	return bestFruit, highestValue
+	return bestFruit, ownerName, highestValue
 end
 
--- Update tracer
-local function updateTracer(targetFruit, tracerEnabled)
+-- Get distance to fruit
+function PlantChecker.GetDistanceToFruit(targetFruit)
+	if not targetFruit or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		return 0
+	end
+
+	local character = LocalPlayer.Character
+	local humanoidRootPart = character.HumanoidRootPart
+	
+	local fruitPosition = nil
+	for _, child in pairs(targetFruit:GetChildren()) do
+		if child:IsA("BasePart") then
+			fruitPosition = child.Position
+			break
+		end
+	end
+	
+	if not fruitPosition then
+		return 0
+	end
+
+	local playerPosition = humanoidRootPart.Position
+	local distance = (fruitPosition - playerPosition).Magnitude
+	
+	return distance
+end
+
+-- Tracer system
+local tracerPart = nil
+local beam = nil
+local beamAttachment1 = nil
+local beamAttachment2 = nil
+local selectionBox = nil
+
+function PlantChecker.InitializeTracer()
+	if tracerPart then return end -- Already initialized
+	
+	-- Create tracer part
+	tracerPart = Instance.new("Part")
+	tracerPart.Name = "FruitTracer"
+	tracerPart.Material = Enum.Material.Neon
+	tracerPart.BrickColor = BrickColor.new("Bright red")
+	tracerPart.Anchored = true
+	tracerPart.CanCollide = false
+	tracerPart.TopSurface = Enum.SurfaceType.Smooth
+	tracerPart.BottomSurface = Enum.SurfaceType.Smooth
+	tracerPart.Transparency = 1
+	tracerPart.Parent = workspace
+
+	-- Create beam tracer
+	beamAttachment1 = Instance.new("Attachment")
+	beamAttachment2 = Instance.new("Attachment")
+	beam = Instance.new("Beam")
+	beam.Color = ColorSequence.new(Color3.new(1, 0, 0), Color3.new(1, 1, 0))
+	beam.Width0 = 0.5
+	beam.Width1 = 0.1
+	beam.Transparency = NumberSequence.new(0.3)
+	beam.FaceCamera = true
+	beam.Attachment0 = beamAttachment1
+	beam.Attachment1 = beamAttachment2
+	beam.Enabled = false
+	beam.Parent = workspace
+
+	-- Create selection box
+	selectionBox = Instance.new("SelectionBox")
+	selectionBox.LineThickness = 0.05
+	selectionBox.Color3 = Color3.new(1, 0, 0)
+	selectionBox.SurfaceTransparency = 0.7
+	selectionBox.Parent = workspace
+end
+
+function PlantChecker.UpdateTracer(targetFruit, tracerEnabled)
+	if not tracerPart then PlantChecker.InitializeTracer() end
+	
 	if not tracerEnabled or not targetFruit or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
 		tracerPart.Transparency = 1
 		beam.Enabled = false
@@ -184,9 +229,11 @@ local function updateTracer(targetFruit, tracerEnabled)
 	local humanoidRootPart = character.HumanoidRootPart
 	
 	local fruitPosition = nil
+	local adorneePart = nil
 	for _, child in pairs(targetFruit:GetChildren()) do
 		if child:IsA("BasePart") then
 			fruitPosition = child.Position
+			adorneePart = child
 			break
 		end
 	end
@@ -203,52 +250,32 @@ local function updateTracer(targetFruit, tracerEnabled)
 	local distance = direction.Magnitude
 	local midPoint = playerPosition + direction * 0.5
 
+	-- Update tracer part
 	tracerPart.Size = Vector3.new(0.2, 0.2, distance)
 	tracerPart.CFrame = CFrame.lookAt(midPoint, fruitPosition)
 	tracerPart.Transparency = 0.3
 
+	-- Update beam
 	beamAttachment1.Parent = humanoidRootPart
 	beamAttachment2.WorldPosition = fruitPosition
 	beam.Enabled = true
 
-	local adorneePart = nil
-	for _, child in pairs(targetFruit:GetChildren()) do
-		if child:IsA("BasePart") then
-			adorneePart = child
-			break
-		end
-	end
+	-- Update selection box
 	selectionBox.Adornee = adorneePart
 end
 
--- Manual check function
-local function manualCheck()
-	local invValue, invCount = checkInventoryValue()
-	local farmValue, farmCount = checkFarmValue()
-	local bestFruit, fruitValue = findMostExpensiveFruit()
-
-	local data = {
-		Inventory = { TotalValue = invValue, Count = invCount },
-		Farm = { TotalValue = farmValue, Count = farmCount },
-		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue }
-	}
-
-	return data
+-- Cleanup function
+function PlantChecker.Cleanup()
+	if tracerPart then tracerPart:Destroy() end
+	if beam then beam:Destroy() end
+	if selectionBox then selectionBox:Destroy() end
 end
 
--- Cleanup
+-- Cleanup when player leaves
 Players.PlayerRemoving:Connect(function(player)
 	if player == LocalPlayer then
-		tracerPart:Destroy()
-		beam:Destroy()
-		selectionBox:Destroy()
-		screenGui:Destroy()
+		PlantChecker.Cleanup()
 	end
 end)
 
-return {
-	ManualCheck = function() return manualCheck() end,
-	SetTracer = function(state)
-		updateTracer(manualCheck().MostExpensiveFruit.Fruit, state)
-	end
-}
+return PlantChecker
