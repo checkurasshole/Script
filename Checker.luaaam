@@ -40,6 +40,8 @@ beam.Attachment0 = beamAttachment1
 beam.Attachment1 = beamAttachment2
 beam.Parent = workspace
 
+local tracerEnabled = true
+
 -- Calculate plant/fruit value
 local function CalculatePlantValue(obj)
 	local itemStr = obj:FindFirstChild("Item_String")
@@ -156,7 +158,7 @@ local function findMostExpensiveFruit()
 				for _, plant in pairs(plants:GetChildren()) do
 					local fruitsFolder = plant:FindFirstChild("Fruits")
 					if fruitsFolder then
-						for _, fruit in pairs(fruitsFolder:GetChildren()) do
+						for _, fruit in pairs(fruitsDocumentsFolder:GetChildren()) do
 							local val = CalculatePlantValue(fruit)
 							if val > highestValue then
 								highestValue = val
@@ -174,9 +176,10 @@ end
 
 -- Update tracer
 local function updateTracer(targetFruit)
-	if not targetFruit or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+	if not tracerEnabled or not targetFruit or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
 		tracerPart.Transparency = 1
 		beam.Enabled = false
+		selectionBox.Adornee = nil
 		return
 	end
 
@@ -194,6 +197,7 @@ local function updateTracer(targetFruit)
 	if not fruitPosition then
 		tracerPart.Transparency = 1
 		beam.Enabled = false
+		selectionBox.Adornee = nil
 		return
 	end
 
@@ -218,6 +222,29 @@ local function updateTracer(targetFruit)
 		end
 	end
 	selectionBox.Adornee = adorneePart
+end
+
+-- One-time data check
+local function getDataOnce()
+	local invValue, invCount = checkInventoryValue()
+	local farmValue, farmCount = checkFarmValue()
+	local bestFruit, fruitValue = findMostExpensiveFruit()
+	updateTracer(bestFruit)
+
+	return {
+		Inventory = {
+			TotalValue = invValue,
+			Count = invCount
+		},
+		Farm = {
+			TotalValue = farmValue,
+			Count = farmCount
+		},
+		MostExpensiveFruit = {
+			Fruit = bestFruit,
+			Value = fruitValue
+		}
+	}
 end
 
 -- Data return for Rayfield
@@ -249,6 +276,16 @@ task.spawn(function()
 	end
 end)
 
+-- Toggle tracer
+local function setTracerEnabled(enabled)
+	tracerEnabled = enabled
+	if not enabled then
+		tracerPart.Transparency = 1
+		beam.Enabled = false
+		selectionBox.Adornee = nil
+	end
+end
+
 -- Cleanup
 Players.PlayerRemoving:Connect(function(player)
 	if player == LocalPlayer then
@@ -264,5 +301,7 @@ end)
 
 return {
 	GetData = function() return Data end,
+	GetDataOnce = getDataOnce,
+	SetTracerEnabled = setTracerEnabled,
 	GetTracerComponents = function() return { SelectionBox = selectionBox, Beam = beam, TracerPart = tracerPart } end
 }
