@@ -222,6 +222,8 @@ end
 
 -- Data return for Rayfield
 local Data = {}
+local tracerLoop
+
 task.spawn(function()
 	while true do
 		local invValue, invCount = checkInventoryValue()
@@ -250,6 +252,9 @@ end)
 -- Cleanup
 Players.PlayerRemoving:Connect(function(player)
 	if player == LocalPlayer then
+		if tracerLoop then
+			task.cancel(tracerLoop)
+		end
 		tracerPart:Destroy()
 		beam:Destroy()
 		selectionBox:Destroy()
