@@ -40,8 +40,6 @@ beam.Attachment0 = beamAttachment1
 beam.Attachment1 = beamAttachment2
 beam.Parent = workspace
 
-local tracerEnabled = true
-
 -- Calculate plant/fruit value
 local function CalculatePlantValue(obj)
 	local itemStr = obj:FindFirstChild("Item_String")
@@ -158,7 +156,7 @@ local function findMostExpensiveFruit()
 				for _, plant in pairs(plants:GetChildren()) do
 					local fruitsFolder = plant:FindFirstChild("Fruits")
 					if fruitsFolder then
-						for _, fruit in pairs(fruitsDocumentsFolder:GetChildren()) do
+						for _, fruit in pairs(fruitsFolder:GetChildren()) do
 							local val = CalculatePlantValue(fruit)
 							if val > highestValue then
 								highestValue = val
@@ -175,7 +173,7 @@ local function findMostExpensiveFruit()
 end
 
 -- Update tracer
-local function updateTracer(targetFruit)
+local function updateTracer(targetFruit, tracerEnabled)
 	if not tracerEnabled or not targetFruit or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
 		tracerPart.Transparency = 1
 		beam.Enabled = false
@@ -224,67 +222,39 @@ local function updateTracer(targetFruit)
 	selectionBox.Adornee = adorneePart
 end
 
--- One-time data check
-local function getDataOnce()
+-- Data management
+local Data = {
+	Inventory = { TotalValue = 0, Count = 0 },
+	Farm = { TotalValue = 0, Count = 0 },
+	MostExpensiveFruit = { Fruit = nil, Value = 0 }
+}
+local autoUpdate = true
+local tracerEnabled = true
+local tracerLoop
+
+-- Manual check function
+local function manualCheck()
 	local invValue, invCount = checkInventoryValue()
 	local farmValue, farmCount = checkFarmValue()
 	local bestFruit, fruitValue = findMostExpensiveFruit()
-	updateTracer(bestFruit)
+	updateTracer(bestFruit, tracerEnabled)
 
-	return {
-		Inventory = {
-			TotalValue = invValue,
-			Count = invCount
-		},
-		Farm = {
-			TotalValue = farmValue,
-			Count = farmCount
-		},
-		MostExpensiveFruit = {
-			Fruit = bestFruit,
-			Value = fruitValue
-		}
+	Data = {
+		Inventory = { TotalValue = invValue, Count = invCount },
+		Farm = { TotalValue = farmValue, Count = farmCount },
+		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue }
 	}
 end
 
--- Data return for Rayfield
-local Data = {}
-local tracerLoop
-
+-- Auto-update loop
 task.spawn(function()
 	while true do
-		local invValue, invCount = checkInventoryValue()
-		local farmValue, farmCount = checkFarmValue()
-		local bestFruit, fruitValue = findMostExpensiveFruit()
-		updateTracer(bestFruit)
-
-		Data = {
-			Inventory = {
-				TotalValue = invValue,
-				Count = invCount
-			},
-			Farm = {
-				TotalValue = farmValue,
-				Count = farmCount
-			},
-			MostExpensiveFruit = {
-				Fruit = bestFruit,
-				Value = fruitValue
-			}
-		}
+		if autoUpdate then
+			manualCheck()
+		end
 		task.wait(2)
 	end
 end)
-
--- Toggle tracer
-local function setTracerEnabled(enabled)
-	tracerEnabled = enabled
-	if not enabled then
-		tracerPart.Transparency = 1
-		beam.Enabled = false
-		selectionBox.Adornee = nil
-	end
-end
 
 -- Cleanup
 Players.PlayerRemoving:Connect(function(player)
@@ -301,7 +271,8 @@ end)
 
 return {
 	GetData = function() return Data end,
-	GetDataOnce = getDataOnce,
-	SetTracerEnabled = setTracerEnabled,
-	GetTracerComponents = function() return { SelectionBox = selectionBox, Beam = beam, TracerPart = tracerPart } end
+	GetTracerComponents = function() return { SelectionBox = selectionBox, Beam = beam, TracerPart = tracerPart } end,
+	ManualCheck = function() manualCheck() end,
+	SetAutoUpdate = function(state) autoUpdate = state end,
+	SetTracer = function(state) tracerEnabled = state; updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled) end
 }
