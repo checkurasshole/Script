@@ -249,9 +249,7 @@ task.spawn(function()
 			},
 			MostExpensiveFruit = {
 				Fruit = bestFruit,
-				Owner = owner,
-				Value = fruitValue,
-				Distance = distance
+				Value = fruitValue
 			}
 		}
 		task.wait(2)
