@@ -1,6 +1,5 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Modules
@@ -228,9 +227,7 @@ local Data = {
 	Farm = { TotalValue = 0, Count = 0 },
 	MostExpensiveFruit = { Fruit = nil, Value = 0 }
 }
-local autoUpdate = false -- Default to false to avoid unwanted updates
 local tracerEnabled = true
-local updateConnection
 
 -- Manual check function
 local function manualCheck()
@@ -246,24 +243,9 @@ local function manualCheck()
 	}
 end
 
--- Auto-update function
-local function startAutoUpdate()
-	if updateConnection then
-		updateConnection:Disconnect()
-	end
-	updateConnection = RunService.Heartbeat:Connect(function()
-		if autoUpdate then
-			manualCheck()
-		end
-	end)
-end
-
 -- Cleanup
 Players.PlayerRemoving:Connect(function(player)
 	if player == LocalPlayer then
-		if updateConnection then
-			updateConnection:Disconnect()
-		end
 		tracerPart:Destroy()
 		beam:Destroy()
 		selectionBox:Destroy()
@@ -275,19 +257,5 @@ return {
 	GetData = function() return Data end,
 	GetTracerComponents = function() return { SelectionBox = selectionBox, Beam = beam, TracerPart = tracerPart } end,
 	ManualCheck = function() manualCheck() end,
-	SetAutoUpdate = function(state)
-		autoUpdate = state
-		if state then
-			startAutoUpdate()
-		else
-			if updateConnection then
-				updateConnection:Disconnect()
-				updateConnection = nil
-			end
-		end
-	end,
-	SetTracer = function(state)
-		tracerEnabled = state
-		updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled)
-	end
+	SetTracer = function(state) tracerEnabled = state; updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled) end
 }
