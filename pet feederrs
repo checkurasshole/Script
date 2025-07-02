@@ -1,0 +1,142 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Backpack = LocalPlayer:WaitForChild("Backpack")
+
+local feedDelay = 2
+local autoFeed = true
+local lastFeedCount = 0
+
+-- Update character reference when it respawns
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+    Character = newChar
+    Backpack = LocalPlayer:WaitForChild("Backpack")
+end)
+
+local function holdFoodItem()
+    local equippedCount = 0
+    -- Unequip any food items first
+    for _, item in ipairs(Character:GetChildren()) do
+        if item:IsA("Tool") and string.find(item.Name, "%d+%.?%d*kg") then
+            item.Parent = Backpack
+        end
+    end
+    
+    -- Equip up to 3 food items
+    local itemsEquipped = 0
+    local maxItems = 3
+    for _, item in ipairs(Backpack:GetChildren()) do
+        if itemsEquipped >= maxItems then break end
+        if item:IsA("Tool") and string.find(item.Name, "%d+%.?%d*kg") then
+            pcall(function()
+                item.Parent = Character
+                itemsEquipped = itemsEquipped + 1
+            end)
+            task.wait(0.03) -- Slightly reduced wait time
+        end
+    end
+    return itemsEquipped > 0
+end
+
+local function findLocalPlayerFarm()
+    local farmFolder = workspace:FindFirstChild("Farm")
+    if not farmFolder then return nil end
+    
+    for _, farm in ipairs(farmFolder:GetChildren()) do
+        local data = farm:FindFirstChild("Important") and farm.Important:FindFirstChild("Data")
+        if data and data:FindFirstChild("Owner") and data.Owner.Value == LocalPlayer.Name then
+            return farm
+        end
+    end
+    return nil
+end
+
+local function isPositionInPart(part, pos)
+    local relative = part.CFrame:PointToObjectSpace(pos)
+    local size = part.Size / 2
+    return math.abs(relative.X) <= size.X and math.abs(relative.Y) <= size.Y and math.abs(relative.Z) <= size.Z
+end
+
+local function findUUID(pet)
+    local attr = pet:GetAttribute("UUID") or pet:GetAttribute("PetUUID")
+    if attr then return attr end
+    for _, v in ipairs(pet:GetDescendants()) do
+        if v.Name == "UUID" and v:IsA("StringValue") then return v.Value end
+    end
+    return nil
+end
+
+local function getNearbyPets(petArea)
+    local pets = {}
+    local petsPhysical = workspace:FindFirstChild("PetsPhysical")
+    if not petsPhysical then return pets end
+    
+    for _, mover in ipairs(petsPhysical:GetChildren()) do
+        local uuid = findUUID(mover)
+        if uuid then
+            for _, part in ipairs(mover:GetDescendants()) do
+                if part:IsA("BasePart") and isPositionInPart(petArea, part.Position) then
+                    table.insert(pets, {UUID = uuid})
+                    break
+                end
+            end
+        end
+    end
+    return pets
+end
+
+local function feedPets()
+    local farm = findLocalPlayerFarm()
+    if not farm then return 0 end
+    
+    local petArea = farm:FindFirstChild("PetArea")
+    if not petArea or not petArea:IsA("BasePart") then return 0 end
+    
+    local pets = getNearbyPets(petArea)
+    local fedCount = 0
+    
+    for _, pet in ipairs(pets) do
+        local held = holdFoodItem()
+        if held then
+            task.wait(0.05) -- Reduced wait time
+            pcall(function()
+                local gameEvents = ReplicatedStorage:FindFirstChild("GameEvents")
+                if gameEvents then
+                    local activePetService = gameEvents:FindFirstChild("ActivePetService")
+                    if activePetService then
+                        activePetService:FireServer("Feed", pet.UUID)
+                        fedCount = fedCount + 1
+                    end
+                end
+            end)
+            task.wait(0.1) -- Reduced wait time
+        end
+    end
+    return fedCount
+end
+
+-- Auto-feed loop
+task.spawn(function()
+    while true do
+        if autoFeed then
+            lastFeedCount = feedPets()
+        end
+        task.wait(feedDelay)
+    end
+end)
+
+-- Cleanup
+Players.PlayerRemoving:Connect(function(player)
+    if player == LocalPlayer then
+        -- No additional cleanup needed for this script
+    end
+end)
+
+return {
+    GetData = function() return { FedCount = lastFeedCount } end,
+    ManualFeed = function() lastFeedCount = feedPets(); return lastFeedCount end,
+    SetAutoFeed = function(state) autoFeed = state end,
+    SetFeedDelay = function(value) feedDelay = math.max(value, 0.1) end
+}
