@@ -277,13 +277,25 @@ local function manualCheck()
 		Farm = { TotalValue = farmValue, Count = farmCount },
 		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue, Owner = ownerName }
 	}
+	
+	-- Call GUI update callback if it exists
+	if guiUpdateCallback then
+		pcall(guiUpdateCallback)
+	end
 end
+
+-- GUI update callback function
+local guiUpdateCallback = nil
 
 -- Auto-update loop
 task.spawn(function()
 	while true do
 		if autoUpdate then
 			manualCheck()
+			-- Call GUI update callback if it exists
+			if guiUpdateCallback then
+				pcall(guiUpdateCallback)
+			end
 		end
 		task.wait(2)
 	end
@@ -326,5 +338,6 @@ return {
 			}
 		end
 		return nil
-	end
+	end,
+	SetGUIUpdateCallback = function(callback) guiUpdateCallback = callback end
 }
