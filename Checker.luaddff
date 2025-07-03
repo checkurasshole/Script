@@ -43,11 +43,6 @@ beam.Attachment0 = beamAttachment1
 beam.Attachment1 = beamAttachment2
 beam.Parent = workspace
 
--- Label references for updating
-local InventoryLabel = nil
-local FarmLabel = nil
-local FruitLabel = nil
-
 -- Calculate plant/fruit value
 local function CalculatePlantValue(obj)
 	local itemStr = obj:FindFirstChild("Item_String")
@@ -67,11 +62,6 @@ local function CalculatePlantValue(obj)
 	local ratio = weight.Value / weightFactor
 	local clamped = math.clamp(ratio, 0.95, 1e8)
 	return math.round(base * clamped * clamped)
-end
-
--- Format number with commas
-local function formatNumber(num)
-	return string.format("%.0f", num):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
 end
 
 -- Inventory checker
@@ -194,7 +184,7 @@ local function stealFruit(fruit, owner, value)
 	-- Create notification
 	local notification = string.format("🍎 Stealing %s ($%s) from %s", 
 		fruit.Name, 
-		formatNumber(value), 
+		string.format("%.0f", value):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""), 
 		owner
 	)
 	
@@ -265,28 +255,6 @@ local function updateTracer(targetFruit, tracerEnabled)
 	selectionBox.Adornee = adorneePart
 end
 
--- Update labels function
-local function updateLabels()
-	if InventoryLabel then
-		local invValue, invCount = checkInventoryValue()
-		InventoryLabel:Set('📦 Inventory Value: $' .. formatNumber(invValue) .. ' (' .. invCount .. ' items)')
-	end
-	
-	if FarmLabel then
-		local farmValue, farmCount = checkFarmValue()
-		FarmLabel:Set('🏡 Farm Value: $' .. formatNumber(farmValue) .. ' (' .. farmCount .. ' plants)')
-	end
-	
-	if FruitLabel then
-		local bestFruit, fruitValue, ownerName = findMostExpensiveFruit()
-		if bestFruit and ownerName then
-			FruitLabel:Set('🍎 Most Expensive Fruit: ' .. bestFruit.Name .. ' ($' .. formatNumber(fruitValue) .. ') - Owner: ' .. ownerName)
-		else
-			FruitLabel:Set('🍎 Most Expensive Fruit: None found')
-		end
-	end
-end
-
 -- Data management
 local Data = {
 	Inventory = { TotalValue = 0, Count = 0 },
@@ -309,9 +277,6 @@ local function manualCheck()
 		Farm = { TotalValue = farmValue, Count = farmCount },
 		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue, Owner = ownerName }
 	}
-	
-	-- Update the labels immediately
-	updateLabels()
 end
 
 -- Auto-update loop
@@ -357,17 +322,9 @@ return {
 				Name = data.Fruit.Name,
 				Value = data.Value,
 				Owner = data.Owner,
-				FormattedValue = formatNumber(data.Value)
+				FormattedValue = string.format("%.0f", data.Value):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
 			}
 		end
 		return nil
-	end,
-	-- New function to set label references
-	SetLabels = function(invLabel, farmLabel, fruitLabel)
-		InventoryLabel = invLabel
-		FarmLabel = farmLabel
-		FruitLabel = fruitLabel
-		-- Update labels immediately when set
-		updateLabels()
 	end
 }
