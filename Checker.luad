@@ -7,6 +7,9 @@ local LocalPlayer = Players.LocalPlayer
 local ItemModule = require(ReplicatedStorage:WaitForChild("Item_Module"))
 local MutationHandler = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("MutationHandler"))
 
+-- Get remotes for stealing functionality
+local Remotes = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Remotes"))
+
 -- Tracer Setup
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FruitTracker"
@@ -136,13 +139,14 @@ local function checkFarmValue()
 	return totalValue, count
 end
 
--- Most expensive fruit checker
+-- Most expensive fruit checker with owner info
 local function findMostExpensiveFruit()
 	local farmFolder = workspace:FindFirstChild("Farm")
-	if not farmFolder then return nil, 0 end
+	if not farmFolder then return nil, 0, nil end
 
 	local highestValue = 0
 	local bestFruit = nil
+	local ownerName = nil
 
 	for _, farm in pairs(farmFolder:GetChildren()) do
 		local important = farm:FindFirstChild("Important")
@@ -161,6 +165,7 @@ local function findMostExpensiveFruit()
 							if val > highestValue then
 								highestValue = val
 								bestFruit = fruit
+								ownerName = ownerVal
 							end
 						end
 					end
@@ -169,7 +174,35 @@ local function findMostExpensiveFruit()
 		end
 	end
 
-	return bestFruit, highestValue
+	return bestFruit, highestValue, ownerName
+end
+
+-- Steal fruit function
+local function stealFruit(fruit, owner, value)
+	if not fruit then return false end
+	
+	-- Create notification
+	local notification = string.format("🍎 Stealing %s ($%s) from %s", 
+		fruit.Name, 
+		string.format("%.0f", value):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""), 
+		owner
+	)
+	
+	-- Print to console
+	print("[🔥 FRUIT STEALER] " .. notification)
+	
+	-- Attempt to steal using the same method as collect
+	local success = pcall(function()
+		Remotes.Crops.Collect.send({fruit})
+	end)
+	
+	if success then
+		print("[✅ SUCCESS] Fruit stolen successfully!")
+	else
+		print("[❌ FAILED] Failed to steal fruit")
+	end
+	
+	return success
 end
 
 -- Update tracer
@@ -226,7 +259,7 @@ end
 local Data = {
 	Inventory = { TotalValue = 0, Count = 0 },
 	Farm = { TotalValue = 0, Count = 0 },
-	MostExpensiveFruit = { Fruit = nil, Value = 0 }
+	MostExpensiveFruit = { Fruit = nil, Value = 0, Owner = nil }
 }
 local autoUpdate = true
 local tracerEnabled = true
@@ -236,13 +269,13 @@ local tracerLoop
 local function manualCheck()
 	local invValue, invCount = checkInventoryValue()
 	local farmValue, farmCount = checkFarmValue()
-	local bestFruit, fruitValue = findMostExpensiveFruit()
+	local bestFruit, fruitValue, ownerName = findMostExpensiveFruit()
 	updateTracer(bestFruit, tracerEnabled)
 
 	Data = {
 		Inventory = { TotalValue = invValue, Count = invCount },
 		Farm = { TotalValue = farmValue, Count = farmCount },
-		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue }
+		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue, Owner = ownerName }
 	}
 end
 
@@ -274,5 +307,24 @@ return {
 	GetTracerComponents = function() return { SelectionBox = selectionBox, Beam = beam, TracerPart = tracerPart } end,
 	ManualCheck = function() manualCheck() end,
 	SetAutoUpdate = function(state) autoUpdate = state end,
-	SetTracer = function(state) tracerEnabled = state; updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled) end
+	SetTracer = function(state) tracerEnabled = state; updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled) end,
+	StealBestFruit = function() 
+		local data = Data.MostExpensiveFruit
+		if data.Fruit and data.Owner and data.Value > 0 then
+			return stealFruit(data.Fruit, data.Owner, data.Value)
+		end
+		return false
+	end,
+	GetBestFruitInfo = function()
+		local data = Data.MostExpensiveFruit
+		if data.Fruit and data.Owner and data.Value > 0 then
+			return {
+				Name = data.Fruit.Name,
+				Value = data.Value,
+				Owner = data.Owner,
+				FormattedValue = string.format("%.0f", data.Value):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
+			}
+		end
+		return nil
+	end
 }
