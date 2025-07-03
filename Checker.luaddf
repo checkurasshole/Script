@@ -43,6 +43,11 @@ beam.Attachment0 = beamAttachment1
 beam.Attachment1 = beamAttachment2
 beam.Parent = workspace
 
+-- Label references for updating
+local InventoryLabel = nil
+local FarmLabel = nil
+local FruitLabel = nil
+
 -- Calculate plant/fruit value
 local function CalculatePlantValue(obj)
 	local itemStr = obj:FindFirstChild("Item_String")
@@ -62,6 +67,11 @@ local function CalculatePlantValue(obj)
 	local ratio = weight.Value / weightFactor
 	local clamped = math.clamp(ratio, 0.95, 1e8)
 	return math.round(base * clamped * clamped)
+end
+
+-- Format number with commas
+local function formatNumber(num)
+	return string.format("%.0f", num):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
 end
 
 -- Inventory checker
@@ -184,7 +194,7 @@ local function stealFruit(fruit, owner, value)
 	-- Create notification
 	local notification = string.format("🍎 Stealing %s ($%s) from %s", 
 		fruit.Name, 
-		string.format("%.0f", value):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""), 
+		formatNumber(value), 
 		owner
 	)
 	
@@ -255,6 +265,28 @@ local function updateTracer(targetFruit, tracerEnabled)
 	selectionBox.Adornee = adorneePart
 end
 
+-- Update labels function
+local function updateLabels()
+	if InventoryLabel then
+		local invValue, invCount = checkInventoryValue()
+		InventoryLabel:Set('📦 Inventory Value: $' .. formatNumber(invValue) .. ' (' .. invCount .. ' items)')
+	end
+	
+	if FarmLabel then
+		local farmValue, farmCount = checkFarmValue()
+		FarmLabel:Set('🏡 Farm Value: $' .. formatNumber(farmValue) .. ' (' .. farmCount .. ' plants)')
+	end
+	
+	if FruitLabel then
+		local bestFruit, fruitValue, ownerName = findMostExpensiveFruit()
+		if bestFruit and ownerName then
+			FruitLabel:Set('🍎 Most Expensive Fruit: ' .. bestFruit.Name .. ' ($' .. formatNumber(fruitValue) .. ') - Owner: ' .. ownerName)
+		else
+			FruitLabel:Set('🍎 Most Expensive Fruit: None found')
+		end
+	end
+end
+
 -- Data management
 local Data = {
 	Inventory = { TotalValue = 0, Count = 0 },
@@ -263,14 +295,7 @@ local Data = {
 }
 local autoUpdate = true
 local tracerEnabled = true
-
--- Format number with commas
-local function formatNumber(num)
-	if num == 0 then return "0" end
-	local formatted = tostring(num)
-	formatted = formatted:reverse():gsub("(%d%d%d)", "%1,"):reverse()
-	return formatted:gsub("^,", "")
-end
+local tracerLoop
 
 -- Manual check function
 local function manualCheck()
@@ -284,13 +309,13 @@ local function manualCheck()
 		Farm = { TotalValue = farmValue, Count = farmCount },
 		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue, Owner = ownerName }
 	}
-
-	-- Return the data for external use (like Rayfield)
-	return Data
+	
+	-- Update the labels immediately
+	updateLabels()
 end
 
 -- Auto-update loop
-local updateLoop = task.spawn(function()
+task.spawn(function()
 	while true do
 		if autoUpdate then
 			manualCheck()
@@ -302,8 +327,8 @@ end)
 -- Cleanup
 Players.PlayerRemoving:Connect(function(player)
 	if player == LocalPlayer then
-		if updateLoop then
-			task.cancel(updateLoop)
+		if tracerLoop then
+			task.cancel(tracerLoop)
 		end
 		tracerPart:Destroy()
 		beam:Destroy()
@@ -312,39 +337,10 @@ Players.PlayerRemoving:Connect(function(player)
 	end
 end)
 
--- Initialize data on first load
-manualCheck()
-
 return {
-	GetData = function() 
-		return {
-			Inventory = {
-				TotalValue = Data.Inventory.TotalValue,
-				Count = Data.Inventory.Count,
-				FormattedValue = formatNumber(Data.Inventory.TotalValue)
-			},
-			Farm = {
-				TotalValue = Data.Farm.TotalValue,
-				Count = Data.Farm.Count,
-				FormattedValue = formatNumber(Data.Farm.TotalValue)
-			},
-			MostExpensiveFruit = Data.MostExpensiveFruit.Fruit and {
-				Name = Data.MostExpensiveFruit.Fruit.Name,
-				Value = Data.MostExpensiveFruit.Value,
-				Owner = Data.MostExpensiveFruit.Owner,
-				FormattedValue = formatNumber(Data.MostExpensiveFruit.Value)
-			} or nil
-		}
-	end,
+	GetData = function() return Data end,
 	GetTracerComponents = function() return { SelectionBox = selectionBox, Beam = beam, TracerPart = tracerPart } end,
-	ManualCheck = function() 
-		local result = manualCheck()
-		print("Manual check completed - Inventory: $" .. formatNumber(result.Inventory.TotalValue) .. 
-			", Farm: $" .. formatNumber(result.Farm.TotalValue) .. 
-			", Best Fruit: " .. (result.MostExpensiveFruit.Value > 0 and 
-				"$" .. formatNumber(result.MostExpensiveFruit.Value) .. " (" .. (result.MostExpensiveFruit.Owner or "Unknown") .. ")" or "None"))
-		return result
-	end,
+	ManualCheck = function() manualCheck() end,
 	SetAutoUpdate = function(state) autoUpdate = state end,
 	SetTracer = function(state) tracerEnabled = state; updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled) end,
 	StealBestFruit = function() 
@@ -352,7 +348,6 @@ return {
 		if data.Fruit and data.Owner and data.Value > 0 then
 			return stealFruit(data.Fruit, data.Owner, data.Value)
 		end
-		print("❌ No valuable fruit found to steal")
 		return false
 	end,
 	GetBestFruitInfo = function()
@@ -366,5 +361,13 @@ return {
 			}
 		end
 		return nil
+	end,
+	-- New function to set label references
+	SetLabels = function(invLabel, farmLabel, fruitLabel)
+		InventoryLabel = invLabel
+		FarmLabel = farmLabel
+		FruitLabel = fruitLabel
+		-- Update labels immediately when set
+		updateLabels()
 	end
 }
