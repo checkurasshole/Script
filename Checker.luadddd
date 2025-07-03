@@ -263,7 +263,14 @@ local Data = {
 }
 local autoUpdate = true
 local tracerEnabled = true
-local tracerLoop
+
+-- Format number with commas
+local function formatNumber(num)
+	if num == 0 then return "0" end
+	local formatted = tostring(num)
+	formatted = formatted:reverse():gsub("(%d%d%d)", "%1,"):reverse()
+	return formatted:gsub("^,", "")
+end
 
 -- Manual check function
 local function manualCheck()
@@ -277,25 +284,16 @@ local function manualCheck()
 		Farm = { TotalValue = farmValue, Count = farmCount },
 		MostExpensiveFruit = { Fruit = bestFruit, Value = fruitValue, Owner = ownerName }
 	}
-	
-	-- Call GUI update callback if it exists
-	if guiUpdateCallback then
-		pcall(guiUpdateCallback)
-	end
+
+	-- Return the data for external use (like Rayfield)
+	return Data
 end
 
--- GUI update callback function
-local guiUpdateCallback = nil
-
 -- Auto-update loop
-task.spawn(function()
+local updateLoop = task.spawn(function()
 	while true do
 		if autoUpdate then
 			manualCheck()
-			-- Call GUI update callback if it exists
-			if guiUpdateCallback then
-				pcall(guiUpdateCallback)
-			end
 		end
 		task.wait(2)
 	end
@@ -304,8 +302,8 @@ end)
 -- Cleanup
 Players.PlayerRemoving:Connect(function(player)
 	if player == LocalPlayer then
-		if tracerLoop then
-			task.cancel(tracerLoop)
+		if updateLoop then
+			task.cancel(updateLoop)
 		end
 		tracerPart:Destroy()
 		beam:Destroy()
@@ -314,10 +312,39 @@ Players.PlayerRemoving:Connect(function(player)
 	end
 end)
 
+-- Initialize data on first load
+manualCheck()
+
 return {
-	GetData = function() return Data end,
+	GetData = function() 
+		return {
+			Inventory = {
+				TotalValue = Data.Inventory.TotalValue,
+				Count = Data.Inventory.Count,
+				FormattedValue = formatNumber(Data.Inventory.TotalValue)
+			},
+			Farm = {
+				TotalValue = Data.Farm.TotalValue,
+				Count = Data.Farm.Count,
+				FormattedValue = formatNumber(Data.Farm.TotalValue)
+			},
+			MostExpensiveFruit = Data.MostExpensiveFruit.Fruit and {
+				Name = Data.MostExpensiveFruit.Fruit.Name,
+				Value = Data.MostExpensiveFruit.Value,
+				Owner = Data.MostExpensiveFruit.Owner,
+				FormattedValue = formatNumber(Data.MostExpensiveFruit.Value)
+			} or nil
+		}
+	end,
 	GetTracerComponents = function() return { SelectionBox = selectionBox, Beam = beam, TracerPart = tracerPart } end,
-	ManualCheck = function() manualCheck() end,
+	ManualCheck = function() 
+		local result = manualCheck()
+		print("Manual check completed - Inventory: $" .. formatNumber(result.Inventory.TotalValue) .. 
+			", Farm: $" .. formatNumber(result.Farm.TotalValue) .. 
+			", Best Fruit: " .. (result.MostExpensiveFruit.Value > 0 and 
+				"$" .. formatNumber(result.MostExpensiveFruit.Value) .. " (" .. (result.MostExpensiveFruit.Owner or "Unknown") .. ")" or "None"))
+		return result
+	end,
 	SetAutoUpdate = function(state) autoUpdate = state end,
 	SetTracer = function(state) tracerEnabled = state; updateTracer(Data.MostExpensiveFruit.Fruit, tracerEnabled) end,
 	StealBestFruit = function() 
@@ -325,6 +352,7 @@ return {
 		if data.Fruit and data.Owner and data.Value > 0 then
 			return stealFruit(data.Fruit, data.Owner, data.Value)
 		end
+		print("❌ No valuable fruit found to steal")
 		return false
 	end,
 	GetBestFruitInfo = function()
@@ -334,10 +362,9 @@ return {
 				Name = data.Fruit.Name,
 				Value = data.Value,
 				Owner = data.Owner,
-				FormattedValue = string.format("%.0f", data.Value):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
+				FormattedValue = formatNumber(data.Value)
 			}
 		end
 		return nil
-	end,
-	SetGUIUpdateCallback = function(callback) guiUpdateCallback = callback end
+	end
 }
