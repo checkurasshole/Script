@@ -11,7 +11,7 @@ if allowed[game.PlaceId] then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Credit.lua"))()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/antiragdoll.lua"))()
 
-    task.wait(6)
+    task.wait(2)
 else
     print("❌ Not an allowed game. PlaceId:", game.PlaceId)
 end
