@@ -1,6 +1,17 @@
-if game.PlaceId == 109983668079237 then
+local allowed = {
+    [109983668079237] = true,
+    [96342491571673] = true,
+    [128762245270197] = true,
+}
+
+if allowed[game.PlaceId] then
+    print("✅ Allowed game detected! Running scripts for:", game.PlaceId)
+
     loadstring(game:HttpGet("https://v0-supabase-secure-storage.vercel.app/api/script/fa4eb8fcbee7a5b1b3827c62bfffaae0"))()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Credit.lua"))()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/antiragdoll.lua"))()
+
     task.wait(6)
+else
+    print("❌ Not an allowed game. PlaceId:", game.PlaceId)
 end
