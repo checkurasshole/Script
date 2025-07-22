@@ -1,0 +1,840 @@
+local Players = game:GetService('Players')
+local RunService = game:GetService('RunService')
+local HttpService = game:GetService('HttpService')
+local UserInputService = game:GetService('UserInputService')
+local TweenService = game:GetService('TweenService')
+
+-- CONFIG: Use the external variables, with fallback defaults if not set
+local loadfasterconfig = script_loadfasterconfig or 5
+local loadmainscripts = script_loadmainscripts
+local bypassSettings = Bypass_settings
+local speedConfig = speed_config
+local providedKey = script_key or ''
+
+-- Handle nil values properly (different from false)
+if loadmainscripts == nil then loadmainscripts = true end
+if bypassSettings == nil then bypassSettings = true end
+if speedConfig == nil then speedConfig = true end
+
+-- Mobile detection
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+
+-- 📋 Speed Script Variables
+local speedScript = nil
+local speedScriptLoaded = false
+local movementEnabled = false
+
+-- 🔗 Speed Script URLs
+local SPEED_GITHUB_URL = 'https://gist.githubusercontent.com/checkurasshole/2fbc320e564b3aafbbc9048e83fb9c49/raw/8cb3c781bb2a51b2f915067dd43ca508d343ac9a/dawdad.lua'
+local MOVEMENT_SCRIPT_URL = 'https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/movement_lua.lua'
+
+-- Language options with their respective URLs
+local languageOptions = {
+    {name = "🇺🇸 English", code = "en", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/4bde3903-c251-4e44-b5c6-49df464b5286?auth=disabled"},
+    {name = "🇪🇸 Español", code = "es", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/6a0a8f31-fc95-4f13-95d9-bbca5a66d4cf?auth=disabled"},
+    {name = "🇷🇺 Русский", code = "ru", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/8960f025-b26b-4ca4-a600-fcabdf3bd36d?auth=disabled"},
+    {name = "🇵🇹 Português", code = "pt", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/afd867bf-713b-46d3-9f22-642ed2e59adc?auth=disabled"},
+    {name = "🇨🇳 中文", code = "zh", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/e3c6d8d2-237a-4b29-aade-7d03ffe24cbc?auth=disabled"},
+    {name = "🇯🇵 日本語", code = "jp", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/6a219056-12f7-4e8e-941a-cb9dea8c42bd?auth=disabled"},
+    {name = "🇩🇪 Deutsch", code = "de", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/7f9d0765-f5fe-4aeb-8b11-4edfe6da89af?auth=disabled"},
+    {name = "🇸🇦 العربية", code = "ar", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/9fbd739f-43d9-4a93-b8e2-d12edd5c392d?auth=disabled"},
+    {name = "🇰🇷 한국어", code = "ko", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/6d414e23-2e9f-4697-b09a-a319fbf686ae?auth=disabled"},
+    {name = "🇮🇹 Italiano", code = "it", url = "https://v0-continuing-unfinished-app.vercel.app/api/script/130dbf8c-1438-46a9-84ae-f26c737e05fc?auth=disabled"}
+}
+
+-- Memory-safe delay function
+local function safeWait(duration)
+    local start = tick()
+    while tick() - start < duration do
+        RunService.Heartbeat:Wait()
+    end
+end
+
+-- 🏃‍♂️ Movement Protection Functions
+local function loadMovementScript()
+    local success, result = pcall(function()
+        local scriptContent = game:HttpGet(MOVEMENT_SCRIPT_URL)
+        return loadstring(scriptContent)()
+    end)
+    return success
+end
+
+local function enableMovement()
+    if _G.MOVEMENT_PROTECTION then
+        _G.MOVEMENT_PROTECTION.cleanup()
+        _G.MOVEMENT_PROTECTION = nil
+    end
+    local success = loadMovementScript()
+    if success and _G.MOVEMENT_PROTECTION then
+        _G.MOVEMENT_PROTECTION.enable()
+        movementEnabled = true
+        return true
+    end
+    return false
+end
+
+local function disableMovement()
+    if _G.MOVEMENT_PROTECTION then
+        _G.MOVEMENT_PROTECTION.disable()
+        movementEnabled = false
+        return true
+    end
+    return false
+end
+
+-- 🏃 Speed Override Functions
+local function loadSpeedScript()
+    if not speedScriptLoaded then
+        local success, result = pcall(function()
+            return loadstring(game:HttpGet(SPEED_GITHUB_URL))()
+        end)
+        if success then
+            speedScript = result
+            speedScriptLoaded = true
+            return true
+        else
+            return false
+        end
+    end
+    return true
+end
+
+-- Show loading notification
+local function showLoadingNotification(message)
+    local player = Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    local notifGui = Instance.new("ScreenGui")
+    notifGui.Name = "LoadingNotification"
+    notifGui.ResetOnSpawn = false
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 80)
+    frame.Position = UDim2.new(1, -20, 0, 20)
+    frame.AnchorPoint = Vector2.new(1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+    frame.BorderSizePixel = 0
+    frame.Parent = notifGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = frame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 1, 0)
+    label.Position = UDim2.new(0, 10, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.Gotham
+    label.Text = message
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 14
+    label.TextWrapped = true
+    label.Parent = frame
+    
+    notifGui.Parent = playerGui
+    
+    -- Slide in animation
+    frame.Position = UDim2.new(1, 320, 0, 20)
+    local tween = TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Position = UDim2.new(1, -20, 0, 20)})
+    tween:Play()
+    
+    -- Auto-remove after 3 seconds
+    spawn(function()
+        safeWait(3)
+        local outTween = TweenService:Create(frame, TweenInfo.new(0.3), {Position = UDim2.new(1, 320, 0, 20)})
+        outTween:Play()
+        outTween.Completed:Wait()
+        notifGui:Destroy()
+    end)
+end
+
+-- Check device type and activate speed/movement scripts
+local function checkDeviceAndActivateSpeed()
+    if not speedConfig then
+        showLoadingNotification("⚠️ Speed scripts disabled")
+        return
+    end
+    
+    local isPC = not (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
+    showLoadingNotification("🖥️ Device: " .. (isPC and "PC/Laptop" or "Mobile"))
+    
+    -- Always enable speed script if config allows
+    spawn(function()
+        if loadSpeedScript() and speedScript then
+            speedScript.toggle(true)
+            showLoadingNotification("🏃 Speed script activated!")
+        else
+            showLoadingNotification("❌ Speed script failed to load!")
+        end
+    end)
+    
+    -- Enable movement script only on PC
+    if isPC then
+        spawn(function()
+            if enableMovement() then
+                showLoadingNotification("🛡️ Movement protection enabled!")
+            else
+                showLoadingNotification("⚠️ Movement protection failed!")
+            end
+        end)
+    else
+        showLoadingNotification("📱 Movement protection skipped (mobile)")
+    end
+end
+
+-- 🧹 Cleanup on Script End
+Players.PlayerRemoving:Connect(function(player)
+    if player == Players.LocalPlayer then
+        if _G.MOVEMENT_PROTECTION then
+            _G.MOVEMENT_PROTECTION.cleanup()
+        end
+        if speedScript then
+            speedScript.disable()
+        end
+    end
+end)
+
+-- KEY ENTRY GUI
+local function createKeyEntryGUI()
+    local player = Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- Create main GUI
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ComboHubKeyEntry"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- Main frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, isMobile and 320 or 380, 0, isMobile and 280 or 300)
+    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    -- Add corner rounding
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 15)
+    corner.Parent = mainFrame
+    
+    -- Add drop shadow effect
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxasset://textures/ui/Controls/DropShadow.png"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.5
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(49, 49, 450, 450)
+    shadow.Size = UDim2.new(1, 47, 1, 47)
+    shadow.Position = UDim2.new(0, -23, 0, -23)
+    shadow.ZIndex = mainFrame.ZIndex - 1
+    shadow.Parent = mainFrame
+    
+    -- Header
+    local header = Instance.new("TextLabel")
+    header.Name = "Header"
+    header.Size = UDim2.new(1, 0, 0, 60)
+    header.Position = UDim2.new(0, 0, 0, 0)
+    header.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+    header.BorderSizePixel = 0
+    header.Font = Enum.Font.GothamBold
+    header.Text = "🔑 ComboHub - Enter Key"
+    header.TextColor3 = Color3.fromRGB(255, 255, 255)
+    header.TextSize = isMobile and 16 or 18
+    header.Parent = mainFrame
+    
+    local headerCorner = Instance.new("UICorner")
+    headerCorner.CornerRadius = UDim.new(0, 15)
+    headerCorner.Parent = header
+    
+    -- Key input textbox
+    local keyInput = Instance.new("TextBox")
+    keyInput.Name = "KeyInput"
+    keyInput.Size = UDim2.new(1, -40, 0, 50)
+    keyInput.Position = UDim2.new(0, 20, 0, 80)
+    keyInput.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
+    keyInput.BorderSizePixel = 0
+    keyInput.Font = Enum.Font.Gotham
+    keyInput.PlaceholderText = "Paste your key here..."
+    keyInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    keyInput.Text = ""
+    keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keyInput.TextSize = isMobile and 14 or 16
+    keyInput.TextWrapped = true
+    keyInput.ClearTextOnFocus = false
+    keyInput.Parent = mainFrame
+    
+    local inputCorner = Instance.new("UICorner")
+    inputCorner.CornerRadius = UDim.new(0, 8)
+    inputCorner.Parent = keyInput
+    
+    -- Submit button
+    local submitButton = Instance.new("TextButton")
+    submitButton.Name = "SubmitButton"
+    submitButton.Size = UDim2.new(1, -40, 0, 45)
+    submitButton.Position = UDim2.new(0, 20, 0, 150)
+    submitButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+    submitButton.BorderSizePixel = 0
+    submitButton.Font = Enum.Font.GothamBold
+    submitButton.Text = "✓ Validate Key"
+    submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    submitButton.TextSize = isMobile and 16 or 18
+    submitButton.Parent = mainFrame
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = submitButton
+    
+    -- Status label
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Name = "StatusLabel"
+    statusLabel.Size = UDim2.new(1, -40, 0, 40)
+    statusLabel.Position = UDim2.new(0, 20, 0, 210)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.Text = "Enter your ComboHub key to continue..."
+    statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    statusLabel.TextSize = isMobile and 12 or 14
+    statusLabel.TextWrapped = true
+    statusLabel.Parent = mainFrame
+    
+    -- Close button (X)
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -35, 0, 5)
+    closeButton.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+    closeButton.BorderSizePixel = 0
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.Text = "×"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextSize = 16
+    closeButton.Parent = mainFrame
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 8)
+    closeCorner.Parent = closeButton
+    
+    screenGui.Parent = playerGui
+    
+    -- Animate GUI entrance
+    mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    local openTween = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, isMobile and 320 or 380, 0, isMobile and 280 or 300)})
+    openTween:Play()
+    
+    -- Variables for key validation
+    local validatedKey = nil
+    local guiClosed = false
+    
+    -- Button hover effects
+    submitButton.MouseEnter:Connect(function()
+        local tween = TweenService:Create(submitButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(70, 170, 70)})
+        tween:Play()
+    end)
+    
+    submitButton.MouseLeave:Connect(function()
+        local tween = TweenService:Create(submitButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 150, 50)})
+        tween:Play()
+    end)
+    
+    closeButton.MouseEnter:Connect(function()
+        local tween = TweenService:Create(closeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(170, 70, 70)})
+        tween:Play()
+    end)
+    
+    closeButton.MouseLeave:Connect(function()
+        local tween = TweenService:Create(closeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(150, 50, 50)})
+        tween:Play()
+    end)
+    
+    -- Close button functionality
+    closeButton.MouseButton1Click:Connect(function()
+        guiClosed = true
+        local closeTween = TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Size = UDim2.new(0, 0, 0, 0)})
+        closeTween:Play()
+        closeTween.Completed:Wait()
+        screenGui:Destroy()
+    end)
+    
+    -- Key validation function
+    local function validateKey(key)
+        if not key or key == '' then
+            return false
+        end
+        
+        local url = 'https://v0-roblox-executor-system.vercel.app/api/roblox-validate?key=' .. HttpService:UrlEncode(key)
+        
+        local success, response = pcall(function()
+            if request then
+                return request({Url = url, Method = "GET"}).Body
+            elseif http_request then
+                return http_request({Url = url, Method = "GET"}).Body
+            elseif syn and syn.request then
+                return syn.request({Url = url, Method = "GET"}).Body
+            else
+                return game:HttpGet(url)
+            end
+        end)
+
+        if not success then
+            return false
+        end
+
+        local data
+        local jsonSuccess, jsonError = pcall(function()
+            data = HttpService:JSONDecode(response)
+        end)
+
+        if not jsonSuccess then
+            return false
+        end
+
+        return data.success == true
+    end
+    
+    -- Submit button functionality
+    local function submitKey()
+        local key = keyInput.Text:gsub("%s+", "") -- Remove whitespace
+        
+        if key == "" then
+            statusLabel.Text = "❌ Please enter a key!"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            return
+        end
+        
+        -- Show validating status
+        statusLabel.Text = "🔄 Validating key..."
+        statusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
+        submitButton.Text = "⏳ Validating..."
+        submitButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        
+        -- Validate key
+        spawn(function()
+            local isValid = validateKey(key)
+            
+            if isValid then
+                statusLabel.Text = "✅ Key validated successfully!"
+                statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                submitButton.Text = "✓ Success!"
+                submitButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+                
+                validatedKey = key
+                
+                -- Close GUI after success
+                safeWait(1)
+                local closeTween = TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Size = UDim2.new(0, 0, 0, 0)})
+                closeTween:Play()
+                closeTween.Completed:Wait()
+                screenGui:Destroy()
+            else
+                statusLabel.Text = "❌ Invalid key! Please check and try again."
+                statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+                submitButton.Text = "✓ Validate Key"
+                submitButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+            end
+        end)
+    end
+    
+    submitButton.MouseButton1Click:Connect(submitKey)
+    
+    -- Allow Enter key to submit
+    keyInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            submitKey()
+        end
+    end)
+    
+    -- Wait for validation or GUI close
+    while not validatedKey and not guiClosed do
+        safeWait(0.1)
+    end
+    
+    return validatedKey
+end
+
+-- Create GUI Language Selector
+local function createLanguageGUI()
+    local player = Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- Create main GUI
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ComboHubLanguageSelector"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- Main frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, isMobile and 350 or 400, 0, isMobile and 450 or 500)
+    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    -- Add corner rounding
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 15)
+    corner.Parent = mainFrame
+    
+    -- Add drop shadow effect
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxasset://textures/ui/Controls/DropShadow.png"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.5
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(49, 49, 450, 450)
+    shadow.Size = UDim2.new(1, 47, 1, 47)
+    shadow.Position = UDim2.new(0, -23, 0, -23)
+    shadow.ZIndex = mainFrame.ZIndex - 1
+    shadow.Parent = mainFrame
+    
+    -- Header
+    local header = Instance.new("TextLabel")
+    header.Name = "Header"
+    header.Size = UDim2.new(1, 0, 0, 60)
+    header.Position = UDim2.new(0, 0, 0, 0)
+    header.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+    header.BorderSizePixel = 0
+    header.Font = Enum.Font.GothamBold
+    header.Text = "🌐 Select Language"
+    header.TextColor3 = Color3.fromRGB(255, 255, 255)
+    header.TextSize = isMobile and 18 or 20
+    header.Parent = mainFrame
+    
+    local headerCorner = Instance.new("UICorner")
+    headerCorner.CornerRadius = UDim.new(0, 15)
+    headerCorner.Parent = header
+    
+    -- Scroll frame for language options
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Name = "LanguageScroll"
+    scrollFrame.Size = UDim2.new(1, -20, 1, -80)
+    scrollFrame.Position = UDim2.new(0, 10, 0, 70)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.BorderSizePixel = 0
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 120)
+    scrollFrame.Parent = mainFrame
+    
+    -- Layout for buttons
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Padding = UDim.new(0, 8)
+    listLayout.Parent = scrollFrame
+    
+    -- Create language buttons
+    local selectedLanguage = nil
+    
+    for i, lang in ipairs(languageOptions) do
+        local button = Instance.new("TextButton")
+        button.Name = "LangButton" .. i
+        button.Size = UDim2.new(1, -10, 0, isMobile and 45 or 40)
+        button.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
+        button.BorderSizePixel = 0
+        button.Font = Enum.Font.Gotham
+        button.Text = lang.name
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.TextSize = isMobile and 16 or 14
+        button.TextScaled = false
+        button.LayoutOrder = i
+        button.Parent = scrollFrame
+        
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 8)
+        buttonCorner.Parent = button
+        
+        -- Hover effect
+        button.MouseEnter:Connect(function()
+            local tween = TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(65, 65, 85)})
+            tween:Play()
+        end)
+        
+        button.MouseLeave:Connect(function()
+            local tween = TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(45, 45, 65)})
+            tween:Play()
+        end)
+        
+        -- Click handler
+        button.MouseButton1Click:Connect(function()
+            selectedLanguage = lang
+            screenGui:Destroy()
+        end)
+    end
+    
+    -- Auto-close timer (15 seconds)
+    local timerLabel = Instance.new("TextLabel")
+    timerLabel.Name = "Timer"
+    timerLabel.Size = UDim2.new(1, 0, 0, 20)
+    timerLabel.Position = UDim2.new(0, 0, 1, -25)
+    timerLabel.BackgroundTransparency = 1
+    timerLabel.Font = Enum.Font.Gotham
+    timerLabel.Text = "Auto-selecting English in 15s"
+    timerLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    timerLabel.TextSize = 12
+    timerLabel.Parent = mainFrame
+    
+    -- Update canvas size
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+    
+    listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+    end)
+    
+    screenGui.Parent = playerGui
+    
+    -- Animate GUI entrance
+    mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    local openTween = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, isMobile and 350 or 400, 0, isMobile and 450 or 500)})
+    openTween:Play()
+    
+    -- Timer countdown
+    spawn(function()
+        for i = 15, 1, -1 do
+            if selectedLanguage then break end
+            timerLabel.Text = "Auto-selecting English in " .. i .. "s"
+            safeWait(1)
+        end
+        
+        if not selectedLanguage then
+            selectedLanguage = languageOptions[1] -- Default to English
+            
+            -- Animate close
+            local closeTween = TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Size = UDim2.new(0, 0, 0, 0)})
+            closeTween:Play()
+            closeTween.Completed:Wait()
+            
+            screenGui:Destroy()
+        end
+    end)
+    
+    -- Wait for selection
+    while not selectedLanguage do
+        safeWait(0.1)
+    end
+    
+    return selectedLanguage
+end
+
+-- Script loader function
+local function loadScriptSafely(url, name)
+    local success, script = pcall(function()
+        return game:HttpGet(url)
+    end)
+    
+    if success and script then
+        local loadSuccess = pcall(function()
+            loadstring(script)()
+        end)
+        return loadSuccess
+    end
+    return false
+end
+
+-- Enhanced script execution
+local function executeScripts(selectedLanguage)
+    showLoadingNotification("🔑 Key validated! Starting ComboHub...")
+    
+    local bypassSuccess, coreScriptSuccess, mainScriptSuccess = true, false, true -- Default to true for disabled scripts
+    
+    -- Load bypass script ONLY if enabled
+    if bypassSettings then
+        showLoadingNotification("🔓 Loading bypass script...")
+        bypassSuccess = false -- Reset to false since we're actually loading it
+        spawn(function()
+            bypassSuccess = loadScriptSafely(
+                'https://v0-supabase-secure-storage.vercel.app/api/script/fa4eb8fcbee7a5b1b3827c62bfffaae0',
+                "Auto Bypasser"
+            )
+        end)
+        
+        -- Wait for bypass script (max 10 seconds)
+        local timeout = 0
+        while not bypassSuccess and timeout < 100 do
+            safeWait(0.1)
+            timeout = timeout + 1
+        end
+    else
+        showLoadingNotification("⚠️ Bypass script disabled")
+    end
+    
+    -- Load core script
+    showLoadingNotification("🔧 Loading core script...")
+    spawn(function()
+        coreScriptSuccess = loadScriptSafely(
+            'https://v0-continuing-unfinished-app.vercel.app/api/script/6da2fbc0-dc07-4131-b394-5fec96966f80?auth=disabled',
+            "Core Script"
+        )
+    end)
+    
+    -- Wait for core script (max 10 seconds)
+    local timeout = 0
+    while not coreScriptSuccess and timeout < 100 do
+        safeWait(0.1)
+        timeout = timeout + 1
+    end
+    
+    -- Load main language script ONLY if enabled
+    if loadmainscripts then
+        -- Wait configured time
+        if loadfasterconfig > 0 then
+            showLoadingNotification("⏳ Loading " .. selectedLanguage.name .. " in " .. loadfasterconfig .. " seconds...")
+            safeWait(loadfasterconfig)
+        end
+        
+        mainScriptSuccess = false -- Reset to false since we're actually loading it
+        -- Load main script in selected language
+        spawn(function()
+            mainScriptSuccess = loadScriptSafely(
+                selectedLanguage.url,
+                "Main Script (" .. selectedLanguage.name .. ")"
+            )
+        end)
+        
+        -- Wait for main script (max 10 seconds)
+        timeout = 0
+        while not mainScriptSuccess and timeout < 100 do
+            safeWait(0.1)
+            timeout = timeout + 1
+        end
+    else
+        showLoadingNotification("⚠️ Main language scripts disabled")
+    end
+    
+    -- Final status report
+    local successfulScripts = 0
+    
+    if bypassSuccess then successfulScripts = successfulScripts + 1 end
+    if coreScriptSuccess then successfulScripts = successfulScripts + 1 end
+    if mainScriptSuccess then successfulScripts = successfulScripts + 1 end
+    
+    if successfulScripts >= 1 then -- At least core script should work
+        local message = "🎉 ComboHub loaded successfully!"
+        if not loadmainscripts then
+            message = message .. " (Language scripts disabled)"
+        end
+        if not bypassSettings then
+            message = message .. " (Bypass disabled)"
+        end
+        showLoadingNotification(message)
+    else
+        showLoadingNotification("❌ Critical scripts failed to load")
+    end
+    
+    -- Load speed scripts after main scripts are done
+    safeWait(1) -- Brief delay before speed scripts
+    checkDeviceAndActivateSpeed()
+end
+
+-- Main execution
+local function main()
+    local keyToValidate = providedKey
+    
+    -- If no key provided or key is empty/placeholder, show GUI
+    if not keyToValidate or keyToValidate == '' or keyToValidate == 'Paste Key In here' then
+        showLoadingNotification("🔑 No key provided - Opening key entry...")
+        keyToValidate = createKeyEntryGUI()
+        
+        -- If user closed the GUI without entering a key
+        if not keyToValidate then
+            showLoadingNotification("❌ No key entered - Script cancelled")
+            return
+        end
+    end
+    
+    -- KEY VALIDATION SYSTEM
+    local function validateKey(key)
+        if not key or key == '' then
+            return false
+        end
+        
+        local url = 'https://v0-roblox-executor-system.vercel.app/api/roblox-validate?key=' .. HttpService:UrlEncode(key)
+        
+        local success, response = pcall(function()
+            if request then
+                return request({Url = url, Method = "GET"}).Body
+            elseif http_request then
+                return http_request({Url = url, Method = "GET"}).Body
+            elseif syn and syn.request then
+                return syn.request({Url = url, Method = "GET"}).Body
+            else
+                return game:HttpGet(url)
+            end
+        end)
+
+        if not success then
+            return false
+        end
+
+        local data
+        local jsonSuccess, jsonError = pcall(function()
+            data = HttpService:JSONDecode(response)
+        end)
+
+        if not jsonSuccess then
+            return false
+        end
+
+        return data.success == true
+    end
+    
+    -- Validate the key
+    if validateKey(keyToValidate) then
+        -- Only show language selector if main scripts are enabled
+        if loadmainscripts then
+            local selectedLanguage = createLanguageGUI()
+            executeScripts(selectedLanguage)
+        else
+            -- Skip language selection, use English as placeholder
+            local defaultLanguage = languageOptions[1]
+            executeScripts(defaultLanguage)
+        end
+    else
+        -- Show error notification
+        local player = Players.LocalPlayer
+        local playerGui = player:WaitForChild("PlayerGui")
+        
+        local errorGui = Instance.new("ScreenGui")
+        errorGui.Name = "ErrorNotification"
+        errorGui.ResetOnSpawn = false
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 300, 0, 100)
+        frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+        frame.AnchorPoint = Vector2.new(0.5, 0.5)
+        frame.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+        frame.BorderSizePixel = 0
+        frame.Parent = errorGui
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 15)
+        corner.Parent = frame
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -20, 1, 0)
+        label.Position = UDim2.new(0, 10, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Font = Enum.Font.GothamBold
+        label.Text = "❌ Invalid Key!\nCheck your key and try again."
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.TextSize = 16
+        label.Parent = frame
+        
+        errorGui.Parent = playerGui
+        
+        safeWait(5)
+        errorGui:Destroy()
+        
+        error("Invalid key! Access denied.")
+    end
+end
+
+-- Start the script
+main()
