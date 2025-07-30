@@ -1,7 +1,7 @@
 local allowed = {
-    [109983668079237] = true,
-    [96342491571673] = true,
-    [128762245270197] = true,
+    [109983668079237] = false,
+    [96342491571673] = false,
+    [128762245270197] = false,
 }
 
 if allowed[game.PlaceId] then
