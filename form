@@ -1,0 +1,189 @@
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Create Rayfield Window
+local Window = Rayfield:CreateWindow({
+   Name = "COMBO_WICK",
+   LoadingTitle = "Loading",
+   LoadingSubtitle = "by COMBO_WICK",
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = "AnimalSpawner",
+      FileName = "Config"
+   },
+   KeySystem = false
+})
+
+
+local Tab = Window:CreateTab("Main", 4483362458)
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local poopChargeStart, poopEvent
+pcall(function()
+    poopChargeStart = ReplicatedStorage:WaitForChild("PoopChargeStart", 5)
+    poopEvent = ReplicatedStorage:WaitForChild("PoopEvent", 5)
+end)
+
+local poopSettings = {
+    enabled = false,
+    totalPoops = 100,
+    delay = 0.5,
+    currentCount = 0,
+    lastFireTime = 0
+}
+
+local connection = nil
+
+local function startPoopScript()
+    if connection then connection:Disconnect() end
+    
+    poopSettings.currentCount = 0
+    poopSettings.lastFireTime = 0
+    
+    connection = RunService.Heartbeat:Connect(function()
+        if not poopSettings.enabled then
+            connection:Disconnect() 
+            return
+        end
+        
+        local currentTime = workspace.DistributedGameTime
+        local timeSinceLastFire = currentTime - poopSettings.lastFireTime
+        
+        if timeSinceLastFire >= poopSettings.delay then
+            poopSettings.lastFireTime = currentTime
+            
+            local success1 = pcall(function()
+                poopChargeStart:FireServer()
+            end)
+            
+            task.wait(0.01)
+            
+            local success2 = pcall(function()
+                poopEvent:FireServer(1)
+            end)
+            
+            if success1 and success2 then
+                poopSettings.currentCount = poopSettings.currentCount + 1
+            end
+            
+            if poopSettings.currentCount >= poopSettings.totalPoops then
+                poopSettings.currentCount = 0
+            end
+        end
+    end)
+end
+
+-- Auto Poop Toggle (with built-in auto repeat)
+local Toggle = Tab:CreateToggle({
+   Name = "Normal Auto Poop",
+   CurrentValue = false,
+   Flag = "AutoPoopToggle",
+   Callback = function(Value)
+      poopSettings.enabled = Value
+      if Value then
+         if not poopChargeStart or not poopEvent then
+            Rayfield:Notify({
+               Title = "Error",
+               Content = "Poop remotes not found!",
+               Duration = 3,
+               Image = 4483362458,
+            })
+            Toggle:Set(false)
+            return
+         end
+         startPoopScript()
+      else
+         if connection then
+            connection:Disconnect()
+         end
+      end
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Faster auto poop",
+   Callback = function()
+      task.spawn(function()
+          for i = 1, 100 do
+              pcall(function()
+                  poopChargeStart:FireServer()
+                  poopEvent:FireServer(1)
+              end)
+              task.wait(0.15)
+          end
+      end)
+      
+      Rayfield:Notify({
+         Title = "Fast Auto Poop",
+         Content = "Started fast poop sequence (100 poops)...",
+         Duration = 3,
+         Image = 4483362458,
+      })
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Sell All",
+   Callback = function()
+      local args = {
+          [1] = "2. [I want to sell my inventory.]"
+      }
+      game:GetService("ReplicatedStorage"):WaitForChild("PoopResponseChosen", 9e9):FireServer(unpack(args))
+      
+      Rayfield:Notify({
+         Title = "Sell All",
+         Content = "Selling all items in inventory...",
+         Duration = 2,
+         Image = 4483362458,
+      })
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Check Inventory",
+   Callback = function()
+      local player = Players.LocalPlayer
+      local backpack = player:WaitForChild("Backpack")
+      local items = backpack:GetChildren()
+      
+      if #items == 0 then
+         print("Your backpack is empty!")
+      else
+         for i, item in ipairs(items) do
+            print(i .. ". " .. item.Name)
+         end
+      end
+      
+      Rayfield:Notify({
+         Title = "Inventory",
+         Content = "Found " .. #items .. " items. Check console!",
+         Duration = 3,
+         Image = 4483362458,
+      })
+   end,
+})
+
+Tab:CreateButton({
+   Name = "Duplicate Most Poop",
+   Callback = function()
+      local player = Players.LocalPlayer
+      local placeId = game.PlaceId
+      local jobId = game.JobId
+      
+      Rayfield:Notify({
+         Title = "Rejoining",
+         Content = "Te...",
+         Duration = 2,
+         Image = 4483362458,
+      })
+      
+      task.wait(1)
+      pcall(function()
+         TeleportService:TeleportToPlaceInstance(placeId, jobId, player)
+      end)
+   end,
+})
