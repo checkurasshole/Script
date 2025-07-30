@@ -1,0 +1,258 @@
+-- Script Language Selector GUI
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Script URLs for different languages
+local scripts = {
+    ["English 🇺🇸"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/englishspawner",
+    ["Chinese 🇨🇳"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/chin",
+    ["French 🇫🇷"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/french",
+    ["German 🇩🇪"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/germanspawner",
+    ["Italian 🇮🇹"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/italianspawner",
+    ["Japanese 🇯🇵"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/japan",
+    ["Korean 🇰🇷"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/korean",
+    ["Brazilian 🇧🇷"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/brazil",
+    ["Russian 🇷🇺"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/russianspawner",
+    ["Spanish 🇪🇸"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/spanis"
+}
+
+-- Create main GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "LanguageSelectorGUI"
+screenGui.Parent = playerGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Main frame with glassmorphism effect
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 450, 0, 600)
+mainFrame.Position = UDim2.new(0.5, -225, 0.5, -300)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Add corner radius
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 20)
+mainCorner.Parent = mainFrame
+
+-- Add gradient background
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 50, 150)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 100, 200))
+}
+gradient.Rotation = 45
+gradient.Parent = mainFrame
+
+-- Add subtle border
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(255, 255, 255)
+stroke.Transparency = 0.8
+stroke.Thickness = 2
+stroke.Parent = mainFrame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, 80)
+title.Position = UDim2.new(0, 0, 0, 20)
+title.BackgroundTransparency = 1
+title.Text = "🌐 Select Language"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+-- Subtitle
+local subtitle = Instance.new("TextLabel")
+subtitle.Name = "Subtitle"
+subtitle.Size = UDim2.new(1, 0, 0, 30)
+subtitle.Position = UDim2.new(0, 0, 0, 100)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "Choose your preferred language"
+subtitle.TextColor3 = Color3.fromRGB(200, 200, 255)
+subtitle.TextScaled = true
+subtitle.Font = Enum.Font.Gotham
+subtitle.Parent = mainFrame
+
+-- Scroll frame for languages
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Name = "LanguageScroll"
+scrollFrame.Size = UDim2.new(1, -40, 1, -160)
+scrollFrame.Position = UDim2.new(0, 20, 0, 140)
+scrollFrame.BackgroundTransparency = 1
+scrollFrame.BorderSizePixel = 0
+scrollFrame.ScrollBarThickness = 6
+scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+scrollFrame.ScrollBarImageTransparency = 0.5
+scrollFrame.Parent = mainFrame
+
+-- Grid layout for language buttons
+local gridLayout = Instance.new("UIGridLayout")
+gridLayout.CellSize = UDim2.new(0, 180, 0, 50)
+gridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+gridLayout.SortOrder = Enum.SortOrder.Name
+gridLayout.Parent = scrollFrame
+
+-- Function to create language button
+local function createLanguageButton(languageName, scriptUrl)
+    local button = Instance.new("TextButton")
+    button.Name = languageName
+    button.Size = UDim2.new(0, 180, 0, 50)
+    button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundTransparency = 0.9
+    button.BorderSizePixel = 0
+    button.Text = languageName
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextScaled = true
+    button.Font = Enum.Font.GothamSemibold
+    button.Parent = scrollFrame
+    
+    -- Button styling
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 12)
+    buttonCorner.Parent = button
+    
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Color = Color3.fromRGB(255, 255, 255)
+    buttonStroke.Transparency = 0.7
+    buttonStroke.Thickness = 1
+    buttonStroke.Parent = button
+    
+    -- Hover effects
+    local hoverTween = TweenService:Create(button, 
+        TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+        {BackgroundTransparency = 0.7, TextColor3 = Color3.fromRGB(100, 200, 255)}
+    )
+    
+    local normalTween = TweenService:Create(button,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+        {BackgroundTransparency = 0.9, TextColor3 = Color3.fromRGB(255, 255, 255)}
+    )
+    
+    button.MouseEnter:Connect(function()
+        hoverTween:Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        normalTween:Play()
+    end)
+    
+    -- Click handler
+    button.MouseButton1Click:Connect(function()
+        -- Create loading screen
+        local loadingFrame = Instance.new("Frame")
+        loadingFrame.Name = "LoadingFrame"
+        loadingFrame.Size = UDim2.new(1, 0, 1, 0)
+        loadingFrame.Position = UDim2.new(0, 0, 0, 0)
+        loadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        loadingFrame.BackgroundTransparency = 0.3
+        loadingFrame.Parent = mainFrame
+        
+        local loadingText = Instance.new("TextLabel")
+        loadingText.Size = UDim2.new(1, 0, 0, 50)
+        loadingText.Position = UDim2.new(0, 0, 0.5, -25)
+        loadingText.BackgroundTransparency = 1
+        loadingText.Text = "Loading " .. languageName .. "..."
+        loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+        loadingText.TextScaled = true
+        loadingText.Font = Enum.Font.GothamBold
+        loadingText.Parent = loadingFrame
+        
+        -- Animate loading text
+        local pulse = TweenService:Create(loadingText,
+            TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+            {TextTransparency = 0.5}
+        )
+        pulse:Play()
+        
+        -- Execute the script
+        spawn(function()
+            wait(1) -- Small delay for visual effect
+            
+            local success, result = pcall(function()
+                loadstring(game:HttpGet(scriptUrl))()
+            end)
+            
+            if success then
+                -- Fade out the entire GUI
+                local fadeOut = TweenService:Create(screenGui,
+                    TweenInfo.new(0.8, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+                    {Enabled = false}
+                )
+                fadeOut:Play()
+                
+                fadeOut.Completed:Connect(function()
+                    screenGui:Destroy()
+                end)
+            else
+                -- Show error
+                loadingText.Text = "Error loading script"
+                loadingText.TextColor3 = Color3.fromRGB(255, 100, 100)
+                wait(2)
+                loadingFrame:Destroy()
+            end
+        end)
+    end)
+    
+    return button
+end
+
+-- Create buttons for each language
+for languageName, scriptUrl in pairs(scripts) do
+    createLanguageButton(languageName, scriptUrl)
+end
+
+-- Update scroll canvas size
+local function updateCanvasSize()
+    local contentSize = gridLayout.AbsoluteContentSize
+    scrollFrame.CanvasSize = UDim2.new(0, contentSize.X, 0, contentSize.Y + 20)
+end
+
+gridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvasSize)
+updateCanvasSize()
+
+-- Entrance animation
+mainFrame.Position = UDim2.new(0.5, -225, 1.5, 0)
+local entranceTween = TweenService:Create(mainFrame,
+    TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    {Position = UDim2.new(0.5, -225, 0.5, -300)}
+)
+entranceTween:Play()
+
+-- Close button (optional)
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -40, 0, 10)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+closeButton.BackgroundTransparency = 0.3
+closeButton.BorderSizePixel = 0
+closeButton.Text = "×"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 15)
+closeCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    local exitTween = TweenService:Create(mainFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
+        {Position = UDim2.new(0.5, -225, 1.5, 0)}
+    )
+    exitTween:Play()
+    
+    exitTween.Completed:Connect(function()
+        screenGui:Destroy()
+    end)
+end)
