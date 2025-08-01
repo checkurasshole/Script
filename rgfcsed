@@ -1,0 +1,623 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Key validation variable (users will paste their key here)
+script_key = 'Paste Key In here'
+
+-- GitHub repository scripts (replace with your actual GitHub URLs)
+local scripts = {
+    ["English 🇺🇸"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/translated/en",
+    ["Arabic 🇸🇦"] = "https://raw.githubusercontent.com/checkurasshole/Script/main/translated/ar/translated_script_ar_2025-08-01.lua",
+    ["Spanish 🇪🇸"] = "https://raw.githubusercontent.com/checkurasshole/Script/main/translated/es/translated_script_es_2025-08-01.lua",
+    ["French 🇫🇷"] = "https://raw.githubusercontent.com/checkurasshole/Script/main/translated/fr/translated_script_fr_2025-08-01.lua",
+    ["German 🇩🇪"] = "https://raw.githubusercontent.com/checkurasshole/Script/main/translated/de/translated_script_de_2025-08-01.lua",
+    ["Japanese 🇯🇵"] = "https://raw.githubusercontent.com/checkurasshole/Script/main/translated/ja/translated_script_ja_2025-08-01.lua",
+    ["Brazilian 🇧🇷"] = "https://raw.githubusercontent.com/checkurasshole/Script/main/translated/pt/translated_script_pt_2025-08-01.lua",
+    ["Italian 🇮🇹"] = "https://raw.githubusercontent.com/checkurasshole/Script/main/translated/it/translated_script_it_2025-08-01.lua",
+    ["Russian 🇷🇺"] = "https://raw.githubusercontent.com/checkurasshole/Script/main/translated/ru/translated_script_ru_2025-08-01.lua"
+}
+
+local SAVE_KEY = "LanguageSelector_SavedSettings"
+local autoSaveEnabled = true
+local savedLanguage = nil
+local keyValidated = false
+
+-- Mobile detection
+local isMobile = game:GetService('UserInputService').TouchEnabled and not game:GetService('UserInputService').KeyboardEnabled
+
+-- Memory-safe delay function
+local function safeWait(duration)
+    local start = tick()
+    while tick() - start < duration do
+        RunService.Heartbeat:Wait()
+    end
+end
+
+-- Key validation function
+local function validateKey(key)
+    if not key or key == '' or key == 'Paste Key In here' then
+        print("❌ No key provided")
+        return false
+    end
+
+    print("🔑 Validating key...")
+    
+    local url = 'https://v0-roblox-executor-system.vercel.app/api/roblox-validate?key=' .. HttpService:UrlEncode(key)
+    
+    local success, response = pcall(function()
+        if request then
+            local result = request({
+                Url = url,
+                Method = "GET"
+            })
+            return result.Body
+        elseif http_request then
+            local result = http_request({
+                Url = url,
+                Method = "GET"
+            })
+            return result.Body
+        elseif syn and syn.request then
+            local result = syn.request({
+                Url = url,
+                Method = "GET"
+            })
+            return result.Body
+        else
+            return game:HttpGet(url)
+        end
+    end)
+
+    if not success then
+        print("❌ Network error:", response)
+        return false
+    end
+
+    local data
+    local jsonSuccess, jsonError = pcall(function()
+        data = HttpService:JSONDecode(response)
+    end)
+
+    if not jsonSuccess then
+        print("❌ Invalid server response")
+        return false
+    end
+
+    if data.success then
+        print("✅ Key valid! Welcome " .. (data.username or "User"))
+        if data.expires_at then
+            print("🕒 Key expires: " .. data.expires_at)
+        end
+        return true
+    else
+        print("❌ Key invalid: " .. (data.message or "Unknown error"))
+        return false
+    end
+end
+
+-- Auto-save functions (preserved from original)
+local function saveSettings()
+    if autoSaveEnabled and savedLanguage then
+        local data = {
+            language = savedLanguage,
+            autoSave = autoSaveEnabled
+        }
+        writefile(SAVE_KEY .. ".json", HttpService:JSONEncode(data))
+    end
+end
+
+local function loadSettings()
+    if isfile(SAVE_KEY .. ".json") then
+        local success, data = pcall(function()
+            return HttpService:JSONDecode(readfile(SAVE_KEY .. ".json"))
+        end)
+        if success and data then
+            savedLanguage = data.language
+            autoSaveEnabled = data.autoSave or true
+            return data
+        end
+    end
+    return nil
+end
+
+local function autoLoadScript()
+    if autoSaveEnabled and savedLanguage and scripts[savedLanguage] and keyValidated then
+        spawn(function()
+            wait(0.5)
+            local success, result = pcall(function()
+                loadstring(game:HttpGet(scripts[savedLanguage]))()
+            end)
+        end)
+        return true
+    end
+    return false
+end
+
+-- Load settings
+local settings = loadSettings()
+
+-- Key validation GUI
+local function createKeyValidationGUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "KeyValidationGUI"
+    screenGui.Parent = playerGui
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 400, 0, 300)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 20)
+    mainCorner.Parent = mainFrame
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 50, 100)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 100, 200))
+    }
+    gradient.Rotation = 45
+    gradient.Parent = mainFrame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(255, 255, 255)
+    stroke.Transparency = 0.8
+    stroke.Thickness = 2
+    stroke.Parent = mainFrame
+
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, 0, 0, 60)
+    title.Position = UDim2.new(0, 0, 0, 20)
+    title.BackgroundTransparency = 1
+    title.Text = "🔐 Key Validation"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainFrame
+
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.Size = UDim2.new(1, 0, 0, 30)
+    subtitle.Position = UDim2.new(0, 0, 0, 80)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "Enter your access key to continue"
+    subtitle.TextColor3 = Color3.fromRGB(200, 200, 255)
+    subtitle.TextScaled = true
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.Parent = mainFrame
+
+    local keyInput = Instance.new("TextBox")
+    keyInput.Name = "KeyInput"
+    keyInput.Size = UDim2.new(1, -40, 0, 50)
+    keyInput.Position = UDim2.new(0, 20, 0, 130)
+    keyInput.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    keyInput.BackgroundTransparency = 0.9
+    keyInput.BorderSizePixel = 0
+    keyInput.Text = ""
+    keyInput.PlaceholderText = "Paste your key here..."
+    keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keyInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    keyInput.TextScaled = true
+    keyInput.Font = Enum.Font.Gotham
+    keyInput.Parent = mainFrame
+
+    local inputCorner = Instance.new("UICorner")
+    inputCorner.CornerRadius = UDim.new(0, 12)
+    inputCorner.Parent = keyInput
+
+    local inputStroke = Instance.new("UIStroke")
+    inputStroke.Color = Color3.fromRGB(255, 255, 255)
+    inputStroke.Transparency = 0.7
+    inputStroke.Thickness = 1
+    inputStroke.Parent = keyInput
+
+    local validateButton = Instance.new("TextButton")
+    validateButton.Name = "ValidateButton"
+    validateButton.Size = UDim2.new(1, -40, 0, 50)
+    validateButton.Position = UDim2.new(0, 20, 0, 200)
+    validateButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+    validateButton.BackgroundTransparency = 0.3
+    validateButton.BorderSizePixel = 0
+    validateButton.Text = "🔑 Validate Key"
+    validateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    validateButton.TextScaled = true
+    validateButton.Font = Enum.Font.GothamBold
+    validateButton.Parent = mainFrame
+
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 12)
+    buttonCorner.Parent = validateButton
+
+    -- Animation entrance
+    mainFrame.Position = UDim2.new(0.5, -200, 1.5, 0)
+    local entranceTween = TweenService:Create(mainFrame,
+        TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.5, -200, 0.5, -150)}
+    )
+    entranceTween:Play()
+
+    -- Validate button click
+    validateButton.MouseButton1Click:Connect(function()
+        local key = keyInput.Text
+        
+        validateButton.Text = "🔄 Validating..."
+        validateButton.BackgroundColor3 = Color3.fromRGB(200, 200, 100)
+        
+        spawn(function()
+            if validateKey(key) then
+                keyValidated = true
+                script_key = key
+                
+                validateButton.Text = "✅ Key Valid!"
+                validateButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+                
+                wait(1)
+                
+                -- Close key validation GUI and open language selector
+                local exitTween = TweenService:Create(mainFrame,
+                    TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
+                    {Position = UDim2.new(0.5, -200, 1.5, 0)}
+                )
+                exitTween:Play()
+                
+                exitTween.Completed:Connect(function()
+                    screenGui:Destroy()
+                    createLanguageSelectorGUI()
+                end)
+            else
+                validateButton.Text = "❌ Invalid Key"
+                validateButton.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
+                
+                wait(2)
+                
+                validateButton.Text = "🔑 Validate Key"
+                validateButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+            end
+        end)
+    end)
+end
+
+-- Language selector GUI (modified from original)
+local function createLanguageSelectorGUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "LanguageSelectorGUI"
+    screenGui.Parent = playerGui
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 450, 0, 650)
+    mainFrame.Position = UDim2.new(0.5, -225, 0.5, -325)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 20)
+    mainCorner.Parent = mainFrame
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 50, 150)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 100, 200))
+    }
+    gradient.Rotation = 45
+    gradient.Parent = mainFrame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(255, 255, 255)
+    stroke.Transparency = 0.8
+    stroke.Thickness = 2
+    stroke.Parent = mainFrame
+
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, 0, 0, 80)
+    title.Position = UDim2.new(0, 0, 0, 20)
+    title.BackgroundTransparency = 1
+    title.Text = "🌐 Select Language"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainFrame
+
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.Size = UDim2.new(1, 0, 0, 30)
+    subtitle.Position = UDim2.new(0, 0, 0, 100)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "Choose your preferred language"
+    subtitle.TextColor3 = Color3.fromRGB(200, 200, 255)
+    subtitle.TextScaled = true
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.Parent = mainFrame
+
+    -- Auto-save toggle (preserved from original)
+    local autoSaveFrame = Instance.new("Frame")
+    autoSaveFrame.Name = "AutoSaveFrame"
+    autoSaveFrame.Size = UDim2.new(1, -40, 0, 40)
+    autoSaveFrame.Position = UDim2.new(0, 20, 0, 135)
+    autoSaveFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    autoSaveFrame.BackgroundTransparency = 0.95
+    autoSaveFrame.BorderSizePixel = 0
+    autoSaveFrame.Parent = mainFrame
+
+    local autoSaveCorner = Instance.new("UICorner")
+    autoSaveCorner.CornerRadius = UDim.new(0, 8)
+    autoSaveCorner.Parent = autoSaveFrame
+
+    local autoSaveStroke = Instance.new("UIStroke")
+    autoSaveStroke.Color = Color3.fromRGB(255, 255, 255)
+    autoSaveStroke.Transparency = 0.8
+    autoSaveStroke.Thickness = 1
+    autoSaveStroke.Parent = autoSaveFrame
+
+    local autoSaveLabel = Instance.new("TextLabel")
+    autoSaveLabel.Name = "AutoSaveLabel"
+    autoSaveLabel.Size = UDim2.new(1, -60, 1, 0)
+    autoSaveLabel.Position = UDim2.new(0, 10, 0, 0)
+    autoSaveLabel.BackgroundTransparency = 1
+    autoSaveLabel.Text = "💾 Auto-Save Language Choice"
+    autoSaveLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+    autoSaveLabel.TextScaled = true
+    autoSaveLabel.Font = Enum.Font.Gotham
+    autoSaveLabel.TextXAlignment = Enum.TextXAlignment.Left
+    autoSaveLabel.Parent = autoSaveFrame
+
+    local autoSaveToggle = Instance.new("TextButton")
+    autoSaveToggle.Name = "AutoSaveToggle"
+    autoSaveToggle.Size = UDim2.new(0, 40, 0, 20)
+    autoSaveToggle.Position = UDim2.new(1, -50, 0.5, -10)
+    autoSaveToggle.BackgroundColor3 = autoSaveEnabled and Color3.fromRGB(100, 200, 100) or Color3.fromRGB(100, 100, 100)
+    autoSaveToggle.BorderSizePixel = 0
+    autoSaveToggle.Text = ""
+    autoSaveToggle.Parent = autoSaveFrame
+
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0, 10)
+    toggleCorner.Parent = autoSaveToggle
+
+    local toggleIndicator = Instance.new("Frame")
+    toggleIndicator.Name = "Indicator"
+    toggleIndicator.Size = UDim2.new(0, 16, 0, 16)
+    toggleIndicator.Position = autoSaveEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+    toggleIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    toggleIndicator.BorderSizePixel = 0
+    toggleIndicator.Parent = autoSaveToggle
+
+    local indicatorCorner = Instance.new("UICorner")
+    indicatorCorner.CornerRadius = UDim.new(0, 8)
+    indicatorCorner.Parent = toggleIndicator
+
+    autoSaveToggle.MouseButton1Click:Connect(function()
+        autoSaveEnabled = not autoSaveEnabled
+        
+        local toggleColorTween = TweenService:Create(autoSaveToggle,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {BackgroundColor3 = autoSaveEnabled and Color3.fromRGB(100, 200, 100) or Color3.fromRGB(100, 100, 100)}
+        )
+        toggleColorTween:Play()
+        
+        local indicatorTween = TweenService:Create(toggleIndicator,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {Position = autoSaveEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}
+        )
+        indicatorTween:Play()
+        
+        if autoSaveEnabled then
+            saveSettings()
+        else
+            if isfile(SAVE_KEY .. ".json") then
+                delfile(SAVE_KEY .. ".json")
+            end
+        end
+    end)
+
+    -- Language buttons scroll frame
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Name = "LanguageScroll"
+    scrollFrame.Size = UDim2.new(1, -40, 1, -210)
+    scrollFrame.Position = UDim2.new(0, 20, 0, 185)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.BorderSizePixel = 0
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+    scrollFrame.ScrollBarImageTransparency = 0.5
+    scrollFrame.Parent = mainFrame
+
+    local gridLayout = Instance.new("UIGridLayout")
+    gridLayout.CellSize = UDim2.new(0, 180, 0, 50)
+    gridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+    gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    gridLayout.SortOrder = Enum.SortOrder.Name
+    gridLayout.Parent = scrollFrame
+
+    local function createLanguageButton(languageName, scriptUrl)
+        local button = Instance.new("TextButton")
+        button.Name = languageName
+        button.Size = UDim2.new(0, 180, 0, 50)
+        button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        button.BackgroundTransparency = (savedLanguage == languageName) and 0.7 or 0.9
+        button.BorderSizePixel = 0
+        button.Text = languageName
+        button.TextColor3 = (savedLanguage == languageName) and Color3.fromRGB(100, 200, 255) or Color3.fromRGB(255, 255, 255)
+        button.TextScaled = true
+        button.Font = Enum.Font.GothamSemibold
+        button.Parent = scrollFrame
+        
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 12)
+        buttonCorner.Parent = button
+        
+        local buttonStroke = Instance.new("UIStroke")
+        buttonStroke.Color = Color3.fromRGB(255, 255, 255)
+        buttonStroke.Transparency = (savedLanguage == languageName) and 0.3 or 0.7
+        buttonStroke.Thickness = (savedLanguage == languageName) and 2 or 1
+        buttonStroke.Parent = button
+        
+        local hoverTween = TweenService:Create(button, 
+            TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.7, TextColor3 = Color3.fromRGB(100, 200, 255)}
+        )
+        
+        local normalTween = TweenService:Create(button,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {BackgroundTransparency = (savedLanguage == languageName) and 0.7 or 0.9, 
+             TextColor3 = (savedLanguage == languageName) and Color3.fromRGB(100, 200, 255) or Color3.fromRGB(255, 255, 255)}
+        )
+        
+        button.MouseEnter:Connect(function()
+            hoverTween:Play()
+        end)
+        
+        button.MouseLeave:Connect(function()
+            normalTween:Play()
+        end)
+        
+        button.MouseButton1Click:Connect(function()
+            savedLanguage = languageName
+            saveSettings()
+            
+            local loadingFrame = Instance.new("Frame")
+            loadingFrame.Name = "LoadingFrame"
+            loadingFrame.Size = UDim2.new(1, 0, 1, 0)
+            loadingFrame.Position = UDim2.new(0, 0, 0, 0)
+            loadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            loadingFrame.BackgroundTransparency = 0.3
+            loadingFrame.Parent = mainFrame
+            
+            local loadingText = Instance.new("TextLabel")
+            loadingText.Size = UDim2.new(1, 0, 0, 50)
+            loadingText.Position = UDim2.new(0, 0, 0.5, -25)
+            loadingText.BackgroundTransparency = 1
+            loadingText.Text = "Loading " .. languageName .. "..."
+            loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+            loadingText.TextScaled = true
+            loadingText.Font = Enum.Font.GothamBold
+            loadingText.Parent = loadingFrame
+            
+            local pulse = TweenService:Create(loadingText,
+                TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+                {TextTransparency = 0.5}
+            )
+            pulse:Play()
+            
+            spawn(function()
+                wait(1)
+                
+                local success, result = pcall(function()
+                    loadstring(game:HttpGet(scriptUrl))()
+                end)
+                
+                if success then
+                    local fadeOut = TweenService:Create(screenGui,
+                        TweenInfo.new(0.8, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+                        {Enabled = false}
+                    )
+                    fadeOut:Play()
+                    
+                    fadeOut.Completed:Connect(function()
+                        screenGui:Destroy()
+                    end)
+                else
+                    loadingText.Text = "Error loading script"
+                    loadingText.TextColor3 = Color3.fromRGB(255, 100, 100)
+                    wait(2)
+                    loadingFrame:Destroy()
+                end
+            end)
+        end)
+        
+        return button
+    end
+
+    -- Create language buttons
+    for languageName, scriptUrl in pairs(scripts) do
+        createLanguageButton(languageName, scriptUrl)
+    end
+
+    local function updateCanvasSize()
+        local contentSize = gridLayout.AbsoluteContentSize
+        scrollFrame.CanvasSize = UDim2.new(0, contentSize.X, 0, contentSize.Y + 20)
+    end
+
+    gridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvasSize)
+    updateCanvasSize()
+
+    -- Animation entrance
+    mainFrame.Position = UDim2.new(0.5, -225, 1.5, 0)
+    local entranceTween = TweenService:Create(mainFrame,
+        TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.5, -225, 0.5, -325)}
+    )
+    entranceTween:Play()
+
+    -- Close button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -40, 0, 10)
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    closeButton.BackgroundTransparency = 0.3
+    closeButton.BorderSizePixel = 0
+    closeButton.Text = "×"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextScaled = true
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.Parent = mainFrame
+
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 15)
+    closeCorner.Parent = closeButton
+
+    closeButton.MouseButton1Click:Connect(function()
+        local exitTween = TweenService:Create(mainFrame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
+            {Position = UDim2.new(0.5, -225, 1.5, 0)}
+        )
+        exitTween:Play()
+        
+        exitTween.Completed:Connect(function()
+            screenGui:Destroy()
+        end)
+    end)
+end
+
+-- Main execution flow
+local function main()
+    -- First validate the key
+    if script_key and script_key ~= 'Paste Key In here' and script_key ~= '' then
+        if validateKey(script_key) then
+            keyValidated = true
+            print("🚀 Key validated! Loading language selector...")
+            
+            -- Check if we should auto-load a saved language
+            if autoLoadScript() then
+                return -- Script auto-loaded, exit
+            end
+            
+            -- Show language selector
+            createLanguageSelectorGUI()
+        else
+            error("❌ Invalid key! Please check your key and try again.")
+        end
+    else
+        -- Show key validation GUI first
+        createKeyValidationGUI()
+    end
+end
+
+-- Start the system
+main()
