@@ -7,7 +7,7 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 -- Key validation variable (users will paste their key here)
-script_key = 'Paste Key In here'
+script_key = script_key or 'Paste Key In here'
 
 -- GitHub repository scripts (replace with your actual GitHub URLs)
 local scripts = {
@@ -41,8 +41,7 @@ end
 -- Key validation function
 local function validateKey(key)
     if not key or key == '' or key == 'Paste Key In here' then
-        print("❌ No key provided")
-        return false
+        return false, "No key provided"
     end
 
     print("🔑 Validating key...")
@@ -74,8 +73,7 @@ local function validateKey(key)
     end)
 
     if not success then
-        print("❌ Network error:", response)
-        return false
+        return false, "Network error: " .. tostring(response)
     end
 
     local data
@@ -84,8 +82,7 @@ local function validateKey(key)
     end)
 
     if not jsonSuccess then
-        print("❌ Invalid server response")
-        return false
+        return false, "Invalid server response"
     end
 
     if data.success then
@@ -93,10 +90,9 @@ local function validateKey(key)
         if data.expires_at then
             print("🕒 Key expires: " .. data.expires_at)
         end
-        return true
+        return true, "Key validated successfully"
     else
-        print("❌ Key invalid: " .. (data.message or "Unknown error"))
-        return false
+        return false, data.message or "Unknown error"
     end
 end
 
@@ -132,6 +128,11 @@ local function autoLoadScript()
             local success, result = pcall(function()
                 loadstring(game:HttpGet(scripts[savedLanguage]))()
             end)
+            if success then
+                print("✅ Auto-loaded: " .. savedLanguage)
+            else
+                warn("❌ Failed to auto-load: " .. savedLanguage)
+            end
         end)
         return true
     end
@@ -141,154 +142,7 @@ end
 -- Load settings
 local settings = loadSettings()
 
--- Key validation GUI
-local function createKeyValidationGUI()
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "KeyValidationGUI"
-    screenGui.Parent = playerGui
-    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 400, 0, 300)
-    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-    mainFrame.BackgroundTransparency = 0.1
-    mainFrame.BorderSizePixel = 0
-    mainFrame.Parent = screenGui
-
-    local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 20)
-    mainCorner.Parent = mainFrame
-
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 50, 100)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 100, 200))
-    }
-    gradient.Rotation = 45
-    gradient.Parent = mainFrame
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(255, 255, 255)
-    stroke.Transparency = 0.8
-    stroke.Thickness = 2
-    stroke.Parent = mainFrame
-
-    local title = Instance.new("TextLabel")
-    title.Name = "Title"
-    title.Size = UDim2.new(1, 0, 0, 60)
-    title.Position = UDim2.new(0, 0, 0, 20)
-    title.BackgroundTransparency = 1
-    title.Text = "🔐 Key Validation"
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.TextScaled = true
-    title.Font = Enum.Font.GothamBold
-    title.Parent = mainFrame
-
-    local subtitle = Instance.new("TextLabel")
-    subtitle.Name = "Subtitle"
-    subtitle.Size = UDim2.new(1, 0, 0, 30)
-    subtitle.Position = UDim2.new(0, 0, 0, 80)
-    subtitle.BackgroundTransparency = 1
-    subtitle.Text = "Enter your access key to continue"
-    subtitle.TextColor3 = Color3.fromRGB(200, 200, 255)
-    subtitle.TextScaled = true
-    subtitle.Font = Enum.Font.Gotham
-    subtitle.Parent = mainFrame
-
-    local keyInput = Instance.new("TextBox")
-    keyInput.Name = "KeyInput"
-    keyInput.Size = UDim2.new(1, -40, 0, 50)
-    keyInput.Position = UDim2.new(0, 20, 0, 130)
-    keyInput.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    keyInput.BackgroundTransparency = 0.9
-    keyInput.BorderSizePixel = 0
-    keyInput.Text = ""
-    keyInput.PlaceholderText = "Paste your key here..."
-    keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-    keyInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-    keyInput.TextScaled = true
-    keyInput.Font = Enum.Font.Gotham
-    keyInput.Parent = mainFrame
-
-    local inputCorner = Instance.new("UICorner")
-    inputCorner.CornerRadius = UDim.new(0, 12)
-    inputCorner.Parent = keyInput
-
-    local inputStroke = Instance.new("UIStroke")
-    inputStroke.Color = Color3.fromRGB(255, 255, 255)
-    inputStroke.Transparency = 0.7
-    inputStroke.Thickness = 1
-    inputStroke.Parent = keyInput
-
-    local validateButton = Instance.new("TextButton")
-    validateButton.Name = "ValidateButton"
-    validateButton.Size = UDim2.new(1, -40, 0, 50)
-    validateButton.Position = UDim2.new(0, 20, 0, 200)
-    validateButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-    validateButton.BackgroundTransparency = 0.3
-    validateButton.BorderSizePixel = 0
-    validateButton.Text = "🔑 Validate Key"
-    validateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    validateButton.TextScaled = true
-    validateButton.Font = Enum.Font.GothamBold
-    validateButton.Parent = mainFrame
-
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 12)
-    buttonCorner.Parent = validateButton
-
-    -- Animation entrance
-    mainFrame.Position = UDim2.new(0.5, -200, 1.5, 0)
-    local entranceTween = TweenService:Create(mainFrame,
-        TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {Position = UDim2.new(0.5, -200, 0.5, -150)}
-    )
-    entranceTween:Play()
-
-    -- Validate button click
-    validateButton.MouseButton1Click:Connect(function()
-        local key = keyInput.Text
-        
-        validateButton.Text = "🔄 Validating..."
-        validateButton.BackgroundColor3 = Color3.fromRGB(200, 200, 100)
-        
-        spawn(function()
-            if validateKey(key) then
-                keyValidated = true
-                script_key = key
-                
-                validateButton.Text = "✅ Key Valid!"
-                validateButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-                
-                wait(1)
-                
-                -- Close key validation GUI and open language selector
-                local exitTween = TweenService:Create(mainFrame,
-                    TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
-                    {Position = UDim2.new(0.5, -200, 1.5, 0)}
-                )
-                exitTween:Play()
-                
-                exitTween.Completed:Connect(function()
-                    screenGui:Destroy()
-                    createLanguageSelectorGUI()
-                end)
-            else
-                validateButton.Text = "❌ Invalid Key"
-                validateButton.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
-                
-                wait(2)
-                
-                validateButton.Text = "🔑 Validate Key"
-                validateButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-            end
-        end)
-    end)
-end
-
--- Language selector GUI (modified from original)
+-- Language selector GUI (no key GUI needed if key is provided)
 local function createLanguageSelectorGUI()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "LanguageSelectorGUI"
@@ -595,25 +449,183 @@ local function createLanguageSelectorGUI()
     end)
 end
 
+-- Key validation GUI (only shown if no key provided)
+local function createKeyValidationGUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "KeyValidationGUI"
+    screenGui.Parent = playerGui
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 400, 0, 300)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 20)
+    mainCorner.Parent = mainFrame
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 50, 100)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 100, 200))
+    }
+    gradient.Rotation = 45
+    gradient.Parent = mainFrame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(255, 255, 255)
+    stroke.Transparency = 0.8
+    stroke.Thickness = 2
+    stroke.Parent = mainFrame
+
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, 0, 0, 60)
+    title.Position = UDim2.new(0, 0, 0, 20)
+    title.BackgroundTransparency = 1
+    title.Text = "🔐 Key Required"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainFrame
+
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.Size = UDim2.new(1, 0, 0, 30)
+    subtitle.Position = UDim2.new(0, 0, 0, 80)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "Enter your access key to continue"
+    subtitle.TextColor3 = Color3.fromRGB(200, 200, 255)
+    subtitle.TextScaled = true
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.Parent = mainFrame
+
+    local keyInput = Instance.new("TextBox")
+    keyInput.Name = "KeyInput"
+    keyInput.Size = UDim2.new(1, -40, 0, 50)
+    keyInput.Position = UDim2.new(0, 20, 0, 130)
+    keyInput.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    keyInput.BackgroundTransparency = 0.9
+    keyInput.BorderSizePixel = 0
+    keyInput.Text = ""
+    keyInput.PlaceholderText = "Paste your key here..."
+    keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keyInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    keyInput.TextScaled = true
+    keyInput.Font = Enum.Font.Gotham
+    keyInput.Parent = mainFrame
+
+    local inputCorner = Instance.new("UICorner")
+    inputCorner.CornerRadius = UDim.new(0, 12)
+    inputCorner.Parent = keyInput
+
+    local inputStroke = Instance.new("UIStroke")
+    inputStroke.Color = Color3.fromRGB(255, 255, 255)
+    inputStroke.Transparency = 0.7
+    inputStroke.Thickness = 1
+    inputStroke.Parent = keyInput
+
+    local validateButton = Instance.new("TextButton")
+    validateButton.Name = "ValidateButton"
+    validateButton.Size = UDim2.new(1, -40, 0, 50)
+    validateButton.Position = UDim2.new(0, 20, 0, 200)
+    validateButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+    validateButton.BackgroundTransparency = 0.3
+    validateButton.BorderSizePixel = 0
+    validateButton.Text = "🔑 Validate Key"
+    validateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    validateButton.TextScaled = true
+    validateButton.Font = Enum.Font.GothamBold
+    validateButton.Parent = mainFrame
+
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 12)
+    buttonCorner.Parent = validateButton
+
+    -- Animation entrance
+    mainFrame.Position = UDim2.new(0.5, -200, 1.5, 0)
+    local entranceTween = TweenService:Create(mainFrame,
+        TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.5, -200, 0.5, -150)}
+    )
+    entranceTween:Play()
+
+    -- Validate button click
+    validateButton.MouseButton1Click:Connect(function()
+        local key = keyInput.Text
+        
+        validateButton.Text = "🔄 Validating..."
+        validateButton.BackgroundColor3 = Color3.fromRGB(200, 200, 100)
+        
+        spawn(function()
+            local isValid, message = validateKey(key)
+            
+            if isValid then
+                keyValidated = true
+                script_key = key
+                
+                validateButton.Text = "✅ Key Valid!"
+                validateButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+                
+                wait(1)
+                
+                -- Close key validation GUI and open language selector
+                local exitTween = TweenService:Create(mainFrame,
+                    TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
+                    {Position = UDim2.new(0.5, -200, 1.5, 0)}
+                )
+                exitTween:Play()
+                
+                exitTween.Completed:Connect(function()
+                    screenGui:Destroy()
+                    createLanguageSelectorGUI()
+                end)
+            else
+                validateButton.Text = "❌ " .. message
+                validateButton.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
+                
+                wait(3)
+                
+                validateButton.Text = "🔑 Validate Key"
+                validateButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+            end
+        end)
+    end)
+end
+
 -- Main execution flow
 local function main()
-    -- First validate the key
+    print("🚀 Script starting...")
+    
+    -- Check if key is provided in the loadstring
     if script_key and script_key ~= 'Paste Key In here' and script_key ~= '' then
-        if validateKey(script_key) then
+        print("🔑 Key found in loadstring, validating...")
+        
+        local isValid, message = validateKey(script_key)
+        
+        if isValid then
             keyValidated = true
-            print("🚀 Key validated! Loading language selector...")
+            print("✅ Key validated! Loading language selector...")
             
             -- Check if we should auto-load a saved language
             if autoLoadScript() then
+                print("🔄 Auto-loading saved language...")
                 return -- Script auto-loaded, exit
             end
             
             -- Show language selector
             createLanguageSelectorGUI()
         else
-            error("❌ Invalid key! Please check your key and try again.")
+            print("❌ Key validation failed: " .. message)
+            error("❌ Invalid key! " .. message)
         end
     else
+        print("ℹ️ No key provided, showing key input GUI...")
         -- Show key validation GUI first
         createKeyValidationGUI()
     end
