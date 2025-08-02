@@ -5,10 +5,8 @@ This software — including all files, code, logic, structure, and original impl
 This project is NOT open source. Access does NOT mean permission.
 
 🚫 You are NOT allowed to:
-- Reupload, redistribute, or share this code in any form.
-- Modify or reuse it in other projects without explicit permission.
 - Sell, rent, or license this software.
-- Reverse engineer, deobfuscate, or repurpose any part of it for competitive or commercial gain.
+- Reverse engineer, deobfuscate.
 
 ✅ You ARE allowed to:
 - View it.
