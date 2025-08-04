@@ -64,7 +64,7 @@ if autoLoadScript() then
 end
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "IdiomaSelectorGUI"
+screenGui.Name = "LanguageSelectorGUI"
 screenGui.Parent = playerGui
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -100,25 +100,25 @@ title.Name = "Title"
 title.Size = UDim2.new(1, 0, 0, 80)
 title.Position = UDim2.new(0, 0, 0, 20)
 title.BackgroundTransparency = 1
-title.Text = "Seleccionar idioma"
+title.Text = "🌐 Select Language"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextScaled = true
 title.Font = Enum.Font.GothamBold
 title.Parent = mainFrame
 
 local subtitle = Instance.new("TextLabel")
-subtitle.Name = "Subtítulo"
+subtitle.Name = "Subtitle"
 subtitle.Size = UDim2.new(1, 0, 0, 30)
 subtitle.Position = UDim2.new(0, 0, 0, 100)
 subtitle.BackgroundTransparency = 1
-subtitle.Text = "Elija su idioma preferido"
+subtitle.Text = "Choose your preferred language"
 subtitle.TextColor3 = Color3.fromRGB(200, 200, 255)
 subtitle.TextScaled = true
 subtitle.Font = Enum.Font.Gotham
 subtitle.Parent = mainFrame
 
 local autoSaveFrame = Instance.new("Frame")
-autoSaveFrame.Name = "AutoGuardarFrame"
+autoSaveFrame.Name = "AutoSaveFrame"
 autoSaveFrame.Size = UDim2.new(1, -40, 0, 40)
 autoSaveFrame.Position = UDim2.new(0, 20, 0, 135)
 autoSaveFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
