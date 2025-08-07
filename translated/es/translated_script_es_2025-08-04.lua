@@ -6,14 +6,14 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 local scripts = {
-    ["English"] = "https://gist.githubusercontent.com/checkurasshole/8341e3e396a6d65e03b5d05e9e75f6dd/raw/a1a46a29df89699bf5eabe1748cda05079d613da/ENGLISH",
-    ["German"] = "https://gist.githubusercontent.com/checkurasshole/94f14f6ae8f132412709af038bb3da13/raw/086de6986a0b760b33f525260ba41da9d76a40cf/translated_script_de_2025-08-04.lua",
-    ["Spanish"] = "https://gist.githubusercontent.com/checkurasshole/94f14f6ae8f132412709af038bb3da13/raw/d6c2ef24988bf143fb56cdff5ac795a2b8146c73/translated_script_es_2025-08-04.lua",
-    ["French"] = "https://gist.githubusercontent.com/checkurasshole/94f14f6ae8f132412709af038bb3da13/raw/e207c34e1cbf512624fe7ef9dee30fdd9c9ba868/translated_script_fr_2025-08-04.lua",
-    ["Italian"] = "https://gist.githubusercontent.com/checkurasshole/94f14f6ae8f132412709af038bb3da13/raw/066b9c94cc46007800797742801cb5aeed65290b/translated_script_it_2025-08-04.lua",
-    ["Japanese"] = "https://gist.githubusercontent.com/checkurasshole/94f14f6ae8f132412709af038bb3da13/raw/ad2a7c24b1955cadb8fbb02772f77ed45de3b34b/translated_script_ja_2025-08-04.lua",
-    ["Brazilian"] = "https://gist.githubusercontent.com/checkurasshole/94f14f6ae8f132412709af038bb3da13/raw/adc6584737ead5bd892dd003b5ea0fcc69a8ce93/translated_script_pt_2025-08-04.lua",
-    ["Russian"] = "https://gist.githubusercontent.com/checkurasshole/94f14f6ae8f132412709af038bb3da13/raw/8e057229c7055924b51cb1d6d0eb36f3079c6f7a/translated_script_ru_2025-08-04.lua"
+    ["English"] = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/englishsss",
+    ["German"] = "https://gist.githubusercontent.com/checkurasshole/a785d931be21a4d34a59e696867cd77e/raw/a10b9537d63aafa1c8003ac5448e789762c9c778/translated_script_de_2025-08-07.lua",
+    ["Spanish"] = "https://gist.githubusercontent.com/checkurasshole/a785d931be21a4d34a59e696867cd77e/raw/dcf83482e34607bc66426f7901e587ec51ce59f1/translated_script_es_2025-08-07.lua",
+    ["French"] = "https://gist.githubusercontent.com/checkurasshole/a785d931be21a4d34a59e696867cd77e/raw/034dbe53f1bd1a8ff876c57cc0f533e0463a18a8/translated_script_fr_2025-08-07.lua",
+    ["Italian"] = "https://gist.githubusercontent.com/checkurasshole/a785d931be21a4d34a59e696867cd77e/raw/5005541ebf1785b52238aa87f49285b6a0d93f01/translated_script_it_2025-08-07.lua",
+    ["Japanese"] = "",
+    ["Brazilian"] = "https://gist.githubusercontent.com/checkurasshole/a785d931be21a4d34a59e696867cd77e/raw/4d7731350d33e1d37a3e5a1e0a60457beb3e0ef0/translated_script_pt_2025-08-07.lua",
+    ["Russian"] = "https://gist.githubusercontent.com/checkurasshole/a785d931be21a4d34a59e696867cd77e/raw/60622e05f7367c3ad43ce53585e183322bfd805e/translated_script_ru_2025-08-07.lua"
 }
 
 local SAVE_KEY = "LanguageSelector_SavedSettings"
