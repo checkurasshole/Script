@@ -1,0 +1,544 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local farmingEnabled = false
+local targetFarmingEnabled = false
+local farmConnection = nil
+local targetFarmConnection = nil
+
+local highNumber = 9e9
+local args = { [1] = 1200 }
+
+local workspaceMap = workspace:WaitForChild("Map", highNumber)
+local basesFolder = workspaceMap:WaitForChild("Bases", highNumber)
+
+-- All available crates with their toggle status
+local availableCrates = {
+    "Celestial Crate",
+    "Chained Crate", 
+    "Ember Crate",
+    "Fusion Crate",
+    "Oblivion Crate",
+    "Quantum Crate",
+    "Relic Crate",
+    "Rusted Crate",
+    "Scrappers Crate",
+    "Server Crate",
+    "Techno Crate",
+    "Toxic Crate"
+}
+
+-- Track which crates are selected for targeting
+local selectedTargetCrates = {}
+
+-- Function to find your base
+local function getPlayerBase()
+    for _, base in ipairs(basesFolder:GetChildren()) do
+        local plate = base:FindFirstChild("plate")
+        if plate then
+            local overBase = plate:FindFirstChild("OverBase")
+            if overBase then
+                local inner = overBase:FindFirstChild("OverBase")
+                if inner then
+                    local label = inner:FindFirstChild("Text#1")
+                    if label and label:IsA("TextLabel") and label.Text == "Your Base" then
+                        return base
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+local function keepPromptInstantAndVisible(prompt)
+    prompt.Enabled = true
+    prompt.RequiresLineOfSight = false
+    prompt.MaxActivationDistance = math.huge
+    prompt.HoldDuration = 0
+end
+
+-- Function to smash all crates (Keep hitting until they're destroyed)
+local function smashCrates(base)
+    local crateFolder = base:FindFirstChild("Crate")
+    if crateFolder then
+        for _, child in ipairs(crateFolder:GetChildren()) do
+            task.spawn(function()
+                while child.Parent and farmingEnabled do
+                    local hitRemote = nil
+                    
+                    local insideCrate = child:FindFirstChild("InsideCrate")
+                    if insideCrate then
+                        hitRemote = insideCrate:FindFirstChild("Hit")
+                    else
+                        hitRemote = child:FindFirstChild("Hit")
+                    end
+                    
+                    if not hitRemote then
+                        for _, descendant in ipairs(child:GetDescendants()) do
+                            if descendant.Name == "Hit" and descendant:IsA("RemoteEvent") then
+                                hitRemote = descendant
+                                break
+                            end
+                        end
+                    end
+                    
+                    if hitRemote and hitRemote:IsA("RemoteEvent") then
+                        pcall(function()
+                            hitRemote:FireServer(unpack(args))
+                        end)
+                    end
+                    
+                    task.wait(0.01)
+                end
+            end)
+        end
+    end
+end
+
+local function getAllCrateNames(base)
+    local crateNames = {}
+    local crateFolder = base:FindFirstChild("Crate")
+    if crateFolder then
+        for _, child in ipairs(crateFolder:GetChildren()) do
+            table.insert(crateNames, child.Name)
+        end
+    end
+    return crateNames
+end
+
+-- Check if any selected target crate exists in base
+local function findTargetCrate(base)
+    if #selectedTargetCrates == 0 then
+        return nil, ""
+    end
+    
+    local crateFolder = base:FindFirstChild("Crate")
+    if crateFolder then
+        for _, child in ipairs(crateFolder:GetChildren()) do
+            for _, targetCrateName in ipairs(selectedTargetCrates) do
+                if string.find(child.Name, targetCrateName) then
+                    return child, targetCrateName
+                end
+            end
+        end
+    end
+    return nil, ""
+end
+
+local function startTargetFarming(base, prompt)
+    if #selectedTargetCrates == 0 then
+        Fluent:Notify({
+            Title = "No Target Crates Selected",
+            Content = "Please select at least one target crate first!",
+            Duration = 3
+        })
+        return
+    end
+    
+    targetFarmingEnabled = true
+    keepPromptInstantAndVisible(prompt)
+
+    targetFarmConnection = task.spawn(function()
+        while targetFarmingEnabled do
+            local targetCrate, foundCrateName = findTargetCrate(base)
+            
+            if targetCrate then
+                print("Target crate found: " .. foundCrateName .. "! Stopping proximity prompt and smashing crates.")
+                task.spawn(function()
+                    local crateFolder = base:FindFirstChild("Crate")
+                    if crateFolder then
+                        for _, child in ipairs(crateFolder:GetChildren()) do
+                            task.spawn(function()
+                                while child.Parent and targetFarmingEnabled do
+                                    local hitRemote = nil
+                                    
+                                    local insideCrate = child:FindFirstChild("InsideCrate")
+                                    if insideCrate then
+                                        hitRemote = insideCrate:FindFirstChild("Hit")
+                                    else
+                                        hitRemote = child:FindFirstChild("Hit")
+                                    end
+                                    
+                                    if not hitRemote then
+                                        for _, descendant in ipairs(child:GetDescendants()) do
+                                            if descendant.Name == "Hit" and descendant:IsA("RemoteEvent") then
+                                                hitRemote = descendant
+                                                break
+                                            end
+                                        end
+                                    end
+                                    
+                                    if hitRemote and hitRemote:IsA("RemoteEvent") then
+                                        pcall(function()
+                                            hitRemote:FireServer(unpack(args))
+                                        end)
+                                    end
+                                    
+                                    task.wait(0.01)
+                                end
+                            end)
+                        end
+                    end
+                end)
+            else
+                print("No selected target crates found. Firing proximity prompt...")
+                pcall(function()
+                    fireproximityprompt(prompt, 0)
+                end)
+            end
+            
+            task.wait(0.1)
+        end
+    end)
+end
+
+local function startRegularFarming(base)
+    farmingEnabled = true
+
+    farmConnection = task.spawn(function()
+        while farmingEnabled do
+            smashCrates(base)
+            task.wait(0.1)
+        end
+    end)
+end
+
+local function stopFarming()
+    farmingEnabled = false
+    targetFarmingEnabled = false
+    if farmConnection then
+        task.cancel(farmConnection)
+        farmConnection = nil
+    end
+    if targetFarmConnection then
+        task.cancel(targetFarmConnection)
+        targetFarmConnection = nil
+    end
+end
+
+local function toggleSellGui(visible)
+    local player = game:GetService("Players").LocalPlayer
+    pcall(function()
+        local sellGui = player.PlayerGui:WaitForChild("ScreenGui"):WaitForChild("FullScreen"):WaitForChild("Sell")
+        sellGui.Visible = visible
+    end)
+end
+
+local function updateTargetCratesList()
+    local crateText = "Selected: "
+    if #selectedTargetCrates == 0 then
+        crateText = crateText .. "None"
+    else
+        crateText = crateText .. table.concat(selectedTargetCrates, ", ")
+    end
+    return crateText
+end
+
+local Window = Fluent:CreateWindow({
+    Title = "COMBO_WICK v2.3",
+    SubTitle = "Complete Crate Selection Farm Script",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local MainTab = Window:AddTab({ Title = "Main", Icon = "home" })
+local CrateTab = Window:AddTab({ Title = "Crate Selection", Icon = "package" })
+local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
+
+local myBase = getPlayerBase()
+
+if myBase then
+    local prompt = myBase:WaitForChild("Button", highNumber):WaitForChild("interact", highNumber):WaitForChild("ProximityPrompt", highNumber)
+    
+    -- Crate Selection Tab
+    local CrateSection = CrateTab:AddSection("Target Crate Selection")
+    
+    local TargetCratesParagraph = CrateSection:AddParagraph({
+        Title = "Selected Target Crates",
+        Content = updateTargetCratesList()
+    })
+    
+    local SelectAllButton = CrateSection:AddButton({
+        Title = "Select All Crates",
+        Description = "Enable all crates for target farming",
+        Callback = function()
+            selectedTargetCrates = {}
+            for _, crateName in ipairs(availableCrates) do
+                table.insert(selectedTargetCrates, crateName)
+            end
+            -- Update all toggles to true
+            for _, crateName in ipairs(availableCrates) do
+                local toggleName = crateName:gsub(" ", "") .. "Toggle"
+                if crateToggles[toggleName] then
+                    crateToggles[toggleName]:SetValue(true)
+                end
+            end
+            TargetCratesParagraph:SetDesc(updateTargetCratesList())
+            Fluent:Notify({
+                Title = "All Crates Selected",
+                Content = "All " .. #availableCrates .. " crates are now selected for targeting!",
+                Duration = 3
+            })
+        end
+    })
+    
+    local ClearSelectionButton = CrateSection:AddButton({
+        Title = "Clear All Selections",
+        Description = "Remove all selected target crates",
+        Callback = function()
+            selectedTargetCrates = {}
+            -- Update all toggles to false
+            for _, crateName in ipairs(availableCrates) do
+                local toggleName = crateName:gsub(" ", "") .. "Toggle"
+                if crateToggles[toggleName] then
+                    crateToggles[toggleName]:SetValue(false)
+                end
+            end
+            TargetCratesParagraph:SetDesc(updateTargetCratesList())
+            Fluent:Notify({
+                Title = "Selection Cleared",
+                Content = "All target crates have been deselected.",
+                Duration = 3
+            })
+        end
+    })
+    
+    -- Create individual toggles for each crate
+    local crateToggles = {}
+    for _, crateName in ipairs(availableCrates) do
+        local toggleName = crateName:gsub(" ", "") .. "Toggle"  -- Remove spaces for clean toggle name
+        
+        crateToggles[toggleName] = CrateSection:AddToggle(toggleName, {
+            Title = crateName,
+            Description = "Target this crate type for farming",
+            Default = false
+        })
+        
+        crateToggles[toggleName]:OnChanged(function(Value)
+            if Value then
+                -- Add to selected list if not already there
+                if not table.find(selectedTargetCrates, crateName) then
+                    table.insert(selectedTargetCrates, crateName)
+                end
+            else
+                -- Remove from selected list
+                local index = table.find(selectedTargetCrates, crateName)
+                if index then
+                    table.remove(selectedTargetCrates, index)
+                end
+            end
+            TargetCratesParagraph:SetDesc(updateTargetCratesList())
+        end)
+    end
+    
+    -- Main Tab Controls
+    local crateNames = getAllCrateNames(myBase)
+    local crateCount = #crateNames
+    
+    local FarmToggle = MainTab:AddToggle("FarmToggle", {
+        Title = "Farm Everything",
+        Description = "Hit all crates continuously without proximity prompt",
+        Default = false
+    })
+    
+    local TargetFarmToggle = MainTab:AddToggle("TargetFarmToggle", {
+        Title = "Target Farm (Selected Crates Only)",
+        Description = "Fire proximity until selected crates spawn, then crush them",
+        Default = false
+    })
+    
+    local SellGuiToggle = MainTab:AddToggle("SellGuiToggle", {
+        Title = "Show Sell Menu",
+        Description = "Toggle the sell interface on/off",
+        Default = false
+    })
+    
+    local SpeedSlider = MainTab:AddSlider("SpeedSlider", {
+        Title = "Walk Speed",
+        Description = "Adjust your walking speed",
+        Default = 16,
+        Min = 16,
+        Max = 200,
+        Rounding = 1,
+        Callback = function(Value)
+            pcall(function()
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+            end)
+        end
+    })
+    
+    FarmToggle:OnChanged(function(Value)
+        if Value then
+            if TargetFarmToggle.Value then
+                TargetFarmToggle:SetValue(false)
+            end
+            startRegularFarming(myBase)
+            Fluent:Notify({
+                Title = "Regular Farm Started",
+                Content = "Hitting all crates without proximity prompt!",
+                Duration = 3
+            })
+        else
+            stopFarming()
+            Fluent:Notify({
+                Title = "Regular Farm Stopped",
+                Content = "Stopped hitting crates.",
+                Duration = 3
+            })
+        end
+    end)
+    
+    TargetFarmToggle:OnChanged(function(Value)
+        if Value then
+            if FarmToggle.Value then
+                FarmToggle:SetValue(false)
+            end
+            startTargetFarming(myBase, prompt)
+            if #selectedTargetCrates > 0 then
+                Fluent:Notify({
+                    Title = "Target Farm Started",
+                    Content = "Farming for: " .. table.concat(selectedTargetCrates, ", "),
+                    Duration = 3
+                })
+            end
+        else
+            stopFarming()
+            Fluent:Notify({
+                Title = "Target Farm Stopped",
+                Content = "Stopped target farming.",
+                Duration = 3
+            })
+        end
+    end)
+    
+    SellGuiToggle:OnChanged(function(Value)
+        toggleSellGui(Value)
+        if Value then
+            Fluent:Notify({
+                Title = "Sell GUI Visible",
+                Content = "Sell interface is now visible!",
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Sell GUI Hidden",
+                Content = "Sell interface is now hidden!",
+                Duration = 3
+            })
+        end
+    end)
+    
+else
+    MainTab:AddParagraph({
+        Title = "Error",
+        Content = "Your base was not found. Make sure you're in the right game and have a base!"
+    })
+end
+
+local InterfaceSection = SettingsTab:AddSection("Interface")
+
+InterfaceSection:AddButton({
+    Title = "Minimize Window",
+    Description = "Minimize the interface (Press Left Ctrl to reopen)",
+    Callback = function()
+        Window:Minimize()
+    end
+})
+
+-- Mobile GUI for touch devices
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local mobileGui = Instance.new("ScreenGui")
+mobileGui.Name = "FarmScriptMobile"
+mobileGui.ResetOnSpawn = false
+mobileGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+mobileGui.Parent = playerGui
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 60, 0, 60)
+toggleButton.Position = UDim2.new(1, -70, 0.5, -30)
+toggleButton.AnchorPoint = Vector2.new(0, 0.5)
+toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleButton.BorderSizePixel = 0
+toggleButton.Text = "🏠"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextScaled = true
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Parent = mobileGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 30)
+corner.Parent = toggleButton
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(100, 100, 100)
+stroke.Thickness = 2
+stroke.Parent = toggleButton
+
+local isWindowVisible = true
+
+toggleButton.MouseButton1Click:Connect(function()
+    isWindowVisible = not isWindowVisible
+    
+    if isWindowVisible then
+        Window:Restore()
+        toggleButton.Text = "🏠"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    else
+        Window:Minimize()
+        toggleButton.Text = "📱"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    end
+    
+    local tween = TweenService:Create(
+        toggleButton,
+        TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
+        {Size = UDim2.new(0, 55, 0, 55)}
+    )
+    tween:Play()
+    
+    local tween2 = TweenService:Create(
+        toggleButton,
+        TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0.1),
+        {Size = UDim2.new(0, 60, 0, 60)}
+    )
+    tween2:Play()
+end)
+
+if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+    toggleButton.Size = UDim2.new(0, 80, 0, 80)
+    toggleButton.Position = UDim2.new(1, -90, 0.5, -40)
+end
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("FarmScript")
+SaveManager:SetFolder("FarmScript/configs")
+
+InterfaceManager:BuildInterfaceSection(SettingsTab)
+SaveManager:BuildConfigSection(SettingsTab)
+
+Window:SelectTab(1)
+
+SaveManager:LoadAutoloadConfig()
+
+Fluent:Notify({
+    Title = "COMBO_WICK v2.3",
+    Content = "Complete crate selection loaded! All 12 crate types available for targeting.",
+    Duration = 5
+})
