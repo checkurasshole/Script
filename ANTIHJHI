@@ -1,0 +1,426 @@
+-- Clean Web Slinger GUI - Player Targeting
+-- Fixed inventory handling to work with Roblox's native system
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Auto-running background systems
+local movementConnection = nil
+local selectedPlayer = nil
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "WebSlingerCleanGUI"
+screenGui.Parent = playerGui
+screenGui.ResetOnSpawn = false
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 280, 0, 180)
+mainFrame.Position = UDim2.new(0, 10, 0.5, -90)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Add corner radius
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+title.BorderSizePixel = 0
+title.Text = "Anti Hit"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.Parent = title
+
+-- Fire Web Button
+local fireSelfButton = Instance.new("TextButton")
+fireSelfButton.Size = UDim2.new(0.9, 0, 0, 35)
+fireSelfButton.Position = UDim2.new(0.05, 0, 0, 40)
+fireSelfButton.BackgroundColor3 = Color3.fromRGB(50, 150, 200)
+fireSelfButton.BorderSizePixel = 0
+fireSelfButton.Text = "Start"
+fireSelfButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+fireSelfButton.TextScaled = true
+fireSelfButton.Font = Enum.Font.Gotham
+fireSelfButton.Parent = mainFrame
+
+local fireCorner = Instance.new("UICorner")
+fireCorner.CornerRadius = UDim.new(0, 6)
+fireCorner.Parent = fireSelfButton
+
+-- Inventory Toggle Button
+local inventoryButton = Instance.new("TextButton")
+inventoryButton.Size = UDim2.new(0.9, 0, 0, 35)
+inventoryButton.Position = UDim2.new(0.05, 0, 0, 80)
+inventoryButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+inventoryButton.BorderSizePixel = 0
+inventoryButton.Text = "Toggle Inventory"
+inventoryButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+inventoryButton.TextScaled = true
+inventoryButton.Font = Enum.Font.Gotham
+inventoryButton.Parent = mainFrame
+
+local inventoryCorner = Instance.new("UICorner")
+inventoryCorner.CornerRadius = UDim.new(0, 6)
+inventoryCorner.Parent = inventoryButton
+
+-- Player Dropdown Button
+local dropdownButton = Instance.new("TextButton")
+dropdownButton.Size = UDim2.new(0.9, 0, 0, 35)
+dropdownButton.Position = UDim2.new(0.05, 0, 0, 120)
+dropdownButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+dropdownButton.BorderSizePixel = 0
+dropdownButton.Text = "Select Player ▼"
+dropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+dropdownButton.TextScaled = true
+dropdownButton.Font = Enum.Font.Gotham
+dropdownButton.Parent = mainFrame
+
+local dropdownCorner = Instance.new("UICorner")
+dropdownCorner.CornerRadius = UDim.new(0, 6)
+dropdownCorner.Parent = dropdownButton
+
+-- Dropdown Frame (initially hidden)
+local dropdownFrame = Instance.new("ScrollingFrame")
+dropdownFrame.Size = UDim2.new(0.9, 0, 0, 0)
+dropdownFrame.Position = UDim2.new(0.05, 0, 0, 155)
+dropdownFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+dropdownFrame.BorderSizePixel = 0
+dropdownFrame.ScrollBarThickness = 6
+dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+dropdownFrame.Visible = false
+dropdownFrame.Parent = mainFrame
+
+local dropdownFrameCorner = Instance.new("UICorner")
+dropdownFrameCorner.CornerRadius = UDim.new(0, 6)
+dropdownFrameCorner.Parent = dropdownFrame
+
+-- Layout for dropdown items
+local dropdownLayout = Instance.new("UIListLayout")
+dropdownLayout.SortOrder = Enum.SortOrder.Name
+dropdownLayout.Parent = dropdownFrame
+
+-- Minimize Button
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Size = UDim2.new(0, 20, 0, 20)
+minimizeButton.Position = UDim2.new(1, -25, 0, 5)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
+minimizeButton.BorderSizePixel = 0
+minimizeButton.Text = "-"
+minimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+minimizeButton.TextScaled = true
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.Parent = mainFrame
+
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 4)
+minCorner.Parent = minimizeButton
+
+-- Make GUI draggable (SMOOTH VERSION)
+local UserInputService = game:GetService("UserInputService")
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+local function updateDrag(input)
+    if dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end
+
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        local connection
+        connection = input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                connection:Disconnect()
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        updateDrag(input)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+-- Function to update player list
+local function updatePlayerList()
+    -- Clear existing items
+    for _, item in pairs(dropdownFrame:GetChildren()) do
+        if item:IsA("TextButton") then
+            item:Destroy()
+        end
+    end
+    
+    local playerCount = 0
+    
+    -- Add all players to dropdown
+    for _, targetPlayer in pairs(Players:GetPlayers()) do
+        local playerButton = Instance.new("TextButton")
+        playerButton.Size = UDim2.new(1, 0, 0, 30)
+        playerButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        playerButton.BorderSizePixel = 0
+        playerButton.Text = targetPlayer.Name
+        playerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        playerButton.TextScaled = true
+        playerButton.Font = Enum.Font.Gotham
+        playerButton.Parent = dropdownFrame
+        
+        local playerCorner = Instance.new("UICorner")
+        playerCorner.CornerRadius = UDim.new(0, 4)
+        playerCorner.Parent = playerButton
+        
+        -- Hover effects
+        playerButton.MouseEnter:Connect(function()
+            playerButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        end)
+        
+        playerButton.MouseLeave:Connect(function()
+            if selectedPlayer ~= targetPlayer then
+                playerButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            end
+        end)
+        
+        -- Click to select player
+        playerButton.MouseButton1Click:Connect(function()
+            selectedPlayer = targetPlayer
+            dropdownButton.Text = targetPlayer.Name .. " ✓"
+            dropdownFrame.Visible = false
+            
+            -- Update all button colors
+            for _, btn in pairs(dropdownFrame:GetChildren()) do
+                if btn:IsA("TextButton") then
+                    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                end
+            end
+            playerButton.BackgroundColor3 = Color3.fromRGB(50, 150, 200)
+        end)
+        
+        playerCount = playerCount + 1
+    end
+    
+    -- Update canvas size
+    dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, playerCount * 30)
+end
+
+-- Dropdown toggle
+local dropdownOpen = false
+dropdownButton.MouseButton1Click:Connect(function()
+    dropdownOpen = not dropdownOpen
+    
+    if dropdownOpen then
+        updatePlayerList()
+        dropdownFrame.Visible = true
+        local tween = TweenService:Create(dropdownFrame, TweenInfo.new(0.3), {Size = UDim2.new(0.9, 0, 0, math.min(120, #Players:GetPlayers() * 30))})
+        tween:Play()
+        dropdownButton.Text = (selectedPlayer and selectedPlayer.Name .. " ▲" or "Select Player ▲")
+    else
+        local tween = TweenService:Create(dropdownFrame, TweenInfo.new(0.3), {Size = UDim2.new(0.9, 0, 0, 0)})
+        tween:Play()
+        tween.Completed:Connect(function()
+            dropdownFrame.Visible = false
+        end)
+        dropdownButton.Text = (selectedPlayer and selectedPlayer.Name .. " ▼" or "Select Player ▼")
+    end
+end)
+
+-- Background Movement Override Function
+local function enableMovementOverride()
+    if movementConnection then
+        movementConnection:Disconnect()
+    end
+    
+    movementConnection = RunService.Heartbeat:Connect(function()
+        local character = player.Character
+        if character then
+            local humanoid = character:FindFirstChild("Humanoid")
+            if humanoid then
+                if humanoid.PlatformStand == true then
+                    humanoid.PlatformStand = false
+                end
+                if humanoid.Sit == true then
+                    humanoid.Sit = false
+                end
+                if humanoid.WalkSpeed <= 0 then
+                    humanoid.WalkSpeed = 16
+                end
+                if humanoid.JumpPower <= 0 and humanoid.JumpHeight <= 0 then
+                    humanoid.JumpPower = 50
+                    humanoid.JumpHeight = 7.2
+                end
+            end
+        end
+    end)
+end
+
+-- Force Equip Web Slinger Function
+local function forceEquipWebSlinger()
+    pcall(function()
+        local backpack = player.Backpack
+        local webSlinger = backpack:FindFirstChild("Web Slinger")
+        
+        if webSlinger then
+            local character = player.Character
+            if character and character:FindFirstChild("Humanoid") then
+                character.Humanoid:EquipTool(webSlinger)
+            end
+        end
+    end)
+end
+
+-- Equip + Fire Web + Movement Function (targeting selected player)
+local function equipFireAndMove()
+    if not selectedPlayer then
+        -- Create notification
+        local notification = Instance.new("TextLabel")
+        notification.Size = UDim2.new(0, 200, 0, 30)
+        notification.Position = UDim2.new(0.5, -100, 0, 50)
+        notification.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        notification.BorderSizePixel = 0
+        notification.Text = "Please select a player first!"
+        notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+        notification.TextScaled = true
+        notification.Font = Enum.Font.Gotham
+        notification.Parent = screenGui
+        
+        local notifCorner = Instance.new("UICorner")
+        notifCorner.CornerRadius = UDim.new(0, 6)
+        notifCorner.Parent = notification
+        
+        -- Fade out notification
+        local tween = TweenService:Create(notification, TweenInfo.new(2), {BackgroundTransparency = 1, TextTransparency = 1})
+        tween:Play()
+        tween.Completed:Connect(function()
+            notification:Destroy()
+        end)
+        return
+    end
+    
+    local character = player.Character
+    local targetCharacter = selectedPlayer.Character
+    
+    if character and targetCharacter then
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+        local humanoid = character:FindFirstChild("Humanoid")
+        
+        if rootPart and targetRootPart and humanoid then
+            -- Step 1: Force equip the tool first
+            forceEquipWebSlinger()
+            
+            -- Step 2: Wait a moment for equip
+            wait(0.5)
+            
+            -- Step 3: Fire the web at selected player
+            local args = {
+                targetRootPart.Position,
+                targetRootPart
+            }
+            
+            pcall(function()
+                ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net"):WaitForChild("RE/UseItem"):FireServer(unpack(args))
+            end)
+            
+            -- Step 4: Immediately prevent movement disable
+            humanoid.PlatformStand = false
+            humanoid.Sit = false
+            humanoid.WalkSpeed = 16
+        end
+    end
+end
+
+-- Button Events
+fireSelfButton.MouseButton1Click:Connect(function()
+    spawn(equipFireAndMove)
+    
+    -- Button animation
+    local tween = TweenService:Create(fireSelfButton, TweenInfo.new(0.1), {Size = UDim2.new(0.85, 0, 0, 30)})
+    tween:Play()
+    tween.Completed:Connect(function()
+        local tween2 = TweenService:Create(fireSelfButton, TweenInfo.new(0.1), {Size = UDim2.new(0.9, 0, 0, 35)})
+        tween2:Play()
+    end)
+end)
+
+-- Minimize functionality
+local minimized = false
+minimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    
+    if minimized then
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 280, 0, 30)})
+        tween:Play()
+        minimizeButton.Text = "+"
+        dropdownFrame.Visible = false
+        dropdownOpen = false
+    else
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 280, 0, 180)})
+        tween:Play()
+        minimizeButton.Text = "-"
+    end
+end)
+
+-- Update player list when players join/leave
+Players.PlayerAdded:Connect(function()
+    if dropdownOpen then
+        updatePlayerList()
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(removedPlayer)
+    if selectedPlayer == removedPlayer then
+        selectedPlayer = nil
+        dropdownButton.Text = "Select Player ▼"
+    end
+    if dropdownOpen then
+        updatePlayerList()
+    end
+end)
+
+-- Only start movement override
+enableMovementOverride()
+
+-- Clean up on character removal
+player.CharacterRemoving:Connect(function()
+    if movementConnection then
+        movementConnection:Disconnect()
+        movementConnection = nil
+    end
+end)
+
+-- Restart systems on character spawn
+player.CharacterAdded:Connect(function()
+    wait(2)
+    enableMovementOverride()
+end)
