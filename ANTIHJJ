@@ -22,8 +22,8 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 280, 0, 180)
-mainFrame.Position = UDim2.new(0, 10, 0.5, -90)
+mainFrame.Size = UDim2.new(0, 280, 0, 140)
+mainFrame.Position = UDim2.new(0, 10, 0.5, -70)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
@@ -65,26 +65,10 @@ local fireCorner = Instance.new("UICorner")
 fireCorner.CornerRadius = UDim.new(0, 6)
 fireCorner.Parent = fireSelfButton
 
--- Inventory Toggle Button
-local inventoryButton = Instance.new("TextButton")
-inventoryButton.Size = UDim2.new(0.9, 0, 0, 35)
-inventoryButton.Position = UDim2.new(0.05, 0, 0, 80)
-inventoryButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-inventoryButton.BorderSizePixel = 0
-inventoryButton.Text = "Toggle Inventory"
-inventoryButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-inventoryButton.TextScaled = true
-inventoryButton.Font = Enum.Font.Gotham
-inventoryButton.Parent = mainFrame
-
-local inventoryCorner = Instance.new("UICorner")
-inventoryCorner.CornerRadius = UDim.new(0, 6)
-inventoryCorner.Parent = inventoryButton
-
 -- Player Dropdown Button
 local dropdownButton = Instance.new("TextButton")
 dropdownButton.Size = UDim2.new(0.9, 0, 0, 35)
-dropdownButton.Position = UDim2.new(0.05, 0, 0, 120)
+dropdownButton.Position = UDim2.new(0.05, 0, 0, 80)
 dropdownButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 dropdownButton.BorderSizePixel = 0
 dropdownButton.Text = "Select Player ▼"
@@ -100,7 +84,7 @@ dropdownCorner.Parent = dropdownButton
 -- Dropdown Frame (initially hidden)
 local dropdownFrame = Instance.new("ScrollingFrame")
 dropdownFrame.Size = UDim2.new(0.9, 0, 0, 0)
-dropdownFrame.Position = UDim2.new(0.05, 0, 0, 155)
+dropdownFrame.Position = UDim2.new(0.05, 0, 0, 115)
 dropdownFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 dropdownFrame.BorderSizePixel = 0
 dropdownFrame.ScrollBarThickness = 6
@@ -385,7 +369,7 @@ minimizeButton.MouseButton1Click:Connect(function()
         dropdownFrame.Visible = false
         dropdownOpen = false
     else
-        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 280, 0, 180)})
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 280, 0, 140)})
         tween:Play()
         minimizeButton.Text = "-"
     end
