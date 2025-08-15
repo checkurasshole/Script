@@ -97,7 +97,7 @@ statusText.Parent = mainFrame
 
 -- Validation function
 local function validateKey()
-    local key = keyInput.Text
+    local key = keyInput.Text:gsub("%s+", "") -- Remove spaces like original
     if key == "" then
         statusText.Text = "Please enter a key"
         statusText.TextColor3 = Color3.new(1, 0.3, 0.3)
@@ -108,6 +108,8 @@ local function validateKey()
     statusText.TextColor3 = Color3.new(1, 1, 0.3)
     validateBtn.Text = "CHECKING"
     
+    print("Making request to: " .. API_URL .. key)
+    
     -- Simple HTTP request
     local success, response = pcall(function()
         return game:HttpGet(API_URL .. key)
@@ -115,31 +117,41 @@ local function validateKey()
     
     validateBtn.Text = "VALIDATE"
     
+    print("Request success: " .. tostring(success))
     if success and response then
+        print("Response: " .. tostring(response))
         local parseSuccess, result = pcall(function()
             return HttpService:JSONDecode(response)
         end)
         
+        print("Parse success: " .. tostring(parseSuccess))
         if parseSuccess and result then
+            print("Result: " .. HttpService:JSONEncode(result))
+            -- Check all possible success indicators from original
             if result.valid == true or result.success == true or result.status == "valid" then
                 statusText.Text = "SUCCESS! Access granted"
                 statusText.TextColor3 = Color3.new(0.3, 1, 0.3)
                 
                 -- Close after 3 seconds
-                wait(3)
-                screenGui:Destroy()
+                spawn(function()
+                    wait(3)
+                    screenGui:Destroy()
+                end)
             else
-                local errorMsg = result.message or result.error or "Invalid key"
+                local errorMsg = result.message or result.error or result.reason or "Invalid key"
                 statusText.Text = "FAILED: " .. errorMsg
                 statusText.TextColor3 = Color3.new(1, 0.3, 0.3)
+                print("Validation failed: " .. errorMsg)
             end
         else
             statusText.Text = "Error parsing response"
             statusText.TextColor3 = Color3.new(1, 0.3, 0.3)
+            print("Failed to parse JSON")
         end
     else
-        statusText.Text = "Connection failed"
+        statusText.Text = "Connection failed: " .. tostring(response)
         statusText.TextColor3 = Color3.new(1, 0.3, 0.3)
+        print("HTTP request failed: " .. tostring(response))
     end
 end
 
