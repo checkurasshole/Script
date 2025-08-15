@@ -132,11 +132,14 @@ local function checkStatus()
     
     spawn(function()
         local success, response = pcall(function()
-            return game:HttpGet(url)
+            return http_request({
+                Url = url,
+                Method = "GET"
+            })
         end)
         
         if success then
-            local data = HttpService:JSONDecode(response)
+            local data = HttpService:JSONDecode(response.Body)
             if data.success and data.has_key then
                 statusLabel.Text = "CORRECT - Key found!"
                 statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
@@ -173,11 +176,14 @@ local function validateKey()
     
     spawn(function()
         local success, response = pcall(function()
-            return game:HttpGet(url)
+            return http_request({
+                Url = url,
+                Method = "GET"
+            })
         end)
         
         if success then
-            local data = HttpService:JSONDecode(response)
+            local data = HttpService:JSONDecode(response.Body)
             if data.success then
                 statusLabel.Text = "CORRECT - Valid for this device!"
                 statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
