@@ -1,0 +1,159 @@
+-- Simple Key Validation GUI for Low-End Executors
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+-- Simple API endpoint
+local API_URL = "https://v0-website-with-redis.vercel.app/api/roblox-validate?key="
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Remove existing GUI
+if playerGui:FindFirstChild("KeyValidationGUI") then
+    playerGui.KeyValidationGUI:Destroy()
+end
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "KeyValidationGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Main Frame (simplified)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 350, 0, 200)
+mainFrame.Position = UDim2.new(0.5, -175, 0.5, -100)
+mainFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+mainFrame.BorderColor3 = Color3.new(1, 1, 1)
+mainFrame.BorderSizePixel = 2
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 5)
+title.BackgroundTransparency = 1
+title.Text = "KEY VALIDATION"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 16
+title.Font = Enum.Font.SourceSans
+title.Parent = mainFrame
+
+-- Key Input
+local keyInput = Instance.new("TextBox")
+keyInput.Size = UDim2.new(0.9, 0, 0, 25)
+keyInput.Position = UDim2.new(0.05, 0, 0, 45)
+keyInput.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+keyInput.BorderColor3 = Color3.new(0.5, 0.5, 0.5)
+keyInput.BorderSizePixel = 1
+keyInput.Text = ""
+keyInput.PlaceholderText = "Enter key here"
+keyInput.TextColor3 = Color3.new(1, 1, 1)
+keyInput.TextSize = 14
+keyInput.Font = Enum.Font.SourceSans
+keyInput.Parent = mainFrame
+
+-- Validate Button
+local validateBtn = Instance.new("TextButton")
+validateBtn.Size = UDim2.new(0.4, 0, 0, 25)
+validateBtn.Position = UDim2.new(0.05, 0, 0, 80)
+validateBtn.BackgroundColor3 = Color3.new(0, 0.6, 0)
+validateBtn.BorderColor3 = Color3.new(0, 0.8, 0)
+validateBtn.BorderSizePixel = 1
+validateBtn.Text = "VALIDATE"
+validateBtn.TextColor3 = Color3.new(1, 1, 1)
+validateBtn.TextSize = 14
+validateBtn.Font = Enum.Font.SourceSans
+validateBtn.Parent = mainFrame
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0.4, 0, 0, 25)
+closeBtn.Position = UDim2.new(0.55, 0, 0, 80)
+closeBtn.BackgroundColor3 = Color3.new(0.6, 0, 0)
+closeBtn.BorderColor3 = Color3.new(0.8, 0, 0)
+closeBtn.BorderSizePixel = 1
+closeBtn.Text = "CLOSE"
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.TextSize = 14
+closeBtn.Font = Enum.Font.SourceSans
+closeBtn.Parent = mainFrame
+
+-- Status Text
+local statusText = Instance.new("TextLabel")
+statusText.Size = UDim2.new(0.9, 0, 0, 60)
+statusText.Position = UDim2.new(0.05, 0, 0, 115)
+statusText.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+statusText.BorderColor3 = Color3.new(0.4, 0.4, 0.4)
+statusText.BorderSizePixel = 1
+statusText.Text = "Enter your key and click validate"
+statusText.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+statusText.TextSize = 12
+statusText.Font = Enum.Font.SourceSans
+statusText.TextWrapped = true
+statusText.Parent = mainFrame
+
+-- Validation function
+local function validateKey()
+    local key = keyInput.Text
+    if key == "" then
+        statusText.Text = "Please enter a key"
+        statusText.TextColor3 = Color3.new(1, 0.3, 0.3)
+        return
+    end
+    
+    statusText.Text = "Validating..."
+    statusText.TextColor3 = Color3.new(1, 1, 0.3)
+    validateBtn.Text = "CHECKING"
+    
+    -- Simple HTTP request
+    local success, response = pcall(function()
+        return game:HttpGet(API_URL .. key)
+    end)
+    
+    validateBtn.Text = "VALIDATE"
+    
+    if success and response then
+        local parseSuccess, result = pcall(function()
+            return HttpService:JSONDecode(response)
+        end)
+        
+        if parseSuccess and result then
+            if result.valid == true or result.success == true or result.status == "valid" then
+                statusText.Text = "SUCCESS! Access granted"
+                statusText.TextColor3 = Color3.new(0.3, 1, 0.3)
+                
+                -- Close after 3 seconds
+                wait(3)
+                screenGui:Destroy()
+            else
+                local errorMsg = result.message or result.error or "Invalid key"
+                statusText.Text = "FAILED: " .. errorMsg
+                statusText.TextColor3 = Color3.new(1, 0.3, 0.3)
+            end
+        else
+            statusText.Text = "Error parsing response"
+            statusText.TextColor3 = Color3.new(1, 0.3, 0.3)
+        end
+    else
+        statusText.Text = "Connection failed"
+        statusText.TextColor3 = Color3.new(1, 0.3, 0.3)
+    end
+end
+
+-- Button connections
+validateBtn.MouseButton1Click:Connect(validateKey)
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- Enter key support
+keyInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        validateKey()
+    end
+end)
+
+print("Key validation GUI loaded")
