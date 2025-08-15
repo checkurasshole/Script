@@ -1,0 +1,207 @@
+-- Simple HWID Key Validator GUI
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local RbxAnalyticsService = game:GetService("RbxAnalyticsService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local API_URL = "https://v0-roblox-executor-system.vercel.app"
+local HWID = tostring(RbxAnalyticsService:GetClientId())
+
+-- Remove existing GUI
+if playerGui:FindFirstChild("HwidValidator") then
+    playerGui.HwidValidator:Destroy()
+end
+
+-- Create GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "HwidValidator"
+gui.Parent = playerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 200)
+frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = frame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+title.BorderSizePixel = 0
+title.Text = "HWID Key Validator"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.SourceSansBold
+title.Parent = frame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.Parent = title
+
+-- Key Input
+local keyBox = Instance.new("TextBox")
+keyBox.Size = UDim2.new(1, -20, 0, 30)
+keyBox.Position = UDim2.new(0, 10, 0, 50)
+keyBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+keyBox.BorderSizePixel = 0
+keyBox.PlaceholderText = "Enter key or check status..."
+keyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyBox.TextScaled = true
+keyBox.Font = Enum.Font.Code
+keyBox.Parent = frame
+
+local keyCorner = Instance.new("UICorner")
+keyCorner.CornerRadius = UDim.new(0, 4)
+keyCorner.Parent = keyBox
+
+-- Status Button
+local statusBtn = Instance.new("TextButton")
+statusBtn.Size = UDim2.new(0.45, 0, 0, 30)
+statusBtn.Position = UDim2.new(0, 10, 0, 90)
+statusBtn.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+statusBtn.BorderSizePixel = 0
+statusBtn.Text = "Check Status"
+statusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusBtn.TextScaled = true
+statusBtn.Font = Enum.Font.SourceSansBold
+statusBtn.Parent = frame
+
+local statusCorner = Instance.new("UICorner")
+statusCorner.CornerRadius = UDim.new(0, 4)
+statusCorner.Parent = statusBtn
+
+-- Validate Button
+local validateBtn = Instance.new("TextButton")
+validateBtn.Size = UDim2.new(0.45, 0, 0, 30)
+validateBtn.Position = UDim2.new(0.55, 0, 0, 90)
+validateBtn.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+validateBtn.BorderSizePixel = 0
+validateBtn.Text = "Validate"
+validateBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+validateBtn.TextScaled = true
+validateBtn.Font = Enum.Font.SourceSansBold
+validateBtn.Parent = frame
+
+local validateCorner = Instance.new("UICorner")
+validateCorner.CornerRadius = UDim.new(0, 4)
+validateCorner.Parent = validateBtn
+
+-- Status Label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -20, 0, 60)
+statusLabel.Position = UDim2.new(0, 10, 0, 130)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Ready..."
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+statusLabel.TextScaled = true
+statusLabel.Font = Enum.Font.SourceSans
+statusLabel.TextWrapped = true
+statusLabel.Parent = frame
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(1, -30, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+closeBtn.BorderSizePixel = 0
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.Parent = frame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 12)
+closeCorner.Parent = closeBtn
+
+-- Functions
+local function checkStatus()
+    statusLabel.Text = "Checking..."
+    statusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
+    
+    print("Checking HWID status for:", HWID)
+    
+    local url = API_URL .. "/api/check-hwid-key-status?hwid=" .. HttpService:UrlEncode(HWID)
+    
+    spawn(function()
+        local success, response = pcall(function()
+            return game:HttpGet(url)
+        end)
+        
+        if success then
+            local data = HttpService:JSONDecode(response)
+            if data.success and data.has_key then
+                statusLabel.Text = "CORRECT - Key found!"
+                statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                keyBox.Text = data.key
+                print("✓ CORRECT - Active key found:", data.key)
+                print("Expires:", data.expires_at)
+            else
+                statusLabel.Text = "NO KEY - Device not registered"
+                statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+                print("✗ NO KEY - No active key for this device")
+            end
+        else
+            statusLabel.Text = "ERROR - Check console"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            print("✗ ERROR:", response)
+        end
+    end)
+end
+
+local function validateKey()
+    local key = keyBox.Text:gsub("%s+", "")
+    if key == "" then
+        statusLabel.Text = "Enter a key first"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        return
+    end
+    
+    statusLabel.Text = "Validating..."
+    statusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
+    
+    print("Validating key:", key:sub(1, 10) .. "... for HWID:", HWID)
+    
+    local url = API_URL .. "/api/roblox-validate-hwid?key=" .. HttpService:UrlEncode(key) .. "&hwid=" .. HttpService:UrlEncode(HWID)
+    
+    spawn(function()
+        local success, response = pcall(function()
+            return game:HttpGet(url)
+        end)
+        
+        if success then
+            local data = HttpService:JSONDecode(response)
+            if data.success then
+                statusLabel.Text = "CORRECT - Valid for this device!"
+                statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                print("✓ CORRECT - Key valid for this device")
+                print("Username:", data.username)
+                print("Expires:", data.expires_at)
+                print("Bound:", data.bound_to_device)
+            else
+                statusLabel.Text = "WRONG DEVICE - Key invalid"
+                statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+                print("✗ WRONG DEVICE - Key not valid for this device")
+                print("Reason:", data.message)
+            end
+        else
+            statusLabel.Text = "ERROR - Check console"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            print("✗ ERROR:", response)
+        end
+    end)
+end
+
+-- Events
+statusBtn.MouseButton1Click:Connect(checkStatus)
+validateBtn.MouseButton1Click:Connect(validateKey)
+closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
+
+print("HWID Validator loaded - HWID:", HWID)
