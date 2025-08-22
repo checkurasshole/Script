@@ -1,5 +1,5 @@
 -- Language-gui Script (GUI)
--- Generated on: 8/22/2025, 11:28:20 AM
+-- Generated on: 8/22/2025, 11:28:45 AM
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
