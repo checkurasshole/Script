@@ -1,0 +1,73 @@
+--// Services deez nuts
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+
+--// GUI deez nuts
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoAttackGui"
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 160, 0, 80) -- smaller
+Frame.Position = UDim2.new(0.5, -80, 0.5, -40)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+-- X button deez nuts
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 24, 0, 24)
+CloseButton.Position = UDim2.new(1, -28, 0, 4)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.TextSize = 16
+CloseButton.Parent = Frame
+
+-- Toggle deez nuts
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0.8, 0, 0.5, 0)
+ToggleButton.Position = UDim2.new(0.1, 0, 0.35, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+ToggleButton.Text = "Auto Attack: OFF"
+ToggleButton.TextColor3 = Color3.new(1, 1, 1)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.TextSize = 14
+ToggleButton.Parent = Frame
+
+
+local AutoAttack = false
+local AttackDelay = 0.1 
+
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+
+ToggleButton.MouseButton1Click:Connect(function()
+    AutoAttack = not AutoAttack
+    ToggleButton.Text = AutoAttack and "Auto Attack: ON" or "Auto Attack: OFF"
+    ToggleButton.BackgroundColor3 = AutoAttack and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(200, 0, 0)
+end)
+
+
+task.spawn(function()
+    while task.wait(AttackDelay) do
+        if AutoAttack then
+            local character = Player.Character
+            if character then
+                local tool = character:FindFirstChildOfClass("Tool")
+                if tool then
+                    if tool:FindFirstChild("Remote") then
+                        tool.Remote:FireServer()
+                    else
+                        tool:Activate()
+                    end
+                end
+            end
+        end
+    end
+end)
