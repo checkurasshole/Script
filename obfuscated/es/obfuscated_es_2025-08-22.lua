@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("Error: Failed to obfuscate script: Could not extract script URL from robloxCode: loadstring(game:HttpGet("https://v0-continuing-unfinished-app.vercel.app/api/script/a4f820c3-f228-4919-bdad-e8195c5d422f?auth=disabled"))()"))()
