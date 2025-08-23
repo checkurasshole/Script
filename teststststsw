@@ -34,6 +34,7 @@ local maxScale = 2
 
 local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 
+-- Enhanced save/load functions with better error handling
 local function saveSettings()
     if autoSaveEnabled and savedLanguage then
         local data = {
@@ -41,16 +42,25 @@ local function saveSettings()
             autoSave = autoSaveEnabled,
             scale = currentScale
         }
-        writefile(SAVE_KEY .. ".json", HttpService:JSONEncode(data))
+        local success, err = pcall(function()
+            writefile(SAVE_KEY .. ".json", HttpService:JSONEncode(data))
+        end)
+        if not success then
+            warn("Failed to save settings: " .. tostring(err))
+        end
     end
 end
 
 local function loadSettings()
-    if isfile(SAVE_KEY .. ".json") then
-        local success, data = pcall(function()
+    local success, exists = pcall(function()
+        return isfile(SAVE_KEY .. ".json")
+    end)
+    
+    if success and exists then
+        local readSuccess, data = pcall(function()
             return HttpService:JSONDecode(readfile(SAVE_KEY .. ".json"))
         end)
-        if success and data then
+        if readSuccess and data then
             savedLanguage = data.language
             autoSaveEnabled = data.autoSave or true
             currentScale = data.scale or 1
@@ -67,6 +77,9 @@ local function autoLoadScript()
             local success, result = pcall(function()
                 loadstring(game:HttpGet(scripts[savedLanguage]))()
             end)
+            if not success then
+                warn("Failed to auto-load script: " .. tostring(result))
+            end
         end)
         return true
     end
@@ -155,6 +168,7 @@ local strokeConnection = RunService.Heartbeat:Connect(function(dt)
     innerStroke.Transparency = 0.2 + math.sin(time * 3) * 0.1
 end)
 
+-- Enhanced drag functionality for mobile
 local dragToggle = nil
 local dragStart = nil
 local startPos = nil
@@ -313,7 +327,7 @@ if isMobile then
     resizeMinusButton.Position = UDim2.new(1, -85 * currentScale, 0, 12 * currentScale)
     resizeMinusButton.BackgroundColor3 = Color3.fromRGB(80, 120, 255)
     resizeMinusButton.BackgroundTransparency = 0.1
-resizeMinusButton.BorderSizePixel = 0
+    resizeMinusButton.BorderSizePixel = 0
     resizeMinusButton.Text = "−"
     resizeMinusButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     resizeMinusButton.TextSize = 16 * currentScale
@@ -466,8 +480,13 @@ autoSaveToggle.MouseButton1Click:Connect(function()
     if autoSaveEnabled then
         saveSettings()
     else
-        if isfile(SAVE_KEY .. ".json") then
-            delfile(SAVE_KEY .. ".json")
+        local success = pcall(function()
+            if isfile(SAVE_KEY .. ".json") then
+                delfile(SAVE_KEY .. ".json")
+            end
+        end)
+        if not success then
+            warn("Failed to delete settings file")
         end
     end
 end)
@@ -481,6 +500,9 @@ scrollFrame.BorderSizePixel = 0
 scrollFrame.ScrollBarThickness = (isMobile and 8 or 8) * currentScale
 scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 170, 255)
 scrollFrame.ScrollBarImageTransparency = 0.2
+-- Enhanced mobile scroll properties
+scrollFrame.ScrollingEnabled = true
+scrollFrame.CanvasSize = UDim2.new(0, 0, 2, 0)  -- Start with a reasonable canvas size
 scrollFrame.Parent = mainFrame
 
 local gridLayout = Instance.new("UIGridLayout")
@@ -506,6 +528,10 @@ local function createLanguageButton(languageName, scriptUrl)
     button.TextSize = (isMobile and 14 or 18) * currentScale
     button.Font = Enum.Font.SourceSansBold
     button.TextScaled = true
+    -- Enhanced mobile interaction
+    button.Active = true
+    button.Selectable = true
+    button.AutoButtonColor = false
     button.Parent = scrollFrame
     
     local buttonCorner = Instance.new("UICorner")
@@ -626,21 +652,30 @@ local function createLanguageButton(languageName, scriptUrl)
         shadowResetTween:Play()
     end
     
+    -- Enhanced mobile and desktop event handling
     if isMobile then
+        -- Mobile touch events
         button.TouchTap:Connect(function()
             onHover()
             wait(0.15)
             onLeave()
         end)
+        
+        -- Also connect to mouse events for better compatibility
+        button.MouseEnter:Connect(onHover)
+        button.MouseLeave:Connect(onLeave)
     else
         button.MouseEnter:Connect(onHover)
         button.MouseLeave:Connect(onLeave)
     end
     
+    -- Enhanced click handler with better error handling and feedback
     button.MouseButton1Click:Connect(function()
+        print("Language button clicked: " .. languageName)
         savedLanguage = languageName
         saveSettings()
         
+        -- Show loading screen immediately
         local loadingFrame = Instance.new("Frame")
         loadingFrame.Name = "LoadingFrame"
         loadingFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -666,7 +701,7 @@ local function createLanguageButton(languageName, scriptUrl)
         loadingText.Size = UDim2.new(1, -40, 0, (isMobile and 40 or 60) * currentScale)
         loadingText.Position = UDim2.new(0, 20 * currentScale, 0.5, (isMobile and -20 or -30) * currentScale)
         loadingText.BackgroundTransparency = 1
-        loadingText.Text = "▄︻デ══━一💥Loading " .. languageName .. "..."
+        loadingText.Text = "▄︻デ══━一💥 Loading " .. languageName .. "..."
         loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
         loadingText.TextSize = (isMobile and 16 or 24) * currentScale
         loadingText.Font = Enum.Font.SourceSansBold
@@ -723,13 +758,38 @@ local function createLanguageButton(languageName, scriptUrl)
         )
         progressTween:Play()
         
+        -- Enhanced script loading with better error handling
         spawn(function()
             wait(1.8)
             
+            print("Attempting to load script from: " .. scriptUrl)
+            
             local success, result = pcall(function()
-                loadstring(game:HttpGet(scriptUrl))()
+                local scriptContent = game:HttpGet(scriptUrl)
+                print("Script content length: " .. string.len(scriptContent))
+                
+                if string.len(scriptContent) < 10 then
+                    error("Script content too short or invalid")
+                end
+                
+                loadstring(scriptContent)()
             end)
             
+            if success then
+                print("Script loaded successfully!")
+            else
+                warn("Script loading failed: " .. tostring(result))
+                
+                -- Show error message to user
+                loadingText.Text = "❌ Failed to load " .. languageName
+                loadingText.TextColor3 = Color3.fromRGB(255, 100, 100)
+                
+                wait(2)
+                loadingFrame:Destroy()
+                return
+            end
+            
+            -- Clean up and close GUI
             if strokeConnection then
                 strokeConnection:Disconnect()
             end
@@ -740,6 +800,193 @@ local function createLanguageButton(languageName, scriptUrl)
     return button
 end
 
+-- Add reset button for auto-save settings
+local resetButton = Instance.new("TextButton")
+resetButton.Name = "ResetButton"
+resetButton.Size = UDim2.new(0, (isMobile and 120 or 140) * currentScale, 0, (isMobile and 28 or 35) * currentScale)
+resetButton.Position = UDim2.new(1, (isMobile and -135 or -155) * currentScale, 1, (isMobile and -40 or -50) * currentScale)
+resetButton.BackgroundColor3 = Color3.fromRGB(255, 140, 60)
+resetButton.BackgroundTransparency = 0.1
+resetButton.BorderSizePixel = 0
+resetButton.Text = isMobile and "🔄 Reset Settings" or "🔄 Reset Auto-Save"
+resetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+resetButton.TextSize = (isMobile and 10 or 14) * currentScale
+resetButton.Font = Enum.Font.SourceSansBold
+resetButton.TextScaled = true
+resetButton.Parent = mainFrame
+
+local resetCorner = Instance.new("UICorner")
+resetCorner.CornerRadius = UDim.new(0, (isMobile and 14 or 18) * currentScale)
+resetCorner.Parent = resetButton
+
+local resetStroke = Instance.new("UIStroke")
+resetStroke.Color = Color3.fromRGB(255, 180, 120)
+resetStroke.Thickness = 2 * currentScale
+resetStroke.Transparency = 0.3
+resetStroke.Parent = resetButton
+
+-- Reset button functionality
+resetButton.MouseButton1Click:Connect(function()
+    print("Reset button clicked")
+    
+    -- Create confirmation popup
+    local confirmFrame = Instance.new("Frame")
+    confirmFrame.Name = "ConfirmFrame"
+    confirmFrame.Size = UDim2.new(0, (isMobile and 280 or 350) * currentScale, 0, (isMobile and 150 or 180) * currentScale)
+    confirmFrame.Position = UDim2.new(0.5, (isMobile and -140 or -175) * currentScale, 0.5, (isMobile and -75 or -90) * currentScale)
+    confirmFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 45)
+    confirmFrame.BackgroundTransparency = 0.05
+    confirmFrame.BorderSizePixel = 0
+    confirmFrame.ZIndex = 10
+    confirmFrame.Parent = mainFrame
+    
+    local confirmCorner = Instance.new("UICorner")
+    confirmCorner.CornerRadius = UDim.new(0, (isMobile and 16 or 20) * currentScale)
+    confirmCorner.Parent = confirmFrame
+    
+    local confirmStroke = Instance.new("UIStroke")
+    confirmStroke.Color = Color3.fromRGB(255, 140, 60)
+    confirmStroke.Thickness = 3 * currentScale
+    confirmStroke.Transparency = 0.2
+    confirmStroke.Parent = confirmFrame
+    
+    local confirmTitle = Instance.new("TextLabel")
+    confirmTitle.Size = UDim2.new(1, -20, 0, (isMobile and 35 or 45) * currentScale)
+    confirmTitle.Position = UDim2.new(0, 10 * currentScale, 0, 10 * currentScale)
+    confirmTitle.BackgroundTransparency = 1
+    confirmTitle.Text = "⚠️ Reset Settings?"
+    confirmTitle.TextColor3 = Color3.fromRGB(255, 200, 100)
+    confirmTitle.TextSize = (isMobile and 14 or 18) * currentScale
+    confirmTitle.Font = Enum.Font.SourceSansBold
+    confirmTitle.TextScaled = true
+    confirmTitle.Parent = confirmFrame
+    
+    local confirmText = Instance.new("TextLabel")
+    confirmText.Size = UDim2.new(1, -20, 0, (isMobile and 40 or 50) * currentScale)
+    confirmText.Position = UDim2.new(0, 10 * currentScale, 0, (isMobile and 45 or 55) * currentScale)
+    confirmText.BackgroundTransparency = 1
+    confirmText.Text = isMobile and "This will clear saved language\nand reset auto-save settings." or "This will clear your saved language choice\nand reset all auto-save settings."
+    confirmText.TextColor3 = Color3.fromRGB(220, 220, 255)
+    confirmText.TextSize = (isMobile and 10 or 13) * currentScale
+    confirmText.Font = Enum.Font.SourceSans
+    confirmText.TextScaled = true
+    confirmText.TextWrapped = true
+    confirmText.Parent = confirmFrame
+    
+    local yesButton = Instance.new("TextButton")
+    yesButton.Size = UDim2.new(0, (isMobile and 80 or 100) * currentScale, 0, (isMobile and 25 or 30) * currentScale)
+    yesButton.Position = UDim2.new(0, 15 * currentScale, 1, (isMobile and -35 or -40) * currentScale)
+    yesButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+    yesButton.BorderSizePixel = 0
+    yesButton.Text = "✓ Yes, Reset"
+    yesButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    yesButton.TextSize = (isMobile and 10 or 12) * currentScale
+    yesButton.Font = Enum.Font.SourceSansBold
+    yesButton.TextScaled = true
+    yesButton.Parent = confirmFrame
+    
+    local yesCorner = Instance.new("UICorner")
+    yesCorner.CornerRadius = UDim.new(0, (isMobile and 12 or 15) * currentScale)
+    yesCorner.Parent = yesButton
+    
+    local noButton = Instance.new("TextButton")
+    noButton.Size = UDim2.new(0, (isMobile and 80 or 100) * currentScale, 0, (isMobile and 25 or 30) * currentScale)
+    noButton.Position = UDim2.new(1, (isMobile and -95 or -115) * currentScale, 1, (isMobile and -35 or -40) * currentScale)
+    noButton.BackgroundColor3 = Color3.fromRGB(120, 120, 140)
+    noButton.BorderSizePixel = 0
+    noButton.Text = "✕ Cancel"
+    noButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    noButton.TextSize = (isMobile and 10 or 12) * currentScale
+    noButton.Font = Enum.Font.SourceSansBold
+    noButton.TextScaled = true
+    noButton.Parent = confirmFrame
+    
+    local noCorner = Instance.new("UICorner")
+    noCorner.CornerRadius = UDim.new(0, (isMobile and 12 or 15) * currentScale)
+    noCorner.Parent = noButton
+    
+    -- Animate popup appearance
+    confirmFrame.Position = UDim2.new(0.5, (isMobile and -140 or -175) * currentScale, 0.5, (isMobile and -200 or -250) * currentScale)
+    local popupTween = TweenService:Create(confirmFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.5, (isMobile and -140 or -175) * currentScale, 0.5, (isMobile and -75 or -90) * currentScale)}
+    )
+    popupTween:Play()
+    
+    -- Yes button functionality
+    yesButton.MouseButton1Click:Connect(function()
+        print("Confirmed reset")
+        
+        -- Reset all settings
+        savedLanguage = nil
+        autoSaveEnabled = true
+        currentScale = 1
+        
+        -- Delete save file
+        local success = pcall(function()
+            if isfile(SAVE_KEY .. ".json") then
+                delfile(SAVE_KEY .. ".json")
+            end
+        end)
+        
+        if success then
+            print("Settings reset successfully")
+        else
+            warn("Failed to delete settings file")
+        end
+        
+        -- Update UI to reflect reset
+        autoSaveToggle.BackgroundColor3 = Color3.fromRGB(100, 220, 120)
+        toggleStroke.Color = Color3.fromRGB(140, 240, 160)
+        toggleIndicator.Position = UDim2.new(1, -indicatorSize - 2 * currentScale, 0.5, -indicatorSize/2)
+        
+        -- Reset scale
+        currentScale = 1
+        updateFrameScale()
+        
+        -- Update all language buttons to show no selection
+        for _, child in pairs(scrollFrame:GetChildren()) do
+            if child:IsA("TextButton") then
+                child.BackgroundTransparency = 0.6
+                child.TextColor3 = Color3.fromRGB(220, 220, 255)
+                local stroke = child:FindFirstChild("UIStroke")
+                if stroke then
+                    stroke.Color = Color3.fromRGB(100, 120, 200)
+                    stroke.Transparency = 0.5
+                    stroke.Thickness = 2 * currentScale
+                end
+            end
+        end
+        
+        -- Close confirmation popup
+        local closeTween = TweenService:Create(confirmFrame,
+            TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            {Position = UDim2.new(0.5, (isMobile and -140 or -175) * currentScale, 0.5, (isMobile and -200 or -250) * currentScale)}
+        )
+        closeTween:Play()
+        
+        closeTween.Completed:Connect(function()
+            confirmFrame:Destroy()
+        end)
+    end)
+    
+    -- Cancel button functionality
+    noButton.MouseButton1Click:Connect(function()
+        print("Reset cancelled")
+        
+        local closeTween = TweenService:Create(confirmFrame,
+            TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            {Position = UDim2.new(0.5, (isMobile and -140 or -175) * currentScale, 0.5, (isMobile and -200 or -250) * currentScale)}
+        )
+        closeTween:Play()
+        
+        closeTween.Completed:Connect(function()
+            confirmFrame:Destroy()
+        end)
+    end)
+end)
+
+-- Create language buttons
 for languageName, scriptUrl in pairs(scripts) do
     createLanguageButton(languageName, scriptUrl)
 end
@@ -752,6 +999,7 @@ end
 gridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvasSize)
 updateCanvasSize()
 
+-- Entrance animation
 mainFrame.Position = UDim2.new(0.5, -frameWidth/2, 1.2, 0)
 local entranceTween = TweenService:Create(mainFrame,
     TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
@@ -759,6 +1007,7 @@ local entranceTween = TweenService:Create(mainFrame,
 )
 entranceTween:Play()
 
+-- Close button functionality
 closeButton.MouseButton1Click:Connect(function()
     local exitTween = TweenService:Create(mainFrame,
         TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In),
