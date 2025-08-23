@@ -758,42 +758,208 @@ local function createLanguageButton(languageName, scriptUrl)
         )
         progressTween:Play()
         
-        -- Enhanced script loading with better error handling
+        -- Enhanced script loading with multiple HTTP methods and comprehensive diagnostics
         spawn(function()
             wait(1.8)
             
-            print("Attempting to load script from: " .. scriptUrl)
+            print("=== SCRIPT LOADING DIAGNOSTICS ===")
+            print("Target URL: " .. scriptUrl)
+            print("Language: " .. languageName)
+            print("Mobile device: " .. tostring(isMobile))
             
-            local success, result = pcall(function()
-                local scriptContent = game:HttpGet(scriptUrl)
-                print("Script content length: " .. string.len(scriptContent))
-                
-                if string.len(scriptContent) < 10 then
-                    error("Script content too short or invalid")
+            local scriptContent = nil
+            local loadMethod = "unknown"
+            local httpMethods = {}
+            
+            -- Method 1: Standard game:HttpGet
+            table.insert(httpMethods, {
+                name = "game:HttpGet",
+                func = function()
+                    return game:HttpGet(scriptUrl)
                 end
-                
-                loadstring(scriptContent)()
-            end)
+            })
             
-            if success then
-                print("Script loaded successfully!")
+            -- Method 2: HttpService:GetAsync
+            table.insert(httpMethods, {
+                name = "HttpService:GetAsync", 
+                func = function()
+                    return HttpService:GetAsync(scriptUrl)
+                end
+            })
+            
+            -- Method 3: HttpService:RequestAsync
+            table.insert(httpMethods, {
+                name = "HttpService:RequestAsync",
+                func = function()
+                    local response = HttpService:RequestAsync({
+                        Url = scriptUrl,
+                        Method = "GET",
+                        Headers = {
+                            ["User-Agent"] = "Roblox/WinInet",
+                            ["Accept"] = "text/plain, application/x-lua, */*",
+                            ["Cache-Control"] = "no-cache"
+                        }
+                    })
+                    
+                    print("RequestAsync response code:", response.StatusCode)
+                    print("RequestAsync response headers:", HttpService:JSONEncode(response.Headers or {}))
+                    
+                    if response.Success and response.StatusCode == 200 then
+                        return response.Body
+                    else
+                        error("HTTP " .. response.StatusCode .. ": " .. (response.StatusMessage or "Unknown error"))
+                    end
+                end
+            })
+            
+            -- Method 4: Alternative URL with different parameters
+            if scriptUrl:find("vercel.app") then
+                table.insert(httpMethods, {
+                    name = "URL with cache buster",
+                    func = function()
+                        local cacheBuster = "?t=" .. tostring(tick()):gsub("%.", "")
+                        return game:HttpGet(scriptUrl .. cacheBuster)
+                    end
+                })
+            end
+            
+            -- Try each HTTP method until one works
+            for i, method in ipairs(httpMethods) do
+                print("\n--- Trying method " .. i .. ": " .. method.name .. " ---")
+                
+                local success, result = pcall(method.func)
+                
+                if success and result then
+                    scriptContent = result
+                    loadMethod = method.name
+                    
+                    -- Comprehensive content analysis
+                    print("✓ HTTP request successful!")
+                    print("Method used: " .. loadMethod)
+                    print("Content length: " .. string.len(scriptContent))
+                    print("Content type check:")
+                    print("  - Is string: " .. tostring(type(scriptContent) == "string"))
+                    print("  - First 50 chars: '" .. string.sub(scriptContent, 1, 50):gsub("\n", "\\n"):gsub("\r", "\\r") .. "'")
+                    print("  - Last 50 chars: '" .. string.sub(scriptContent, -50):gsub("\n", "\\n"):gsub("\r", "\\r") .. "'")
+                    print("  - Contains 'local': " .. tostring(string.find(scriptContent, "local") ~= nil))
+                    print("  - Contains 'function': " .. tostring(string.find(scriptContent, "function") ~= nil))
+                    print("  - Contains binary chars: " .. tostring(string.find(scriptContent, "[\0-\8\11\12\14-\31]") ~= nil))
+                    
+                    -- Check for common script indicators
+                    local isLuaScript = string.find(scriptContent, "local") or 
+                                      string.find(scriptContent, "function") or 
+                                      string.find(scriptContent, "game:") or
+                                      string.find(scriptContent, "script")
+                    
+                    print("  - Appears to be Lua: " .. tostring(isLuaScript))
+                    
+                    -- Validate content length and format
+                    if string.len(scriptContent) < 10 then
+                        print("⚠ Content too short, trying next method...")
+                        scriptContent = nil
+                        continue
+                    end
+                    
+                    if string.find(scriptContent, "[\0-\8\11\12\14-\31]") then
+                        print("⚠ Contains binary data, trying next method...")
+                        scriptContent = nil 
+                        continue
+                    end
+                    
+                    if not isLuaScript and string.len(scriptContent) > 100 then
+                        print("⚠ Doesn't look like Lua script, trying next method...")
+                        scriptContent = nil
+                        continue  
+                    end
+                    
+                    print("✓ Content validation passed!")
+                    break
+                    
+                else
+                    print("✗ Method failed: " .. tostring(result))
+                    if i < #httpMethods then
+                        print("Trying next method...")
+                        wait(0.5)
+                    end
+                end
+            end
+            
+            -- Final loading attempt
+            if scriptContent and string.len(scriptContent) > 10 then
+                print("\n=== ATTEMPTING SCRIPT EXECUTION ===")
+                print("Using method: " .. loadMethod)
+                print("Final content length: " .. string.len(scriptContent))
+                
+                local loadSuccess, loadResult = pcall(function()
+                    local compiledScript = loadstring(scriptContent)
+                    if not compiledScript then
+                        error("Script compilation failed - invalid Lua syntax")
+                    end
+                    
+                    print("✓ Script compiled successfully")
+                    compiledScript()
+                    print("✓ Script executed successfully")
+                    return true
+                end)
+                
+                if loadSuccess then
+                    print("🎉 SCRIPT LOADED SUCCESSFULLY! 🎉")
+                    print("Method: " .. loadMethod)
+                    
+                    -- Clean up and close GUI
+                    if strokeConnection then
+                        strokeConnection:Disconnect()
+                    end
+                    screenGui:Destroy()
+                    return
+                else
+                    print("❌ Script execution failed: " .. tostring(loadResult))
+                    
+                    -- Show detailed error to user
+                    loadingText.Text = "❌ Execution Error: " .. languageName
+                    loadingText.TextSize = (isMobile and 12 or 18) * currentScale
+                    
+                    -- Create error details
+                    local errorLabel = Instance.new("TextLabel")
+                    errorLabel.Size = UDim2.new(1, -20, 0, (isMobile and 60 or 80) * currentScale)
+                    errorLabel.Position = UDim2.new(0, 10 * currentScale, 0.7, 0)
+                    errorLabel.BackgroundTransparency = 1
+                    errorLabel.Text = "Error: " .. string.sub(tostring(loadResult), 1, 100)
+                    errorLabel.TextColor3 = Color3.fromRGB(255, 150, 150)
+                    errorLabel.TextSize = (isMobile and 8 or 12) * currentScale
+                    errorLabel.Font = Enum.Font.SourceSans
+                    errorLabel.TextScaled = true
+                    errorLabel.TextWrapped = true
+                    errorLabel.Parent = loadingFrame
+                    
+                    wait(4)
+                    loadingFrame:Destroy()
+                    return
+                end
             else
-                warn("Script loading failed: " .. tostring(result))
+                print("❌ ALL HTTP METHODS FAILED")
+                print("No valid script content retrieved from any method")
                 
-                -- Show error message to user
-                loadingText.Text = "❌ Failed to load " .. languageName
-                loadingText.TextColor3 = Color3.fromRGB(255, 100, 100)
+                -- Show comprehensive error to user
+                loadingText.Text = "❌ Connection Failed: " .. languageName
+                loadingText.TextSize = (isMobile and 12 or 18) * currentScale
                 
-                wait(2)
+                local errorLabel = Instance.new("TextLabel")
+                errorLabel.Size = UDim2.new(1, -20, 0, (isMobile and 60 or 80) * currentScale)
+                errorLabel.Position = UDim2.new(0, 10 * currentScale, 0.7, 0)
+                errorLabel.BackgroundTransparency = 1
+                errorLabel.Text = "Failed to download script from server.\nCheck your internet connection."
+                errorLabel.TextColor3 = Color3.fromRGB(255, 150, 150)
+                errorLabel.TextSize = (isMobile and 8 or 12) * currentScale
+                errorLabel.Font = Enum.Font.SourceSans
+                errorLabel.TextScaled = true
+                errorLabel.TextWrapped = true
+                errorLabel.Parent = loadingFrame
+                
+                wait(4)
                 loadingFrame:Destroy()
                 return
             end
-            
-            -- Clean up and close GUI
-            if strokeConnection then
-                strokeConnection:Disconnect()
-            end
-            screenGui:Destroy()
         end)
     end)
     
