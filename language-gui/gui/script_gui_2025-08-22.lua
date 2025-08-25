@@ -1,6 +1,3 @@
--- Language-gui Script (GUI)
--- Generated on: 8/22/2025, 12:19:13 PM
-
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
@@ -22,14 +19,16 @@ local function getGuiParent()
 end
 
 local scripts = {
-    ["English"] = "https://v0-supabase-secure-storage.vercel.app/api/script/cf6cc3a9cfd9e0143aae0803a3e4bbf2",
-    ["Spanish"] = "https://v0-supabase-secure-storage.vercel.app/api/script/6d025822c25e766e24e0fa6c2a7c9751",
-    ["French"] = "https://v0-supabase-secure-storage.vercel.app/api/script/d3430d802ceb9b5fb8bc84bbd21bdf40",
-    ["German"] = "https://v0-supabase-secure-storage.vercel.app/api/script/a032f439ce85252edd5b4511fc081529",
-    ["Japanese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/c5e93ba982a4ba3e12d84a976c131012",
-    ["Russian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/e6e7d19a284d74e83443a0891cae13bd",
-    ["Portuguese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/51ba2cbf3ead4469177b9f5ea25ff8ff",
-    ["Korean"] = "https://v0-supabase-secure-storage.vercel.app/api/script/5530aff3a0d6bd67aa61cae4250ef3b3"
+    ["English"] = "https://v0-supabase-secure-storage.vercel.app/api/script/2ca1518801a95abf0dceb898774fa182",
+    ["Spanish"] = "https://v0-supabase-secure-storage.vercel.app/api/script/425c10591636b349a5456123f62525cc",
+    ["French"] = "https://v0-supabase-secure-storage.vercel.app/api/script/8fb045f66efad6902406cbc37fc784d9",
+    ["German"] = "https://v0-supabase-secure-storage.vercel.app/api/script/4add95d043e6ec6592040933dbdab6a7",
+    ["Japanese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/b699b2b29ec83ce7a2e8798a35b260a1",
+    ["Korean"] = "https://v0-supabase-secure-storage.vercel.app/api/script/7d505b0fb0737bd9a2407b08cd8b842e",
+    ["Russian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/1694a20b41df81c0420171bdb551fdff",
+    ["Portuguese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/2aa0851468c4314320b52158d2cb1b3e",
+    ["Italian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/357a51dd4143702b19e0777e9616df04",
+    ["Thai"] = "https://v0-supabase-secure-storage.vercel.app/api/script/52e366a1608ace82f970eec1078d4462"
 }
 
 local SAVE_KEY = "LanguageSelector_" .. game.GameId .. "_SavedSettings"
