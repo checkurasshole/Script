@@ -89,8 +89,13 @@ local codes = {
 task.spawn(function()
     for _, code in ipairs(codes) do
         task.spawn(function()
-            local args = {code}
-            game:GetService("ReplicatedStorage").Packets.RedeemCode:InvokeServer(unpack(args))
+            pcall(function()
+                local packets = game:GetService("ReplicatedStorage"):FindFirstChild("Packets")
+                if packets and packets:FindFirstChild("RedeemCode") then
+                    local args = {code}
+                    packets.RedeemCode:InvokeServer(unpack(args))
+                end
+            end)
         end)
         task.wait(0.5)
     end
@@ -1102,11 +1107,15 @@ task.spawn(function()
         pcall(function()
             if AutoSpinActive then
                 pcall(function()
-                    local args = {
-                        [1] = 1,
-                        [3] = true,
-                    }
-                    game:GetService("ReplicatedStorage"):WaitForChild("Packets", 9e9):WaitForChild("WeaponSpin", 9e9):InvokeServer(unpack(args))
+                    local replicatedStorage = game:GetService("ReplicatedStorage")
+                    local packets = replicatedStorage:FindFirstChild("Packets")
+                    if packets and packets:FindFirstChild("WeaponSpin") then
+                        local args = {
+                            [1] = 1,
+                            [3] = true,
+                        }
+                        packets.WeaponSpin:InvokeServer(unpack(args))
+                    end
                 end)
                 task.wait(1)
             else
