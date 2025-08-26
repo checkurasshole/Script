@@ -79,8 +79,8 @@ local PurchaseBoneUpgrade = ReplicatedStorage.Remotes.PurchaseBoneUpgrade
 local afkConnections = {}
 local autoBuyLoops = {}
 
--- Function to get current ragdoll dynamically
-local function getCurrentRagdoll()
+-- Simple function to get current ragdoll
+local function getRagdoll()
     local currentPlayer = Players.LocalPlayer
     if workspace:FindFirstChild(currentPlayer.Name) and workspace[currentPlayer.Name]:FindFirstChild("Ragdoll") then
         return workspace[currentPlayer.Name].Ragdoll.Default
@@ -88,34 +88,23 @@ local function getCurrentRagdoll()
     return nil
 end
 
--- Function to get current parts dynamically
-local function getCurrentParts()
-    local currentRagdoll = getCurrentRagdoll()
-    if not currentRagdoll then return {} end
+-- Simple function to refresh parts list
+local function refreshParts()
+    ragdoll = getRagdoll()
+    parts = {}
     
-    local currentParts = {}
-    for _, part in pairs(currentRagdoll:GetChildren()) do
-        if part:IsA("BasePart") then
-            table.insert(currentParts, part)
+    if ragdoll then
+        for _, part in pairs(ragdoll:GetChildren()) do
+            if part:IsA("BasePart") then
+                table.insert(parts, part)
+            end
         end
-    end
-    return currentParts
-end
-
--- Function to validate and refresh ragdoll data
-local function refreshRagdollData()
-    player = Players.LocalPlayer -- Update player reference
-    char = player.Character
-    ragdoll = getCurrentRagdoll()
-    parts = getCurrentParts()
-    
-    if ragdoll and #parts > 0 then
-        print("Ragdoll refreshed for " .. player.Name .. ". Found " .. #parts .. " parts.")
+        print("Found " .. #parts .. " parts for " .. Players.LocalPlayer.Name)
         return true
-    else
-        print("Failed to find ragdoll or parts for " .. player.Name)
-        return false
     end
+    
+    print("No ragdoll found for " .. Players.LocalPlayer.Name)
+    return false
 end
 
 local function startAntiAFK()
@@ -158,24 +147,18 @@ local function stopAntiAFK()
     afkConnections = {}
 end
 
--- Dynamic box center updating
 local function updateBoxCenter()
-    local currentRagdoll = getCurrentRagdoll()
-    if not currentRagdoll then return false end
+    if not ragdoll or not ragdoll.Parent then
+        refreshParts()
+        if not ragdoll then return false end
+    end
     
-    if currentRagdoll:FindFirstChild("HumanoidRootPart") then
-        boxCenter = currentRagdoll.HumanoidRootPart.Position
+    if ragdoll:FindFirstChild("HumanoidRootPart") then
+        boxCenter = ragdoll.HumanoidRootPart.Position
         return true
-    elseif currentRagdoll:FindFirstChild("Torso") then
-        boxCenter = currentRagdoll.Torso.Position
+    elseif ragdoll:FindFirstChild("Torso") then
+        boxCenter = ragdoll.Torso.Position
         return true
-    else
-        -- Try to find any valid part to center on
-        local currentParts = getCurrentParts()
-        if #currentParts > 0 then
-            boxCenter = currentParts[1].Position
-            return true
-        end
     end
     return false
 end
@@ -211,10 +194,7 @@ local function createWall(position, size)
 end
 
 local function generateWalls()
-    if not updateBoxCenter() then
-        print("Failed to update box center, cannot generate walls")
-        return false
-    end
+    if not updateBoxCenter() then return false end
     
     local s = boxSize/2
     createWall(boxCenter + Vector3.new(s.X, 0, 0), Vector3.new(2, boxSize.Y, boxSize.Z))
@@ -223,21 +203,22 @@ local function generateWalls()
     createWall(boxCenter - Vector3.new(0, s.Y, 0), Vector3.new(boxSize.X, 2, boxSize.Z))
     createWall(boxCenter + Vector3.new(0, 0, s.Z), Vector3.new(boxSize.X, boxSize.Y, 2))
     createWall(boxCenter - Vector3.new(0, 0, s.Z), Vector3.new(boxSize.X, boxSize.Y, 2))
-    
     return true
 end
 
--- Dynamic bounds checking
 local function keepInBounds()
-    local currentParts = getCurrentParts()
-    if #currentParts == 0 or not updateBoxCenter() then return end
+    if not ragdoll or not ragdoll.Parent or not boxCenter then 
+        refreshParts()
+        updateBoxCenter()
+        return 
+    end
     
     local buffer = 3
     local s = boxSize/2 - Vector3.new(buffer, buffer, buffer)
     local minBounds = boxCenter - s
     local maxBounds = boxCenter + s
     
-    for _, part in ipairs(currentParts) do
+    for _, part in ipairs(parts) do
         if part and part.Parent and part:IsA("BasePart") then
             local partPos = part.Position
             local needsCorrection = false
@@ -290,20 +271,13 @@ local function keepInBounds()
     end
 end
 
--- Dynamic spinning
 local function startSpin()
-    local currentRagdoll = getCurrentRagdoll()
-    if not currentRagdoll then return false end
-    
-    local rootPart = currentRagdoll:FindFirstChild("HumanoidRootPart") or currentRagdoll:FindFirstChild("Torso")
-    if not rootPart then
-        -- Find any valid part to spin
-        local currentParts = getCurrentParts()
-        if #currentParts > 0 then
-            rootPart = currentParts[1]
-        end
+    if not ragdoll or not ragdoll.Parent then
+        refreshParts()
+        if not ragdoll then return false end
     end
     
+    local rootPart = ragdoll:FindFirstChild("HumanoidRootPart") or ragdoll:FindFirstChild("Torso")
     if not rootPart then return false end
     
     for i,v in pairs(rootPart:GetChildren()) do
@@ -322,9 +296,8 @@ local function startSpin()
 end
 
 local function stopSpin()
-    local currentRagdoll = getCurrentRagdoll()
-    if currentRagdoll then
-        for _, part in pairs(currentRagdoll:GetChildren()) do
+    if ragdoll and ragdoll.Parent then
+        for _, part in pairs(ragdoll:GetChildren()) do
             if part:IsA("BasePart") then
                 for i,v in pairs(part:GetChildren()) do
                     if v.Name == "Spinning" then
@@ -337,20 +310,19 @@ local function stopSpin()
     spinning = false
 end
 
--- Dynamic flinging
 local function flingRagdoll()
     if not active then return end
     
-    local currentParts = getCurrentParts()
-    if #currentParts == 0 or not updateBoxCenter() then 
-        print("No parts found or box center invalid, refreshing ragdoll...")
-        refreshRagdollData()
-        return 
+    -- Refresh ragdoll if needed
+    if not ragdoll or not ragdoll.Parent then
+        if not refreshParts() then return end
     end
     
-    for _, part in ipairs(currentParts) do
+    if not updateBoxCenter() then return end
+    
+    for _, part in ipairs(parts) do
         if part and part.Parent and part:IsA("BasePart") then
-            -- Clean up existing body movers first
+            -- Clean existing body movers
             for _, obj in pairs(part:GetChildren()) do
                 if obj:IsA("BodyVelocity") and obj.Name ~= "Spinning" then
                     obj:Destroy()
@@ -377,7 +349,7 @@ local function flingRagdoll()
             bv.Parent = part
             Debris:AddItem(bv, flingInterval * 2)
             
-            -- Random impulse for extra chaos
+            -- Random impulse for chaos
             if math.random() > 0.7 then
                 local impulse = Instance.new("BodyVelocity")
                 impulse.Velocity = Vector3.new(
@@ -395,18 +367,16 @@ local function flingRagdoll()
 end
 
 local function safeStopAllMovement()
-    local currentParts = getCurrentParts()
-    
     -- Stop all body movers on all parts
-    for _, part in ipairs(currentParts) do
-        if part and part.Parent then
-            for _, obj in pairs(part:GetChildren()) do
-                if obj:IsA("BodyMover") then
-                    obj:Destroy()
-                end
-            end
-            -- Set velocity to zero immediately
+    if ragdoll and ragdoll.Parent then
+        for _, part in pairs(ragdoll:GetChildren()) do
             if part:IsA("BasePart") then
+                for _, obj in pairs(part:GetChildren()) do
+                    if obj:IsA("BodyMover") then
+                        obj:Destroy()
+                    end
+                end
+                -- Set velocity to zero immediately
                 part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                 part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
             end
@@ -425,13 +395,12 @@ local function safeStopAllMovement()
     walls = {}
 end
 
--- Improved start function
 local function startFling()
     print("Starting fling system...")
     
-    -- Refresh ragdoll data first
-    if not refreshRagdollData() then
-        print("Failed to initialize ragdoll!")
+    -- Get fresh ragdoll reference
+    if not refreshParts() then
+        print("Failed to find ragdoll!")
         return false
     end
     
@@ -445,30 +414,20 @@ local function startFling()
     end
     
     -- Start spinning
-    if not startSpin() then
-        print("Failed to start spinning!")
-    end
+    startSpin()
     
-    -- Start fling loop with better error handling
+    -- Fixed: Use spawn for the fling loop instead of RunService connection
     flingConnection = spawn(function()
         while active do
-            local success, err = pcall(flingRagdoll)
-            if not success then
-                print("Error in fling loop: " .. tostring(err))
-                wait(1) -- Wait longer on error
-            else
-                wait(flingInterval)
-            end
+            flingRagdoll()
+            wait(flingInterval)
         end
     end)
     
-    -- Keep bounds checking on Heartbeat for responsiveness
+    -- Keep bounds checking separate
     boundsConnection = RunService.Heartbeat:Connect(function()
         if active then
-            local success, err = pcall(keepInBounds)
-            if not success then
-                print("Error in bounds check: " .. tostring(err))
-            end
+            keepInBounds()
         end
     end)
     
@@ -480,6 +439,7 @@ local function stopFling()
     print("Stopping fling system...")
     active = false
     
+    -- Stop connections properly
     if flingConnection then
         flingConnection = nil
     end
@@ -519,7 +479,7 @@ local function stopAutoBuy(partName)
 end
 
 -- Initialize on script start
-refreshRagdollData()
+refreshParts()
 
 local Window = Fluent:CreateWindow({
     Title = "COMBO_WICK",
@@ -537,8 +497,11 @@ local Tabs = {
     AntiAFK = Window:AddTab({ Title = "No Kick", Icon = "shield" })
 }
 
--- GUI Toggle functionality
+-- Store reference to the Fluent window for toggling
+local FluentWindow = Window
 local guiVisible = true
+
+-- GUI Toggle functionality with comprehensive search
 local fluentGuis = {}
 
 local function findAllFluentGuis()
@@ -548,10 +511,12 @@ local function findAllFluentGuis()
         if gui:IsA("ScreenGui") and gui ~= ScreenGui then
             local isFluentGui = false
             
+            -- Check by name
             if gui.Name:lower():find("fluent") or gui.Name:lower():find("library") then
                 isFluentGui = true
             end
             
+            -- Check by structure
             if gui:FindFirstChild("Main") then
                 local main = gui.Main
                 if main:FindFirstChild("Navigation") and main:FindFirstChild("TabContainer") then
@@ -559,6 +524,7 @@ local function findAllFluentGuis()
                 end
             end
             
+            -- Check for specific elements
             for _, child in pairs(gui:GetDescendants()) do
                 if child.Name == "Acrylic" or child.Name == "DropShadow" or 
                    (child:IsA("TextLabel") and child.Text == "COMBO_WICK") then
@@ -612,7 +578,7 @@ Tabs.Main:AddToggle("BounceToggle", {
             else
                 Fluent:Notify({
                     Title = "Start Failed",
-                    Content = "Could not initialize fling system. Try refreshing character.",
+                    Content = "Could not initialize fling system. Try refreshing.",
                     Duration = 3
                 })
             end
@@ -636,16 +602,12 @@ Tabs.Main:AddSlider("PowerSlider", {
     Callback = function(Value)
         flingStrength = Value
         spinSpeed = math.floor(Value / 15)
-        if spinning then
-            local currentRagdoll = getCurrentRagdoll()
-            if currentRagdoll then
-                for _, part in pairs(currentRagdoll:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        for i,v in pairs(part:GetChildren()) do
-                            if v.Name == "Spinning" then
-                                v.AngularVelocity = Vector3.new(0, spinSpeed, 0)
-                            end
-                        end
+        if spinning and ragdoll and ragdoll.Parent then
+            local rootPart = ragdoll:FindFirstChild("HumanoidRootPart") or ragdoll:FindFirstChild("Torso")
+            if rootPart then
+                for i,v in pairs(rootPart:GetChildren()) do
+                    if v.Name == "Spinning" then
+                        v.AngularVelocity = Vector3.new(0, spinSpeed, 0)
                     end
                 end
             end
@@ -661,16 +623,12 @@ Tabs.Main:AddButton({
         currentPower = math.max(100, currentPower - 50)
         flingStrength = currentPower
         spinSpeed = math.floor(currentPower / 15)
-        if spinning then
-            local currentRagdoll = getCurrentRagdoll()
-            if currentRagdoll then
-                for _, part in pairs(currentRagdoll:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        for i,v in pairs(part:GetChildren()) do
-                            if v.Name == "Spinning" then
-                                v.AngularVelocity = Vector3.new(0, spinSpeed, 0)
-                            end
-                        end
+        if spinning and ragdoll and ragdoll.Parent then
+            local rootPart = ragdoll:FindFirstChild("HumanoidRootPart") or ragdoll:FindFirstChild("Torso")
+            if rootPart then
+                for i,v in pairs(rootPart:GetChildren()) do
+                    if v.Name == "Spinning" then
+                        v.AngularVelocity = Vector3.new(0, spinSpeed, 0)
                     end
                 end
             end
@@ -690,16 +648,12 @@ Tabs.Main:AddButton({
         currentPower = math.min(1000, currentPower + 50)
         flingStrength = currentPower
         spinSpeed = math.floor(currentPower / 15)
-        if spinning then
-            local currentRagdoll = getCurrentRagdoll()
-            if currentRagdoll then
-                for _, part in pairs(currentRagdoll:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        for i,v in pairs(part:GetChildren()) do
-                            if v.Name == "Spinning" then
-                                v.AngularVelocity = Vector3.new(0, spinSpeed, 0)
-                            end
-                        end
+        if spinning and ragdoll and ragdoll.Parent then
+            local rootPart = ragdoll:FindFirstChild("HumanoidRootPart") or ragdoll:FindFirstChild("Torso")
+            if rootPart then
+                for i,v in pairs(rootPart:GetChildren()) do
+                    if v.Name == "Spinning" then
+                        v.AngularVelocity = Vector3.new(0, spinSpeed, 0)
                     end
                 end
             end
@@ -707,34 +661,34 @@ Tabs.Main:AddButton({
         Fluent:Notify({
             Title = "Power Updated",
             Content = "Power set to: " .. currentPower,
-            Duration = 3
+            Duration = 2
         })
     end
 })
 
--- Add manual refresh button
+-- Add refresh button for manual reinitialization
 Tabs.Main:AddButton({
     Title = "Refresh Character",
-    Description = "Use if having issues or switched accounts",
+    Description = "Use if you switched accounts or having issues",
     Callback = function()
         print("Manual refresh triggered...")
         
-        -- Stop current system if running
+        -- Stop if running
         if active then
             stopFling()
         end
         
-        -- Force reinitialization
-        if refreshRagdollData() then
+        -- Force refresh
+        if refreshParts() then
             Fluent:Notify({
                 Title = "Character Refreshed",
-                Content = "Successfully reloaded for " .. player.Name,
+                Content = "Successfully reloaded for " .. Players.LocalPlayer.Name,
                 Duration = 3
             })
         else
             Fluent:Notify({
                 Title = "Refresh Failed",
-                Content = "Could not find ragdoll. Make sure you're spawned in game.",
+                Content = "Could not find ragdoll. Make sure you're spawned.",
                 Duration = 4
             })
         end
@@ -807,22 +761,20 @@ Tabs.AntiAFK:AddToggle("AntiAFKToggle", {
 
 Window:SelectTab(1)
 
--- Cleanup on character respawn
-player.CharacterAdded:Connect(function(newChar)
-    print("Character respawned, stopping current fling...")
+-- Simple respawn handling - just refresh parts, no complex logic
+Players.LocalPlayer.CharacterAdded:Connect(function(newChar)
+    print("Character respawned, refreshing...")
     
-    -- Stop current system if running
     if active then
         stopFling()
     end
     
-    -- Wait for character to fully load, then refresh
-    wait(3)
-    refreshRagdollData()
+    wait(2) -- Wait for character to fully load
+    refreshParts()
     
     Fluent:Notify({
         Title = "Respawn Detected",
-        Content = "Character reloaded. You can restart autofarm.",
+        Content = "Character refreshed. You can restart autofarm.",
         Duration = 4
     })
 end)
@@ -830,6 +782,6 @@ end)
 -- Initial notification
 Fluent:Notify({
     Title = "COMBO_WICK Loaded",
-    Content = "Use toggle button to hide GUI. Works with any account!",
+    Content = "Use the toggle button to hide/show GUI!",
     Duration = 5
 })
