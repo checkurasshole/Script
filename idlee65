@@ -12,7 +12,6 @@ local TweenService = game:GetService("TweenService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Create movable GUI toggle button
 local ScreenGui = Instance.new("ScreenGui")
 local ToggleButton = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
@@ -41,7 +40,6 @@ UIStroke.Parent = ToggleButton
 UIStroke.Color = Color3.fromRGB(0, 150, 255)
 UIStroke.Thickness = 2
 
--- Animate button on hover
 ToggleButton.MouseEnter:Connect(function()
     local tween = TweenService:Create(ToggleButton, TweenInfo.new(0.2), {
         BackgroundColor3 = Color3.fromRGB(60, 60, 60)
@@ -56,7 +54,6 @@ ToggleButton.MouseLeave:Connect(function()
     tween:Play()
 end)
 
--- ADVANCED FLING VARIABLES (Credits: Jesse_VIP)
 local flingActive = false
 local flingBox = Instance.new("Part")
 flingBox.Anchored = true
@@ -64,8 +61,10 @@ flingBox.CanCollide = false
 local flingStrength = 200
 local walls = {}
 local boxSize = Vector3.new(50, 30, 50)
+local currentPower = 300
+local boxCenter = nil
+local containmentConnection = nil
 
--- Function to get current root part
 local function getRoot()
     local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     return char:WaitForChild("HumanoidRootPart", 5)
@@ -73,18 +72,11 @@ end
 
 local rootPart = getRoot()
 
--- Update root when respawning/buying body (Credits: Jesse_VIP)
 LocalPlayer.CharacterAdded:Connect(function(newChar)
-    task.wait(1) -- wait a bit to load
+    task.wait(1)
     rootPart = newChar:WaitForChild("HumanoidRootPart", 5)
-    
-    -- Auto-restart fling if it was active
-    if flingActive then
-        print("Character respawned, continuing fling...")
-    end
 end)
 
--- SHOP AND AFK VARIABLES
 local autoBuyLeg = false
 local autoBuyArm = false
 local autoBuyTorso = false
@@ -93,11 +85,53 @@ local PurchaseBoneUpgrade = ReplicatedStorage.Remotes.PurchaseBoneUpgrade
 local afkConnections = {}
 local autoBuyLoops = {}
 
--- Create walls function
+-- Improved containment function
+local function enforceContainment()
+    if not rootPart or not boxCenter then return end
+    
+    local pos = rootPart.Position
+    local halfSize = boxSize / 2
+    local newPos = pos
+    local needsCorrection = false
+    
+    -- Check each axis and clamp position
+    if pos.X > boxCenter.X + halfSize.X - 5 then
+        newPos = Vector3.new(boxCenter.X + halfSize.X - 5, newPos.Y, newPos.Z)
+        needsCorrection = true
+    elseif pos.X < boxCenter.X - halfSize.X + 5 then
+        newPos = Vector3.new(boxCenter.X - halfSize.X + 5, newPos.Y, newPos.Z)
+        needsCorrection = true
+    end
+    
+    if pos.Y > boxCenter.Y + halfSize.Y - 5 then
+        newPos = Vector3.new(newPos.X, boxCenter.Y + halfSize.Y - 5, newPos.Z)
+        needsCorrection = true
+    elseif pos.Y < boxCenter.Y - halfSize.Y + 5 then
+        newPos = Vector3.new(newPos.X, boxCenter.Y - halfSize.Y + 5, newPos.Z)
+        needsCorrection = true
+    end
+    
+    if pos.Z > boxCenter.Z + halfSize.Z - 5 then
+        newPos = Vector3.new(newPos.X, newPos.Y, boxCenter.Z + halfSize.Z - 5)
+        needsCorrection = true
+    elseif pos.Z < boxCenter.Z - halfSize.Z + 5 then
+        newPos = Vector3.new(newPos.X, newPos.Y, boxCenter.Z - halfSize.Z + 5)
+        needsCorrection = true
+    end
+    
+    -- Apply correction with velocity dampening
+    if needsCorrection then
+        rootPart.CFrame = CFrame.new(newPos)
+        -- Reduce velocity when hitting walls to prevent bouncing through
+        local currentVel = rootPart.Velocity
+        rootPart.Velocity = currentVel * 0.5
+        rootPart.AngularVelocity = Vector3.new(0, 0, 0)
+    end
+end
+
 local function createWalls()
     if not rootPart then return end
     
-    -- Clear existing walls first
     for _, wall in ipairs(walls) do
         if wall and wall.Parent then
             wall:Destroy()
@@ -105,17 +139,17 @@ local function createWalls()
     end
     walls = {}
     
-    local center = rootPart.Position
+    boxCenter = rootPart.Position
     local s = boxSize/2
     
-    -- Create 6 walls around the player
+    -- Make walls much thicker (10 units instead of 2)
     local wallPositions = {
-        {center + Vector3.new(s.X, 0, 0), Vector3.new(2, boxSize.Y, boxSize.Z)},
-        {center - Vector3.new(s.X, 0, 0), Vector3.new(2, boxSize.Y, boxSize.Z)},
-        {center + Vector3.new(0, s.Y, 0), Vector3.new(boxSize.X, 2, boxSize.Z)},
-        {center - Vector3.new(0, s.Y, 0), Vector3.new(boxSize.X, 2, boxSize.Z)},
-        {center + Vector3.new(0, 0, s.Z), Vector3.new(boxSize.X, boxSize.Y, 2)},
-        {center - Vector3.new(0, 0, s.Z), Vector3.new(boxSize.X, boxSize.Y, 2)}
+        {boxCenter + Vector3.new(s.X, 0, 0), Vector3.new(10, boxSize.Y, boxSize.Z)},
+        {boxCenter - Vector3.new(s.X, 0, 0), Vector3.new(10, boxSize.Y, boxSize.Z)},
+        {boxCenter + Vector3.new(0, s.Y, 0), Vector3.new(boxSize.X, 10, boxSize.Z)},
+        {boxCenter - Vector3.new(0, s.Y, 0), Vector3.new(boxSize.X, 10, boxSize.Z)},
+        {boxCenter + Vector3.new(0, 0, s.Z), Vector3.new(boxSize.X, boxSize.Y, 10)},
+        {boxCenter - Vector3.new(0, 0, s.Z), Vector3.new(boxSize.X, boxSize.Y, 10)}
     }
     
     for _, wallData in ipairs(wallPositions) do
@@ -124,11 +158,20 @@ local function createWalls()
         wall.Anchored = true
         wall.CanCollide = true
         wall.Transparency = 0.3
-        wall.Material = Enum.Material.Neon
+        wall.Material = Enum.Material.ForceField
         wall.BrickColor = BrickColor.new("Bright blue")
         wall.Size = wallData[2]
         wall.Position = wallData[1]
         wall.Parent = workspace
+        
+        -- Add custom physics properties for better containment
+        wall.CustomPhysicalProperties = PhysicalProperties.new(
+            0.7,    -- Density
+            0.5,    -- Friction
+            0.2,    -- Elasticity (low to prevent bouncing)
+            1,      -- FrictionWeight
+            1       -- ElasticityWeight
+        )
         
         local selectionBox = Instance.new("SelectionBox")
         selectionBox.Adornee = wall
@@ -139,11 +182,8 @@ local function createWalls()
         
         table.insert(walls, wall)
     end
-    
-    print("Created " .. #walls .. " walls")
 end
 
--- Remove walls function
 local function removeWalls()
     for _, wall in ipairs(walls) do
         if wall and wall.Parent then
@@ -151,23 +191,36 @@ local function removeWalls()
         end
     end
     walls = {}
-    print("Removed all walls")
+    boxCenter = nil
 end
 
--- ADVANCED FLING MOVEMENT (Credits: Jesse_VIP)
+-- Improved fling system with better containment
 RunService.Heartbeat:Connect(function()
-    if flingActive and rootPart then
+    if flingActive and rootPart and boxCenter then
+        -- First enforce containment
+        enforceContainment()
+        
+        -- Then apply fling force, but keep it more controlled
         local pos = rootPart.Position
-        flingBox.Position = pos + Vector3.new(
-            math.random(-10, 10),
-            math.random(-10, 10),
-            math.random(-10, 10)
+        local randomOffset = Vector3.new(
+            math.random(-8, 8),
+            math.random(-8, 8), 
+            math.random(-8, 8)
         )
-        rootPart.Velocity = (flingBox.Position - pos).Unit * flingStrength
+        
+        local targetPos = boxCenter + randomOffset
+        local direction = (targetPos - pos).Unit
+        
+        -- Scale the force based on distance from center to create more natural movement
+        local distanceFromCenter = (pos - boxCenter).Magnitude
+        local maxDistance = (boxSize / 2).Magnitude
+        local forceMultiplier = math.min(1, distanceFromCenter / maxDistance)
+        
+        local adjustedStrength = flingStrength * (0.3 + forceMultiplier * 0.7)
+        rootPart.Velocity = direction * adjustedStrength
     end
 end)
 
--- Start fling function
 local function startFling()
     if not rootPart then
         rootPart = getRoot()
@@ -183,26 +236,31 @@ local function startFling()
     flingBox.Size = Vector3.new(10, 10, 10)
     flingBox.Parent = workspace
     
+    -- Start containment enforcement
+    containmentConnection = RunService.Heartbeat:Connect(enforceContainment)
+    
     return true
 end
 
--- Stop fling function
 local function stopFling()
     flingActive = false
     removeWalls()
+    
+    if containmentConnection then
+        containmentConnection:Disconnect()
+        containmentConnection = nil
+    end
     
     if flingBox and flingBox.Parent then
         flingBox.Parent = nil
     end
     
-    -- Stop character movement
     if rootPart then
         rootPart.Velocity = Vector3.new(0, 0, 0)
         rootPart.AngularVelocity = Vector3.new(0, 0, 0)
     end
 end
 
--- Anti-AFK functions
 local function startAntiAFK()
     afkConnections[1] = game:GetService("Players").LocalPlayer.Idled:connect(function()
         VirtualUser:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
@@ -243,7 +301,6 @@ local function stopAntiAFK()
     afkConnections = {}
 end
 
--- Auto-buy functions
 local function startAutoBuy(partName)
     autoBuyLoops[partName] = spawn(function()
         while true do
@@ -267,7 +324,6 @@ local function stopAutoBuy(partName)
     end
 end
 
--- Create Fluent GUI
 local Window = Fluent:CreateWindow({
     Title = "COMBO_WICK",
     SubTitle = "",
@@ -284,7 +340,6 @@ local Tabs = {
     AntiAFK = Window:AddTab({ Title = "No Kick", Icon = "shield" })
 }
 
--- GUI Toggle functionality
 local guiVisible = true
 local fluentGuis = {}
 
@@ -343,48 +398,48 @@ ToggleButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Main tab controls
 Tabs.Main:AddToggle("BounceToggle", {
-    Title = "Start Autofarm",
+    Title = "Start",
     Default = false,
     Callback = function(Value)
         if Value then
-            if startFling() then
-                Fluent:Notify({
-                    Title = "Autofarm Started",
-                    Content = "Advanced fling system is now active!",
-                    Duration = 3
-                })
-            else
-                Fluent:Notify({
-                    Title = "Start Failed",
-                    Content = "Could not initialize fling system. Try again.",
-                    Duration = 3
-                })
-            end
+            startFling()
         else
             stopFling()
-            Fluent:Notify({
-                Title = "Autofarm Stopped", 
-                Content = "Fling system disabled and walls removed.",
-                Duration = 3
-            })
         end
     end
 })
 
 Tabs.Main:AddSlider("PowerSlider", {
-    Title = "Fling Power",
-    Default = 200,
-    Min = 50,
-    Max = 500,
+    Title = "Power & Speed",
+    Default = 300,
+    Min = 100,
+    Max = 1000,
     Rounding = 10,
     Callback = function(Value)
         flingStrength = Value
+        currentPower = Value
     end
 })
 
--- Shop tab controls
+Tabs.Main:AddButton({
+    Title = "Power -50",
+    Description = "Decrease power by 50",
+    Callback = function()
+        currentPower = math.max(100, currentPower - 50)
+        flingStrength = currentPower
+    end
+})
+
+Tabs.Main:AddButton({
+    Title = "Power +50",
+    Description = "Increase power by 50",
+    Callback = function()
+        currentPower = math.min(1000, currentPower + 50)
+        flingStrength = currentPower
+    end
+})
+
 Tabs.Shop:AddToggle("AutoLeg", {
     Title = "Auto Buy Legs",
     Default = false,
@@ -437,8 +492,7 @@ Tabs.Shop:AddToggle("AutoHead", {
     end
 })
 
--- Anti-AFK tab
-Tabs.AntiAFK:AddToggle("AntiAFKToggle", {
+Tabs.AntiAFK:AddToggle("Anti Kick", {
     Title = "Anti AFK",
     Default = false,
     Callback = function(Value)
@@ -451,10 +505,3 @@ Tabs.AntiAFK:AddToggle("AntiAFKToggle", {
 })
 
 Window:SelectTab(1)
-
--- Initial notification
-Fluent:Notify({
-    Title = "COMBO_WICK Loaded",
-    Content = "Simple fling system with auto-respawn support loaded!",
-    Duration = 5
-})
