@@ -12,6 +12,17 @@ local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
+-- Function to update player reference (for account switching)
+local function updatePlayerReference()
+    local newPlayer = Players.LocalPlayer
+    if newPlayer ~= player then
+        print("Account switch detected! Updating player reference...")
+        player = newPlayer
+        return true
+    end
+    return false
+end
+
 -- Create movable GUI toggle button
 local ScreenGui = Instance.new("ScreenGui")
 local ToggleButton = Instance.new("TextButton")
@@ -81,6 +92,9 @@ local autoBuyLoops = {}
 
 -- FIXED: Function to properly initialize character and ragdoll
 local function initializeCharacterAndRagdoll()
+    -- Check for account switch first
+    updatePlayerReference()
+    
     char = player.Character or player.CharacterAdded:Wait()
     
     -- Wait for ragdoll to exist
@@ -96,8 +110,14 @@ local function initializeCharacterAndRagdoll()
     end
     
     -- Keep trying to find ragdoll
+    local attempts = 0
     repeat
         wait(0.1)
+        attempts = attempts + 1
+        if attempts > 50 then -- 5 second timeout
+            print("Timeout waiting for ragdoll. Make sure you're in the game properly.")
+            return false
+        end
     until findRagdoll()
     
     -- Update parts list
@@ -108,16 +128,21 @@ local function initializeCharacterAndRagdoll()
         end
     end
     
-    print("Character and ragdoll initialized! Found " .. #parts .. " parts")
+    print("Character and ragdoll initialized for " .. player.Name .. "! Found " .. #parts .. " parts")
     return ragdoll ~= nil
 end
 
 -- FIXED: Function to refresh ragdoll and parts when needed
 local function refreshRagdollData()
+    -- Check for account switch
+    if updatePlayerReference() then
+        print("Account switched, need full reinitialization")
+        return initializeCharacterAndRagdoll()
+    end
+    
     if not ragdoll or not ragdoll.Parent then
         print("Ragdoll lost, reinitializing...")
-        initializeCharacterAndRagdoll()
-        return true
+        return initializeCharacterAndRagdoll()
     end
     
     -- Check if parts are still valid
@@ -650,13 +675,30 @@ ToggleButton.MouseButton1Click:Connect(function()
 end)
 
 Tabs.Main:AddToggle("BounceToggle", {
-    Title = "Start",
+    Title = "Start Autofarm",
     Default = false,
     Callback = function(Value)
         if Value then
-            startFling()
+            if startFling() then
+                Fluent:Notify({
+                    Title = "Autofarm Started",
+                    Content = "Fling system is now active!",
+                    Duration = 3
+                })
+            else
+                Fluent:Notify({
+                    Title = "Start Failed",
+                    Content = "Could not initialize fling system. Try again.",
+                    Duration = 3
+                })
+            end
         else
             stopFling()
+            Fluent:Notify({
+                Title = "Autofarm Stopped", 
+                Content = "Fling system has been disabled.",
+                Duration = 3
+            })
         end
     end
 })
@@ -704,6 +746,11 @@ Tabs.Main:AddButton({
                 end
             end
         end
+        Fluent:Notify({
+            Title = "Power Updated",
+            Content = "Power set to: " .. currentPower,
+            Duration = 2
+        })
     end
 })
 
@@ -725,6 +772,11 @@ Tabs.Main:AddButton({
                 end
             end
         end
+        Fluent:Notify({
+            Title = "Power Updated",
+            Content = "Power set to: " .. currentPower,
+            Duration = 3
+        })
     end
 })
 
@@ -809,14 +861,70 @@ player.CharacterAdded:Connect(function(newChar)
     -- Reinitialize everything
     if initializeCharacterAndRagdoll() then
         print("Successfully reinitialized after respawn!")
+        Fluent:Notify({
+            Title = "Respawn Detected",
+            Content = "System reinitialized. You can restart autofarm.",
+            Duration = 4
+        })
     else
         print("Failed to reinitialize after respawn")
+        Fluent:Notify({
+            Title = "Respawn Issue",
+            Content = "Please wait and try starting autofarm again.",
+            Duration = 4
+        })
+    end
+end)
+
+-- Add manual refresh button for account switches
+Tabs.Main:AddButton({
+    Title = "🔄 Refresh Character",
+    Description = "Use this if you switched accounts or having issues",
+    Callback = function()
+        print("Manual refresh triggered...")
+        
+        -- Stop current system if running
+        if active then
+            stopFling()
+        end
+        
+        -- Force reinitialization
+        if initializeCharacterAndRagdoll() then
+            Fluent:Notify({
+                Title = "Character Refreshed",
+                Content = "Successfully reloaded for " .. player.Name,
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Refresh Failed",
+                Content = "Could not find ragdoll. Make sure you're spawned in game.",
+                Duration = 4
+            })
+        end
+    end
+})
+
+-- Monitor for player changes more frequently
+spawn(function()
+    while wait(1) do
+        if updatePlayerReference() then
+            print("Account switch detected in background!")
+            if active then
+                stopFling()
+                Fluent:Notify({
+                    Title = "Account Switch Detected",
+                    Content = "Please use Refresh Character button and restart autofarm.",
+                    Duration = 5
+                })
+            end
+        end
     end
 end)
 
 -- Initial notification
 Fluent:Notify({
     Title = "COMBO_WICK Loaded",
-    Content = "Use the toggle button to hide/show GUI!",
+    Content = "Use the toggle button to hide/show GUI! Fixed respawn issues.",
     Duration = 5
 })
