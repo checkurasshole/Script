@@ -1,0 +1,84 @@
+-- Advanced OP Fling Box with Respawn/Body Support
+-- Credits: Jesse_VIP
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Variables
+local flingActive = false
+local flingBox = Instance.new("Part")
+flingBox.Anchored = true
+flingBox.CanCollide = false
+flingBox.Transparency = 1
+flingBox.Size = Vector3.new(10, 10, 10)
+flingBox.Parent = workspace
+
+-- Function to get current root part
+local function getRoot()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    return char:WaitForChild("HumanoidRootPart", 5)
+end
+
+local rootPart = getRoot()
+
+-- Update root when respawning/buying body
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+    task.wait(1) -- wait a bit to load
+    rootPart = newChar:WaitForChild("HumanoidRootPart", 5)
+end)
+
+-- Fling movement
+RunService.Heartbeat:Connect(function()
+    if flingActive and rootPart then
+        local pos = rootPart.Position
+        flingBox.Position = pos + Vector3.new(
+            math.random(-10, 10),
+            math.random(-10, 10),
+            math.random(-10, 10)
+        )
+        rootPart.Velocity = (flingBox.Position - pos).Unit * 200
+    end
+end)
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 200, 0, 100)
+Frame.Position = UDim2.new(0.05, 0, 0.3, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Frame.Active = true
+Frame.Draggable = true
+
+local UICorner = Instance.new("UICorner", Frame)
+UICorner.CornerRadius = UDim.new(0,12)
+
+local StartButton = Instance.new("TextButton", Frame)
+StartButton.Size = UDim2.new(1, -20, 0.4, -10)
+StartButton.Position = UDim2.new(0, 10, 0, 10)
+StartButton.Text = "Start Fling"
+StartButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
+StartButton.TextColor3 = Color3.new(1,1,1)
+StartButton.Font = Enum.Font.SourceSansBold
+StartButton.TextSize = 18
+Instance.new("UICorner", StartButton).CornerRadius = UDim.new(0,8)
+
+local StopButton = Instance.new("TextButton", Frame)
+StopButton.Size = UDim2.new(1, -20, 0.4, -10)
+StopButton.Position = UDim2.new(0, 10, 0.55, 0)
+StopButton.Text = "Stop Fling"
+StopButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
+StopButton.TextColor3 = Color3.new(1,1,1)
+StopButton.Font = Enum.Font.SourceSansBold
+StopButton.TextSize = 18
+Instance.new("UICorner", StopButton).CornerRadius = UDim.new(0,8)
+
+-- Button functions
+StartButton.MouseButton1Click:Connect(function()
+    flingActive = true
+end)
+
+StopButton.MouseButton1Click:Connect(function()
+    flingActive = false
+end)
