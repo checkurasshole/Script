@@ -255,7 +255,7 @@ local function startSpin()
     end
     
     local Spin = Instance.new("BodyAngularVelocity")
-    Spin.Name = "Giro"
+    Spin.Name = "Spinning"
     Spin.Parent = rootPart
     Spin.MaxTorque = Vector3.new(0, math.huge, 0)
     Spin.AngularVelocity = Vector3.new(0, spinSpeed, 0)
@@ -283,11 +283,8 @@ local function flingRagdoll()
             local minBounds = boxCenter - s
             local maxBounds = boxCenter + s
             
-            if partPos.X <= minBounds.X or partPos.X >= maxBounds.X or
-               partPos.Y <= minBounds.Y or partPos.Y >= maxBounds.Y or
-               partPos.Z <= minBounds.Z or partPos.Z >= maxBounds.Z then
-                return
-            end
+            -- FIXED: Removed the early return that was breaking continuous flinging
+            -- Just continue the loop instead of returning early
             
             for _, obj in pairs(part:GetChildren()) do
                 if obj:IsA("BodyVelocity") and obj.Name ~= "Spinning" then
@@ -432,9 +429,9 @@ local Window = Fluent:CreateWindow({
 })
 
 local Tabs = {
-    Main = Window:AddTab({ Title = "Principal", Icon = "activity" }),
-    Shop = Window:AddTab({ Title = "Tienda", Icon = "shopping-cart" }),
-    AntiAFK = Window:AddTab({ Title = "Sin patada", Icon = "shield" })
+    Main = Window:AddTab({ Title = "Main", Icon = "activity" }),
+    Shop = Window:AddTab({ Title = "Shop", Icon = "shopping-cart" }),
+    AntiAFK = Window:AddTab({ Title = "No Kick", Icon = "shield" })
 }
 
 -- Store reference to the Fluent window for toggling
@@ -510,7 +507,7 @@ ToggleButton.MouseButton1Click:Connect(function()
 end)
 
 Tabs.Main:AddToggle("BounceToggle", {
-    Title = "Comienzo",
+    Title = "Start",
     Default = false,
     Callback = function(Value)
         if Value then
@@ -523,7 +520,7 @@ Tabs.Main:AddToggle("BounceToggle", {
 
 -- Mobile-friendly slider with better increment buttons
 Tabs.Main:AddSlider("PowerSlider", {
-    Title = "Potencia y velocidad",
+    Title = "Power & Speed",
     Default = 300,
     Min = 100,
     Max = 1000,
@@ -547,7 +544,7 @@ Tabs.Main:AddSlider("PowerSlider", {
 -- Add mobile-friendly buttons for power adjustment
 local currentPower = 300
 Tabs.Main:AddButton({
-    Title = "Potencia -50",
+    Title = "Power -50",
     Description = "Decrease power by 50",
     Callback = function()
         currentPower = math.max(100, currentPower - 50)
@@ -564,7 +561,7 @@ Tabs.Main:AddButton({
             end
         end
         Fluent:Notify({
-            Title = "Potencia actualizada",
+            Title = "Power Updated",
             Content = "Power set to: " .. currentPower,
             Duration = 2
         })
@@ -572,7 +569,7 @@ Tabs.Main:AddButton({
 })
 
 Tabs.Main:AddButton({
-    Title = "Potencia +50",
+    Title = "Power +50",
     Description = "Increase power by 50",
     Callback = function()
         currentPower = math.min(1000, currentPower + 50)
@@ -589,7 +586,7 @@ Tabs.Main:AddButton({
             end
         end
         Fluent:Notify({
-            Title = "Potencia actualizada",
+            Title = "Power Updated",
             Content = "Power set to: " .. currentPower,
             Duration = 2
         })
@@ -597,7 +594,7 @@ Tabs.Main:AddButton({
 })
 
 Tabs.Shop:AddToggle("AutoLeg", {
-    Title = "Comprar auto piernas",
+    Title = "Auto Buy Legs",
     Default = false,
     Callback = function(Value)
         autoBuyLeg = Value
@@ -610,7 +607,7 @@ Tabs.Shop:AddToggle("AutoLeg", {
 })
 
 Tabs.Shop:AddToggle("AutoArm", {
-    Title = "Auto comprar armas", 
+    Title = "Auto Buy Arms", 
     Default = false,
     Callback = function(Value)
         autoBuyArm = Value
@@ -623,7 +620,7 @@ Tabs.Shop:AddToggle("AutoArm", {
 })
 
 Tabs.Shop:AddToggle("AutoTorso", {
-    Title = "Auto comprar Torso",
+    Title = "Auto Buy Torso",
     Default = false,
     Callback = function(Value)
         autoBuyTorso = Value
@@ -636,7 +633,7 @@ Tabs.Shop:AddToggle("AutoTorso", {
 })
 
 Tabs.Shop:AddToggle("AutoHead", {
-    Title = "Cabezal de compra automática",
+    Title = "Auto Buy Head",
     Default = false,
     Callback = function(Value)
         autoBuyHead = Value
@@ -649,7 +646,7 @@ Tabs.Shop:AddToggle("AutoHead", {
 })
 
 Tabs.AntiAFK:AddToggle("AntiAFKToggle", {
-    Title = "Anti-AFK",
+    Title = "Anti AFK",
     Default = false,
     Callback = function(Value)
         if Value then
@@ -671,7 +668,7 @@ end)
 
 -- Initial notification
 Fluent:Notify({
-    Title = "COMBO_WICK Cargado",
-    Content = "¡Usa el botón toggle para ocultar/mostrar GUI!",
+    Title = "COMBO_WICK Loaded",
+    Content = "Use the toggle button to hide/show GUI!",
     Duration = 5
 })
