@@ -1,3 +1,6 @@
+-- Language-gui Script (GUI)
+-- Generated on: 8/29/2025, 11:23:04 PM
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
@@ -19,16 +22,14 @@ local function getGuiParent()
 end
 
 local scripts = {
-    ["English"] = "https://v0-supabase-secure-storage.vercel.app/api/script/2ca1518801a95abf0dceb898774fa182",
-    ["Spanish"] = "https://v0-supabase-secure-storage.vercel.app/api/script/425c10591636b349a5456123f62525cc",
-    ["French"] = "https://v0-supabase-secure-storage.vercel.app/api/script/8fb045f66efad6902406cbc37fc784d9",
-    ["German"] = "https://v0-supabase-secure-storage.vercel.app/api/script/4add95d043e6ec6592040933dbdab6a7",
-    ["Japanese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/b699b2b29ec83ce7a2e8798a35b260a1",
-    ["Korean"] = "https://v0-supabase-secure-storage.vercel.app/api/script/7d505b0fb0737bd9a2407b08cd8b842e",
-    ["Russian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/1694a20b41df81c0420171bdb551fdff",
-    ["Portuguese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/2aa0851468c4314320b52158d2cb1b3e",
-    ["Italian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/357a51dd4143702b19e0777e9616df04",
-    ["Thai"] = "https://v0-supabase-secure-storage.vercel.app/api/script/52e366a1608ace82f970eec1078d4462"
+    ["English"] = "https://v0-supabase-secure-storage.vercel.app/api/script/8b34a206470cb87356cbc7525e689281",
+    ["Spanish"] = "https://v0-supabase-secure-storage.vercel.app/api/script/b4907702d5112208be2b50d1c2bf9b6b",
+    ["French"] = "https://v0-supabase-secure-storage.vercel.app/api/script/1df9b6ddfb510f74b17138e909391a14",
+    ["Thai"] = "https://v0-supabase-secure-storage.vercel.app/api/script/74cce33ea580add3688da92bb09ac0ba",
+    ["Russian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/04d7219e6b3dcbfe3c36978d7f112ee6",
+    ["German"] = "https://v0-supabase-secure-storage.vercel.app/api/script/fc30e6d6d453854a0bcc28ecf76a7c38",
+    ["Japanese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/a38a72ca47db369ce214ab32fc46519a",
+    ["Korean"] = "https://v0-supabase-secure-storage.vercel.app/api/script/9ab5f97ffe76aa4a3c70f458a59e038a"
 }
 
 local SAVE_KEY = "LanguageSelector_" .. game.GameId .. "_SavedSettings"
@@ -37,8 +38,6 @@ local savedLanguage = nil
 local currentScale = 1
 local minScale = 0.5
 local maxScale = 2
-
-local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 
 local function saveSettings()
     if autoSaveEnabled and savedLanguage then
@@ -94,10 +93,8 @@ pcall(function()
     screenGui.IgnoreGuiInset = true
 end)
 
-local baseFrameWidth = isMobile and 320 or 460
-local baseFrameHeight = isMobile and 420 or 640
-local frameWidth = baseFrameWidth * currentScale
-local frameHeight = baseFrameHeight * currentScale
+local frameWidth = 280
+local frameHeight = 380
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
@@ -109,7 +106,7 @@ mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
 
 local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, (isMobile and 20 or 28) * currentScale)
+mainCorner.CornerRadius = UDim.new(0, 18)
 mainCorner.Parent = mainFrame
 
 local shadowFrame = Instance.new("Frame")
@@ -123,7 +120,7 @@ shadowFrame.BorderSizePixel = 0
 shadowFrame.Parent = mainFrame
 
 local shadowCorner = Instance.new("UICorner")
-shadowCorner.CornerRadius = UDim.new(0, (isMobile and 25 or 33) * currentScale)
+shadowCorner.CornerRadius = UDim.new(0, 23)
 shadowCorner.Parent = shadowFrame
 
 local gradient = Instance.new("UIGradient")
@@ -139,7 +136,7 @@ gradient.Parent = mainFrame
 local innerStroke = Instance.new("UIStroke")
 innerStroke.Color = Color3.fromRGB(120, 140, 255)
 innerStroke.Transparency = 0.2
-innerStroke.Thickness = 3 * currentScale
+innerStroke.Thickness = 2
 innerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 innerStroke.Parent = mainFrame
 
@@ -191,260 +188,126 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-local function updateFrameScale()
-    frameWidth = baseFrameWidth * currentScale
-    frameHeight = baseFrameHeight * currentScale
-    
-    local scaleTween = TweenService:Create(mainFrame,
-        TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {
-            Size = UDim2.new(0, frameWidth, 0, frameHeight),
-            Position = UDim2.new(0.5, -frameWidth/2, 0.5, -frameHeight/2)
-        }
-    )
-    scaleTween:Play()
-    
-    local cornerTween = TweenService:Create(mainCorner,
-        TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {CornerRadius = UDim.new(0, (isMobile and 20 or 28) * currentScale)}
-    )
-    cornerTween:Play()
-    
-    local shadowTween = TweenService:Create(shadowCorner,
-        TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {CornerRadius = UDim.new(0, (isMobile and 25 or 33) * currentScale)}
-    )
-    shadowTween:Play()
-    
-    local strokeTween = TweenService:Create(innerStroke,
-        TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {Thickness = 3 * currentScale}
-    )
-    strokeTween:Play()
-    
-    if isMobile and resizeMinusButton and resizePlusButton then
-        local buttonSize = UDim2.new(0, 32 * currentScale, 0, 32 * currentScale)
-        
-        TweenService:Create(resizeMinusButton, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {Size = buttonSize, Position = UDim2.new(1, -85 * currentScale, 0, 12 * currentScale), TextSize = 16 * currentScale}):Play()
-        
-        TweenService:Create(resizePlusButton, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {Size = buttonSize, Position = UDim2.new(1, -125 * currentScale, 0, 12 * currentScale), TextSize = 16 * currentScale}):Play()
-        
-        TweenService:Create(resizeMinusButton:FindFirstChild("UICorner"), TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {CornerRadius = UDim.new(0, 20 * currentScale)}):Play()
-        
-        TweenService:Create(resizePlusButton:FindFirstChild("UICorner"), TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {CornerRadius = UDim.new(0, 20 * currentScale)}):Play()
-    end
-    
-    saveSettings()
-end
-
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    
-    if input.KeyCode == Enum.KeyCode.Equals or input.KeyCode == Enum.KeyCode.Plus then
-        if currentScale < maxScale then
-            currentScale = math.min(maxScale, currentScale + 0.1)
-            updateFrameScale()
-        end
-    elseif input.KeyCode == Enum.KeyCode.Minus then
-        if currentScale > minScale then
-            currentScale = math.max(minScale, currentScale - 0.1)
-            updateFrameScale()
-        end
-    end
-end)
-
 local title = Instance.new("TextLabel")
 title.Name = "Title"
-title.Size = UDim2.new(1, -60, 0, (isMobile and 42 or 70) * currentScale)
-title.Position = UDim2.new(0, 15 * currentScale, 0, 15 * currentScale)
+title.Size = UDim2.new(1, -60, 0, 35)
+title.Position = UDim2.new(0, 15, 0, 10)
 title.BackgroundTransparency = 1
-title.Text = isMobile and "🌍 SELECT LANGUAGE" or "🌍 SELECT YOUR LANGUAGE"
+title.Text = "🌍 SELECT LANGUAGE"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = (isMobile and 18 or 28) * currentScale
+title.TextSize = 16
 title.Font = Enum.Font.SourceSansBold
 title.TextScaled = true
 title.Parent = mainFrame
 
 local titleStroke = Instance.new("UIStroke")
 titleStroke.Color = Color3.fromRGB(120, 200, 255)
-titleStroke.Thickness = 1 * currentScale
+titleStroke.Thickness = 1
 titleStroke.Transparency = 0.5
 titleStroke.Parent = title
 
 local subtitle = Instance.new("TextLabel")
 subtitle.Name = "Subtitle"
-subtitle.Size = UDim2.new(1, -30, 0, (isMobile and 22 or 35) * currentScale)
-subtitle.Position = UDim2.new(0, 15 * currentScale, 0, (isMobile and 57 or 85) * currentScale)
+subtitle.Size = UDim2.new(1, -30, 0, 20)
+subtitle.Position = UDim2.new(0, 15, 0, 45)
 subtitle.BackgroundTransparency = 1
-subtitle.Text = isMobile and "Tap to load your preferred script" or "Choose your preferred language • Drag to move • +/- to resize"
+subtitle.Text = "Choose preferred language • Drag to move"
 subtitle.TextColor3 = Color3.fromRGB(180, 200, 255)
-subtitle.TextSize = (isMobile and 11 or 16) * currentScale
+subtitle.TextSize = 10
 subtitle.Font = Enum.Font.SourceSansItalic
 subtitle.TextScaled = true
 subtitle.Parent = mainFrame
 
 local closeButton = Instance.new("TextButton")
 closeButton.Name = "CloseButton"
-closeButton.Size = UDim2.new(0, (isMobile and 32 or 36) * currentScale, 0, (isMobile and 32 or 36) * currentScale)
-closeButton.Position = UDim2.new(1, (isMobile and -45 or -50) * currentScale, 0, (isMobile and 12 or 15) * currentScale)
+closeButton.Size = UDim2.new(0, 25, 0, 25)
+closeButton.Position = UDim2.new(1, -32, 0, 8)
 closeButton.BackgroundColor3 = Color3.fromRGB(255, 60, 80)
 closeButton.BackgroundTransparency = 0.1
 closeButton.BorderSizePixel = 0
 closeButton.Text = "✕"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = (isMobile and 14 or 16) * currentScale
+closeButton.TextSize = 12
 closeButton.Font = Enum.Font.GothamBold
 closeButton.Parent = mainFrame
 
 local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, (isMobile and 20 or 18) * currentScale)
+closeCorner.CornerRadius = UDim.new(0, 12)
 closeCorner.Parent = closeButton
 
 local closeStroke = Instance.new("UIStroke")
 closeStroke.Color = Color3.fromRGB(255, 100, 120)
-closeStroke.Thickness = 2 * currentScale
+closeStroke.Thickness = 1
 closeStroke.Transparency = 0.3
 closeStroke.Parent = closeButton
 
-local resizeMinusButton, resizePlusButton
-
-if isMobile then
-    resizeMinusButton = Instance.new("TextButton")
-    resizeMinusButton.Name = "ResizeMinusButton"
-    resizeMinusButton.Size = UDim2.new(0, 32 * currentScale, 0, 32 * currentScale)
-    resizeMinusButton.Position = UDim2.new(1, -85 * currentScale, 0, 12 * currentScale)
-    resizeMinusButton.BackgroundColor3 = Color3.fromRGB(80, 120, 255)
-    resizeMinusButton.BackgroundTransparency = 0.1
-resizeMinusButton.BorderSizePixel = 0
-    resizeMinusButton.Text = "−"
-    resizeMinusButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    resizeMinusButton.TextSize = 16 * currentScale
-    resizeMinusButton.Font = Enum.Font.GothamBold
-    resizeMinusButton.Parent = mainFrame
-
-    local minusCorner = Instance.new("UICorner")
-    minusCorner.CornerRadius = UDim.new(0, 20 * currentScale)
-    minusCorner.Parent = resizeMinusButton
-
-    local minusStroke = Instance.new("UIStroke")
-    minusStroke.Color = Color3.fromRGB(120, 160, 255)
-    minusStroke.Thickness = 2 * currentScale
-    minusStroke.Transparency = 0.3
-    minusStroke.Parent = resizeMinusButton
-
-    resizePlusButton = Instance.new("TextButton")
-    resizePlusButton.Name = "ResizePlusButton"
-    resizePlusButton.Size = UDim2.new(0, 32 * currentScale, 0, 32 * currentScale)
-    resizePlusButton.Position = UDim2.new(1, -125 * currentScale, 0, 12 * currentScale)
-    resizePlusButton.BackgroundColor3 = Color3.fromRGB(80, 255, 120)
-    resizePlusButton.BackgroundTransparency = 0.1
-    resizePlusButton.BorderSizePixel = 0
-    resizePlusButton.Text = "+"
-    resizePlusButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    resizePlusButton.TextSize = 16 * currentScale
-    resizePlusButton.Font = Enum.Font.GothamBold
-    resizePlusButton.Parent = mainFrame
-
-    local plusCorner = Instance.new("UICorner")
-    plusCorner.CornerRadius = UDim.new(0, 20 * currentScale)
-    plusCorner.Parent = resizePlusButton
-
-    local plusStroke = Instance.new("UIStroke")
-    plusStroke.Color = Color3.fromRGB(120, 255, 160)
-    plusStroke.Thickness = 2 * currentScale
-    plusStroke.Transparency = 0.3
-    plusStroke.Parent = resizePlusButton
-end
-
-if isMobile and resizeMinusButton and resizePlusButton then
-    resizeMinusButton.MouseButton1Click:Connect(function()
-        if currentScale > minScale then
-            currentScale = math.max(minScale, currentScale - 0.1)
-            updateFrameScale()
-        end
-    end)
-    
-    resizePlusButton.MouseButton1Click:Connect(function()
-        if currentScale < maxScale then
-            currentScale = math.min(maxScale, currentScale + 0.1)
-            updateFrameScale()
-        end
-    end)
-end
-
 local autoSaveFrame = Instance.new("Frame")
 autoSaveFrame.Name = "AutoSaveFrame"
-autoSaveFrame.Size = UDim2.new(1, -30, 0, (isMobile and 35 or 48) * currentScale)
-autoSaveFrame.Position = UDim2.new(0, 15 * currentScale, 0, (isMobile and 85 or 130) * currentScale)
+autoSaveFrame.Size = UDim2.new(1, -30, 0, 32)
+autoSaveFrame.Position = UDim2.new(0, 15, 0, 70)
 autoSaveFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 autoSaveFrame.BackgroundTransparency = 0.92
 autoSaveFrame.BorderSizePixel = 0
 autoSaveFrame.Parent = mainFrame
 
 local autoSaveCorner = Instance.new("UICorner")
-autoSaveCorner.CornerRadius = UDim.new(0, 12 * currentScale)
+autoSaveCorner.CornerRadius = UDim.new(0, 8)
 autoSaveCorner.Parent = autoSaveFrame
 
 local autoSaveStroke = Instance.new("UIStroke")
 autoSaveStroke.Color = Color3.fromRGB(200, 220, 255)
 autoSaveStroke.Transparency = 0.6
-autoSaveStroke.Thickness = 1.5 * currentScale
+autoSaveStroke.Thickness = 1
 autoSaveStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 autoSaveStroke.Parent = autoSaveFrame
 
 local autoSaveLabel = Instance.new("TextLabel")
 autoSaveLabel.Name = "AutoSaveLabel"
-autoSaveLabel.Size = UDim2.new(1, (isMobile and -50 or -70) * currentScale, 1, 0)
-autoSaveLabel.Position = UDim2.new(0, 12 * currentScale, 0, 0)
+autoSaveLabel.Size = UDim2.new(1, -45, 1, 0)
+autoSaveLabel.Position = UDim2.new(0, 10, 0, 0)
 autoSaveLabel.BackgroundTransparency = 1
-autoSaveLabel.Text = isMobile and "💾 Auto-Save Settings" or "💾 Automatically Save Language Choice"
+autoSaveLabel.Text = "💾 Auto-Save Settings"
 autoSaveLabel.TextColor3 = Color3.fromRGB(220, 230, 255)
-autoSaveLabel.TextSize = (isMobile and 11 or 15) * currentScale
+autoSaveLabel.TextSize = 10
 autoSaveLabel.Font = Enum.Font.SourceSans
 autoSaveLabel.TextXAlignment = Enum.TextXAlignment.Left
 autoSaveLabel.TextScaled = true
 autoSaveLabel.Parent = autoSaveFrame
 
-local toggleSize = (isMobile and 35 or 48) * currentScale
 local autoSaveToggle = Instance.new("TextButton")
 autoSaveToggle.Name = "AutoSaveToggle"
-autoSaveToggle.Size = UDim2.new(0, toggleSize, 0, (isMobile and 18 or 24) * currentScale)
-autoSaveToggle.Position = UDim2.new(1, -toggleSize - 8 * currentScale, 0.5, (isMobile and -9 or -12) * currentScale)
+autoSaveToggle.Size = UDim2.new(0, 35, 0, 16)
+autoSaveToggle.Position = UDim2.new(1, -40, 0.5, -8)
 autoSaveToggle.BackgroundColor3 = autoSaveEnabled and Color3.fromRGB(100, 220, 120) or Color3.fromRGB(120, 120, 140)
 autoSaveToggle.BorderSizePixel = 0
 autoSaveToggle.Text = ""
-autoSaveToggle.Parent = autoSaveFrame
+autoSaveToggle.Parent = mainFrame
 
 local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, (isMobile and 12 or 12) * currentScale)
+toggleCorner.CornerRadius = UDim.new(0, 8)
 toggleCorner.Parent = autoSaveToggle
 
 local toggleStroke = Instance.new("UIStroke")
 toggleStroke.Color = autoSaveEnabled and Color3.fromRGB(140, 240, 160) or Color3.fromRGB(160, 160, 180)
-toggleStroke.Thickness = 2 * currentScale
+toggleStroke.Thickness = 1
 toggleStroke.Transparency = 0.4
 toggleStroke.Parent = autoSaveToggle
 
-local indicatorSize = (isMobile and 14 or 20) * currentScale
 local toggleIndicator = Instance.new("Frame")
 toggleIndicator.Name = "Indicator"
-toggleIndicator.Size = UDim2.new(0, indicatorSize, 0, indicatorSize)
-toggleIndicator.Position = autoSaveEnabled and UDim2.new(1, -indicatorSize - 2 * currentScale, 0.5, -indicatorSize/2) or UDim2.new(0, 2 * currentScale, 0.5, -indicatorSize/2)
+toggleIndicator.Size = UDim2.new(0, 12, 0, 12)
+toggleIndicator.Position = autoSaveEnabled and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
 toggleIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 toggleIndicator.BorderSizePixel = 0
 toggleIndicator.Parent = autoSaveToggle
 
 local indicatorCorner = Instance.new("UICorner")
-indicatorCorner.CornerRadius = UDim.new(0, indicatorSize/2)
+indicatorCorner.CornerRadius = UDim.new(0, 6)
 indicatorCorner.Parent = toggleIndicator
 
 local indicatorStroke = Instance.new("UIStroke")
 indicatorStroke.Color = Color3.fromRGB(200, 200, 220)
-indicatorStroke.Thickness = 1 * currentScale
+indicatorStroke.Thickness = 1
 indicatorStroke.Transparency = 0.3
 indicatorStroke.Parent = toggleIndicator
 
@@ -465,7 +328,7 @@ autoSaveToggle.MouseButton1Click:Connect(function()
     
     local indicatorTween = TweenService:Create(toggleIndicator,
         TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {Position = autoSaveEnabled and UDim2.new(1, -indicatorSize - 2 * currentScale, 0.5, -indicatorSize/2) or UDim2.new(0, 2 * currentScale, 0.5, -indicatorSize/2)}
+        {Position = autoSaveEnabled and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)}
     )
     indicatorTween:Play()
     
@@ -480,22 +343,18 @@ end)
 
 local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Name = "LanguageScroll"
-scrollFrame.Size = UDim2.new(1, -30, 1, (isMobile and -140 or -200) * currentScale)
-scrollFrame.Position = UDim2.new(0, 15 * currentScale, 0, (isMobile and 125 or 185) * currentScale)
+scrollFrame.Size = UDim2.new(1, -30, 1, -120)
+scrollFrame.Position = UDim2.new(0, 15, 0, 110)
 scrollFrame.BackgroundTransparency = 1
 scrollFrame.BorderSizePixel = 0
-scrollFrame.ScrollBarThickness = (isMobile and 8 or 8) * currentScale
+scrollFrame.ScrollBarThickness = 6
 scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 170, 255)
 scrollFrame.ScrollBarImageTransparency = 0.2
 scrollFrame.Parent = mainFrame
 
 local gridLayout = Instance.new("UIGridLayout")
-if isMobile then
-    gridLayout.CellSize = UDim2.new(0, 290 * currentScale, 0, 48 * currentScale)
-else
-    gridLayout.CellSize = UDim2.new(0, 200 * currentScale, 0, 58 * currentScale)
-end
-gridLayout.CellPadding = UDim2.new(0, 12 * currentScale, 0, 12 * currentScale)
+gridLayout.CellSize = UDim2.new(0, 240, 0, 40)
+gridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
 gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 gridLayout.SortOrder = Enum.SortOrder.Name
 gridLayout.Parent = scrollFrame
@@ -509,19 +368,19 @@ local function createLanguageButton(languageName, scriptUrl)
     button.BorderSizePixel = 0
     button.Text = languageName
     button.TextColor3 = (savedLanguage == languageName) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(220, 220, 255)
-    button.TextSize = (isMobile and 14 or 18) * currentScale
+    button.TextSize = 14
     button.Font = Enum.Font.SourceSansBold
     button.TextScaled = true
     button.Parent = scrollFrame
     
     local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, (isMobile and 12 or 16) * currentScale)
+    buttonCorner.CornerRadius = UDim.new(0, 10)
     buttonCorner.Parent = button
     
     local buttonShadow = Instance.new("Frame")
     buttonShadow.Name = "ButtonShadow"
-    buttonShadow.Size = UDim2.new(1, 8, 1, 8)
-    buttonShadow.Position = UDim2.new(0, -4, 0, -2)
+    buttonShadow.Size = UDim2.new(1, 6, 1, 6)
+    buttonShadow.Position = UDim2.new(0, -3, 0, -2)
     buttonShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     buttonShadow.BackgroundTransparency = 0.8
     buttonShadow.ZIndex = button.ZIndex - 1
@@ -529,20 +388,20 @@ local function createLanguageButton(languageName, scriptUrl)
     buttonShadow.Parent = button
     
     local shadowCorner = Instance.new("UICorner")
-    shadowCorner.CornerRadius = UDim.new(0, (isMobile and 16 or 20) * currentScale)
+    shadowCorner.CornerRadius = UDim.new(0, 12)
     shadowCorner.Parent = buttonShadow
     
     local buttonStroke = Instance.new("UIStroke")
     buttonStroke.Color = (savedLanguage == languageName) and Color3.fromRGB(120, 200, 255) or Color3.fromRGB(100, 120, 200)
     buttonStroke.Transparency = (savedLanguage == languageName) and 0.2 or 0.5
-    buttonStroke.Thickness = ((savedLanguage == languageName) and 3 or 2) * currentScale
+    buttonStroke.Thickness = (savedLanguage == languageName) and 2 or 1
     buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     buttonStroke.Parent = button
     
     local glowStroke = Instance.new("UIStroke")
     glowStroke.Color = Color3.fromRGB(0, 220, 255)
     glowStroke.Transparency = 1
-    glowStroke.Thickness = 6 * currentScale
+    glowStroke.Thickness = 4
     glowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     glowStroke.Parent = button
     
@@ -555,7 +414,7 @@ local function createLanguageButton(languageName, scriptUrl)
     glowGradient.Parent = glowStroke
     
     local originalSize = button.Size
-    local hoverSize = UDim2.new(originalSize.X.Scale * 1.15, originalSize.X.Offset * 1.15, originalSize.Y.Scale * 1.15, originalSize.Y.Offset * 1.15)
+    local hoverSize = UDim2.new(originalSize.X.Scale * 1.1, originalSize.X.Offset * 1.1, originalSize.Y.Scale * 1.1, originalSize.Y.Offset * 1.1)
     
     local function onHover()
         local hoverTween = TweenService:Create(button, 
@@ -572,7 +431,7 @@ local function createLanguageButton(languageName, scriptUrl)
             TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
             {
                 Transparency = 0.05, 
-                Thickness = 4 * currentScale,
+                Thickness = 3,
                 Color = Color3.fromRGB(180, 240, 255)
             }
         )
@@ -580,13 +439,13 @@ local function createLanguageButton(languageName, scriptUrl)
         
         local glowTween = TweenService:Create(glowStroke,
             TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {Transparency = 0.1, Thickness = 12 * currentScale}
+            {Transparency = 0.1, Thickness = 8}
         )
         glowTween:Play()
         
         local shadowTween = TweenService:Create(buttonShadow,
             TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {BackgroundTransparency = 0.5, Size = UDim2.new(1, 16, 1, 16), Position = UDim2.new(0, -8, 0, -4)}
+            {BackgroundTransparency = 0.5, Size = UDim2.new(1, 12, 1, 12), Position = UDim2.new(0, -6, 0, -3)}
         )
         shadowTween:Play()
         
@@ -613,7 +472,7 @@ local function createLanguageButton(languageName, scriptUrl)
             TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
             {
                 Transparency = (savedLanguage == languageName) and 0.2 or 0.5,
-                Thickness = ((savedLanguage == languageName) and 3 or 2) * currentScale,
+                Thickness = (savedLanguage == languageName) and 2 or 1,
                 Color = (savedLanguage == languageName) and Color3.fromRGB(120, 200, 255) or Color3.fromRGB(100, 120, 200)
             }
         )
@@ -621,27 +480,19 @@ local function createLanguageButton(languageName, scriptUrl)
         
         local glowOffTween = TweenService:Create(glowStroke,
             TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {Transparency = 1, Thickness = 6 * currentScale}
+            {Transparency = 1, Thickness = 4}
         )
         glowOffTween:Play()
         
         local shadowResetTween = TweenService:Create(buttonShadow,
             TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {BackgroundTransparency = 0.8, Size = UDim2.new(1, 8, 1, 8), Position = UDim2.new(0, -4, 0, -2)}
+            {BackgroundTransparency = 0.8, Size = UDim2.new(1, 6, 1, 6), Position = UDim2.new(0, -3, 0, -2)}
         )
         shadowResetTween:Play()
     end
     
-    if isMobile then
-        button.TouchTap:Connect(function()
-            onHover()
-            wait(0.15)
-            onLeave()
-        end)
-    else
-        button.MouseEnter:Connect(onHover)
-        button.MouseLeave:Connect(onLeave)
-    end
+    button.MouseEnter:Connect(onHover)
+    button.MouseLeave:Connect(onLeave)
     
     button.MouseButton1Click:Connect(function()
         savedLanguage = languageName
@@ -669,32 +520,32 @@ local function createLanguageButton(languageName, scriptUrl)
         loadingGradient.Parent = loadingFrame
         
         local loadingText = Instance.new("TextLabel")
-        loadingText.Size = UDim2.new(1, -40, 0, (isMobile and 40 or 60) * currentScale)
-        loadingText.Position = UDim2.new(0, 20 * currentScale, 0.5, (isMobile and -20 or -30) * currentScale)
+        loadingText.Size = UDim2.new(1, -30, 0, 35)
+        loadingText.Position = UDim2.new(0, 15, 0.5, -17)
         loadingText.BackgroundTransparency = 1
         loadingText.Text = "▄︻デ══━一💥Loading " .. languageName .. "..."
         loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
-        loadingText.TextSize = (isMobile and 16 or 24) * currentScale
+        loadingText.TextSize = 16
         loadingText.Font = Enum.Font.SourceSansBold
         loadingText.TextScaled = true
         loadingText.Parent = loadingFrame
         
         local loadingStroke = Instance.new("UIStroke")
         loadingStroke.Color = Color3.fromRGB(120, 200, 255)
-        loadingStroke.Thickness = 2 * currentScale
+        loadingStroke.Thickness = 1
         loadingStroke.Transparency = 0.3
         loadingStroke.Parent = loadingText
         
         local loadingBar = Instance.new("Frame")
         loadingBar.Name = "LoadingBar"
-        loadingBar.Size = UDim2.new(0.7, 0, 0, 6 * currentScale)
+        loadingBar.Size = UDim2.new(0.7, 0, 0, 4)
         loadingBar.Position = UDim2.new(0.15, 0, 0.65, 0)
         loadingBar.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
         loadingBar.BorderSizePixel = 0
         loadingBar.Parent = loadingFrame
         
         local barCorner = Instance.new("UICorner")
-        barCorner.CornerRadius = UDim.new(0, 4 * currentScale)
+        barCorner.CornerRadius = UDim.new(0, 2)
         barCorner.Parent = loadingBar
         
         local loadingProgress = Instance.new("Frame")
@@ -706,7 +557,7 @@ local function createLanguageButton(languageName, scriptUrl)
         loadingProgress.Parent = loadingBar
         
         local progressCorner = Instance.new("UICorner")
-        progressCorner.CornerRadius = UDim.new(0, 4 * currentScale)
+        progressCorner.CornerRadius = UDim.new(0, 2)
         progressCorner.Parent = loadingProgress
         
         local progressGradient = Instance.new("UIGradient")
@@ -752,7 +603,7 @@ end
 
 local function updateCanvasSize()
     local contentSize = gridLayout.AbsoluteContentSize
-    scrollFrame.CanvasSize = UDim2.new(0, contentSize.X, 0, contentSize.Y + 30 * currentScale)
+    scrollFrame.CanvasSize = UDim2.new(0, contentSize.X, 0, contentSize.Y + 20)
 end
 
 gridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvasSize)
