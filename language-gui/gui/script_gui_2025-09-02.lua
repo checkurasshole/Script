@@ -22,7 +22,16 @@ local function getGuiParent()
 end
 
 local scripts = {
-    ["Spanish"] = "https://raw.githubusercontent.com/user/repo/main/script_es.lua"
+    ["English"] = "https://v0-supabase-secure-storage.vercel.app/api/script/fed1fb455fe9d6cc6e74b03c37612a49",
+    ["Japanese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/5bd5a95a1ca0ec8f927b6d9869cc7d15",
+    ["Spanish"] = "https://v0-supabase-secure-storage.vercel.app/api/script/bb69d48a3801ae16bbc2fd6970cb833c",
+    ["French"] = "https://v0-supabase-secure-storage.vercel.app/api/script/67d0034858e586da68316aa33102d65c",
+    ["German"] = "https://v0-supabase-secure-storage.vercel.app/api/script/10c4296adb5466c5200948f3f110a615",
+    ["Vietnamese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/29fcb9d1b207ea2ce79019cf949c9632",
+    ["Filipino"] = "https://v0-supabase-secure-storage.vercel.app/api/script/43c8abe3a398eefa78c81b166dcf5143",
+    ["Thai"] = "https://v0-supabase-secure-storage.vercel.app/api/script/f1b523b0fb0e8465dc0dc9778a8bb3b0",
+    ["Portuguese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/d918eb060771b522cc93f97e57d6853d",
+    ["Russian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/803e54b34a06128c92b9a28365e417e8"
 }
 
 local SAVE_KEY = "LanguageSelector_" .. game.GameId .. "_SavedSettings"
