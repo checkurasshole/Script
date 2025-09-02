@@ -1,0 +1,100 @@
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "HeliTeleportGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = Player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 120, 0, 50) -- Made smaller: 120x50 instead of 200x80
+mainFrame.Position = UDim2.new(0.5, -60, 0.5, -25) -- Adjusted position for smaller size
+mainFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 6) -- Slightly smaller corner radius
+corner.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 20) -- Made smaller: 20 height instead of 30
+title.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+title.BorderSizePixel = 0
+title.Text = "Helicopter Teleport"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 6)
+titleCorner.Parent = title
+
+-- Function to teleport to helicopter
+local function teleportToHelicopter()
+    pcall(function()
+        local character = Player.Character
+        if not character or not character:FindFirstChild("HumanoidRootPart") then
+            return
+        end
+        
+        local heliObjective = workspace:FindFirstChild("HeliObjective", true)
+        if heliObjective then
+            character.HumanoidRootPart.CFrame = heliObjective.CFrame + Vector3.new(0, 5, 0)
+            
+            -- Trigger helicopter prompt
+            local proximityPrompt = heliObjective:FindFirstChild("ProximityPrompt")
+            if proximityPrompt then
+                fireproximityprompt(proximityPrompt)
+            end
+            
+            print("Teleported to helicopter!")
+        else
+            print("Helicopter not found!")
+        end
+    end)
+end
+
+-- Teleport button
+local teleportButton = Instance.new("TextButton")
+teleportButton.Size = UDim2.new(0.9, 0, 0, 20) -- Made smaller: 20 height instead of 25
+teleportButton.Position = UDim2.new(0.05, 0, 0, 25) -- Adjusted position
+teleportButton.BackgroundColor3 = Color3.new(0.2, 0.6, 0.2)
+teleportButton.BorderSizePixel = 0
+teleportButton.Text = "Press Here" -- Changed text as requested
+teleportButton.TextColor3 = Color3.new(1, 1, 1)
+teleportButton.TextScaled = true
+teleportButton.Font = Enum.Font.Gotham
+teleportButton.Parent = mainFrame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 4)
+buttonCorner.Parent = teleportButton
+
+teleportButton.MouseButton1Click:Connect(teleportToHelicopter)
+
+-- Close button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 15, 0, 15) -- Made smaller: 15x15 instead of 20x20
+closeButton.Position = UDim2.new(1, -18, 0, 3) -- Adjusted position
+closeButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+print("Helicopter Teleport script loaded!")
