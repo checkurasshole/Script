@@ -1,6 +1,3 @@
--- Language-gui Script (GUI)
--- Generated on: 8/29/2025, 11:23:04 PM
-
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
@@ -41,6 +38,219 @@ local currentScale = 1
 local minScale = 0.5
 local maxScale = 2
 
+local function showResetNotification()
+    local notificationGui = Instance.new("ScreenGui")
+    notificationGui.Name = "ResetNotificationGUI"
+    notificationGui.Parent = getGuiParent()
+    notificationGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    pcall(function()
+        notificationGui.IgnoreGuiInset = true
+    end)
+    
+    local notificationWidth = 280
+    local notificationHeight = 80
+    
+    local notificationFrame = Instance.new("Frame")
+    notificationFrame.Name = "NotificationFrame"
+    notificationFrame.Size = UDim2.new(0, notificationWidth, 0, notificationHeight)
+    notificationFrame.Position = UDim2.new(1, 20, 0, 20)
+    notificationFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+    notificationFrame.BackgroundTransparency = 0.05
+    notificationFrame.BorderSizePixel = 0
+    notificationFrame.Parent = notificationGui
+    
+    local notificationCorner = Instance.new("UICorner")
+    notificationCorner.CornerRadius = UDim.new(0, 12)
+    notificationCorner.Parent = notificationFrame
+    
+    local notificationShadow = Instance.new("Frame")
+    notificationShadow.Name = "NotificationShadow"
+    notificationShadow.Size = UDim2.new(1, 20, 1, 20)
+    notificationShadow.Position = UDim2.new(0, -10, 0, -8)
+    notificationShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    notificationShadow.BackgroundTransparency = 0.7
+    notificationShadow.ZIndex = notificationFrame.ZIndex - 1
+    notificationShadow.BorderSizePixel = 0
+    notificationShadow.Parent = notificationFrame
+    
+    local shadowCorner = Instance.new("UICorner")
+    shadowCorner.CornerRadius = UDim.new(0, 16)
+    shadowCorner.Parent = notificationShadow
+    
+    local notificationGradient = Instance.new("UIGradient")
+    notificationGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 50, 70)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50, 40, 80)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 60, 90))
+    }
+    notificationGradient.Rotation = 45
+    notificationGradient.Parent = notificationFrame
+    
+    local notificationStroke = Instance.new("UIStroke")
+    notificationStroke.Color = Color3.fromRGB(120, 140, 255)
+    notificationStroke.Transparency = 0.3
+    notificationStroke.Thickness = 1.5
+    notificationStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    notificationStroke.Parent = notificationFrame
+    
+    local questionText = Instance.new("TextLabel")
+    questionText.Name = "QuestionText"
+    questionText.Size = UDim2.new(1, -20, 0, 30)
+    questionText.Position = UDim2.new(0, 10, 0, 8)
+    questionText.BackgroundTransparency = 1
+    questionText.Text = "🔄 Reset language option chosen?"
+    questionText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    questionText.TextSize = 12
+    questionText.Font = Enum.Font.SourceSansBold
+    questionText.TextScaled = true
+    questionText.Parent = notificationFrame
+    
+    local questionStroke = Instance.new("UIStroke")
+    questionStroke.Color = Color3.fromRGB(180, 200, 255)
+    questionStroke.Thickness = 0.8
+    questionStroke.Transparency = 0.4
+    questionStroke.Parent = questionText
+    
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Name = "ButtonFrame"
+    buttonFrame.Size = UDim2.new(1, -20, 0, 32)
+    buttonFrame.Position = UDim2.new(0, 10, 1, -40)
+    buttonFrame.BackgroundTransparency = 1
+    buttonFrame.Parent = notificationFrame
+    
+    local yesButton = Instance.new("TextButton")
+    yesButton.Name = "YesButton"
+    yesButton.Size = UDim2.new(0, 60, 1, 0)
+    yesButton.Position = UDim2.new(0, 0, 0, 0)
+    yesButton.BackgroundColor3 = Color3.fromRGB(100, 220, 120)
+    yesButton.BackgroundTransparency = 0.1
+    yesButton.BorderSizePixel = 0
+    yesButton.Text = "Yes"
+    yesButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    yesButton.TextSize = 11
+    yesButton.Font = Enum.Font.SourceSansBold
+    yesButton.Parent = buttonFrame
+    
+    local yesCorner = Instance.new("UICorner")
+    yesCorner.CornerRadius = UDim.new(0, 8)
+    yesCorner.Parent = yesButton
+    
+    local yesStroke = Instance.new("UIStroke")
+    yesStroke.Color = Color3.fromRGB(140, 240, 160)
+    yesStroke.Thickness = 1
+    yesStroke.Transparency = 0.3
+    yesStroke.Parent = yesButton
+    
+    local noButton = Instance.new("TextButton")
+    noButton.Name = "NoButton"
+    noButton.Size = UDim2.new(0, 60, 1, 0)
+    noButton.Position = UDim2.new(0, 70, 0, 0)
+    noButton.BackgroundColor3 = Color3.fromRGB(255, 100, 120)
+    noButton.BackgroundTransparency = 0.1
+    noButton.BorderSizePixel = 0
+    noButton.Text = "No"
+    noButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    noButton.TextSize = 11
+    noButton.Font = Enum.Font.SourceSansBold
+    noButton.Parent = buttonFrame
+    
+    local noCorner = Instance.new("UICorner")
+    noCorner.CornerRadius = UDim.new(0, 8)
+    noCorner.Parent = noButton
+    
+    local noStroke = Instance.new("UIStroke")
+    noStroke.Color = Color3.fromRGB(255, 140, 160)
+    noStroke.Thickness = 1
+    noStroke.Transparency = 0.3
+    noStroke.Parent = noButton
+    
+    local timeLeft = 5
+    local timerBar = Instance.new("Frame")
+    timerBar.Name = "TimerBar"
+    timerBar.Size = UDim2.new(1, 0, 0, 2)
+    timerBar.Position = UDim2.new(0, 0, 1, -2)
+    timerBar.BackgroundColor3 = Color3.fromRGB(120, 200, 255)
+    timerBar.BorderSizePixel = 0
+    timerBar.Parent = notificationFrame
+    
+    local timerCorner = Instance.new("UICorner")
+    timerCorner.CornerRadius = UDim.new(0, 1)
+    timerCorner.Parent = timerBar
+    
+    local slideInTween = TweenService:Create(notificationFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Position = UDim2.new(1, -notificationWidth - 20, 0, 20)}
+    )
+    slideInTween:Play()
+    
+    local timerTween = TweenService:Create(timerBar,
+        TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+        {Size = UDim2.new(0, 0, 0, 2)}
+    )
+    timerTween:Play()
+    
+    local function closeNotification()
+        local slideOutTween = TweenService:Create(notificationFrame,
+            TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
+            {Position = UDim2.new(1, 20, 0, 20)}
+        )
+        slideOutTween:Play()
+        
+        slideOutTween.Completed:Connect(function()
+            notificationGui:Destroy()
+        end)
+    end
+    
+    yesButton.MouseEnter:Connect(function()
+        local hoverTween = TweenService:Create(yesButton,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.05, TextColor3 = Color3.fromRGB(255, 255, 255)}
+        )
+        hoverTween:Play()
+    end)
+    
+    yesButton.MouseLeave:Connect(function()
+        local normalTween = TweenService:Create(yesButton,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.1, TextColor3 = Color3.fromRGB(255, 255, 255)}
+        )
+        normalTween:Play()
+    end)
+    
+    noButton.MouseEnter:Connect(function()
+        local hoverTween = TweenService:Create(noButton,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.05, TextColor3 = Color3.fromRGB(255, 255, 255)}
+        )
+        hoverTween:Play()
+    end)
+    
+    noButton.MouseLeave:Connect(function()
+        local normalTween = TweenService:Create(noButton,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.1, TextColor3 = Color3.fromRGB(255, 255, 255)}
+        )
+        normalTween:Play()
+    end)
+    
+    yesButton.MouseButton1Click:Connect(function()
+        savedLanguage = nil
+        if isfile(SAVE_KEY .. ".json") then
+            delfile(SAVE_KEY .. ".json")
+        end
+        closeNotification()
+    end)
+    
+    noButton.MouseButton1Click:Connect(function()
+        closeNotification()
+    end)
+    
+    timerTween.Completed:Connect(function()
+        closeNotification()
+    end)
+end
+
 local function saveSettings()
     if autoSaveEnabled and savedLanguage then
         local data = {
@@ -74,6 +284,8 @@ local function autoLoadScript()
             local success, result = pcall(function()
                 loadstring(game:HttpGet(scripts[savedLanguage]))()
             end)
+            wait(1)
+            showResetNotification()
         end)
         return true
     end
@@ -283,7 +495,7 @@ autoSaveToggle.Position = UDim2.new(1, -40, 0.5, -8)
 autoSaveToggle.BackgroundColor3 = autoSaveEnabled and Color3.fromRGB(100, 220, 120) or Color3.fromRGB(120, 120, 140)
 autoSaveToggle.BorderSizePixel = 0
 autoSaveToggle.Text = ""
-autoSaveToggle.Parent = mainFrame
+autoSaveToggle.Parent = autoSaveFrame
 
 local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0, 8)
@@ -593,6 +805,9 @@ local function createLanguageButton(languageName, scriptUrl)
                 strokeConnection:Disconnect()
             end
             screenGui:Destroy()
+            
+            wait(1)
+            showResetNotification()
         end)
     end)
     
