@@ -23,6 +23,8 @@ end
 
 local scripts = {
     ["English"] = "https://v0-supabase-secure-storage.vercel.app/api/script/8b34a206470cb87356cbc7525e689281",
+    ["Filipino"] = "https://v0-supabase-secure-storage.vercel.app/api/script/ab8b1ff02517faa814a1fc4514d52285",
+    ["Vietnamese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/03c5ed7c1f865cf5d92108962695e7b7",
     ["Spanish"] = "https://v0-supabase-secure-storage.vercel.app/api/script/b4907702d5112208be2b50d1c2bf9b6b",
     ["French"] = "https://v0-supabase-secure-storage.vercel.app/api/script/1df9b6ddfb510f74b17138e909391a14",
     ["Thai"] = "https://v0-supabase-secure-storage.vercel.app/api/script/74cce33ea580add3688da92bb09ac0ba",
