@@ -1,0 +1,67 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "COMBO_WICK",
+    SubTitle = ":YT",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(400, 250),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "home" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Options = Fluent.Options
+
+Tabs.Main:AddButton({
+    Title = "Wealth",
+    Description = "",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local PurchaseEvent = ReplicatedStorage.RemoteEvents.PurchaseEvent
+        PurchaseEvent:FireServer(
+            "EggMummy",
+            {
+                amount = -9e15
+            }
+        )
+    end
+})
+
+Tabs.Main:AddButton({
+    Title = "Get Best Eggs",
+    Description = "",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local PurchaseEvent = ReplicatedStorage.RemoteEvents.PurchaseEvent
+        PurchaseEvent:FireServer(
+            "EggWarrior",
+            {
+                amount = 8
+            }
+        )
+    end
+})
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Script Loaded",
+    Content = "The script has been loaded successfully!",
+    Duration = 8
+})
+
+SaveManager:LoadAutoloadConfig()
