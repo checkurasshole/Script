@@ -1,0 +1,1942 @@
+-- Thai Translation
+-- Script ID: 74cce33ea580add3688da92bb09ac0ba
+-- Migrated: 2025-09-11T14:25:35.051Z
+-- Auto-migrated from encrypted storage to GitHub
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CollectionService = game:GetService("CollectionService")
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local TweenService = game:GetService("TweenService")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "COMBO_WICK",
+    SubTitle = "เล่นให้สนุกนะ",
+    TabWidth = 120,
+    Size = UDim2.fromOffset(450, 380),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ToggleGui"
+ScreenGui.Parent = game.CoreGui
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+ToggleButton.Position = UDim2.new(1, -60, 0.5, -25)
+ToggleButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+ToggleButton.Text = "GUI"
+ToggleButton.TextColor3 = Color3.new(1, 1, 1)
+ToggleButton.TextScaled = true
+ToggleButton.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 10)
+Corner.Parent = ToggleButton
+
+local isVisible = true
+
+ToggleButton.MouseButton1Click:Connect(function()
+    isVisible = not isVisible
+    Window.Root.Visible = isVisible
+end)
+
+local isDragging = false
+local dragStart, startPos
+
+ToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = true
+        dragStart = input.Position
+        startPos = ToggleButton.Position
+    end
+end)
+
+ToggleButton.InputChanged:Connect(function(input)
+    if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        ToggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+ToggleButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = false
+    end
+end)
+
+-- God Mode Variables
+local godModeEnabled = false
+local doorSystemActive = false
+local doorSystemConnection = nil
+local processedDoors = {}
+local originalDoorStates = {}
+local originalPacketFunctions = {}
+local modifiedDoors = {}
+
+-- Door Activator Variables
+local doorActivatorEnabled = false
+local autoActivationConnection = nil
+local doorActivatorToggle = nil
+local godModeToggle = nil
+
+-- Teleport to Items Variables
+local teleportToItemsEnabled = false
+local teleportToItemsToggle = nil
+local AutoTeleportWasEnabledItems = false
+
+-- Get required modules for Door Activator
+local GameCore = ReplicatedFirst:WaitForChild("GameCore")
+local Shared = GameCore:WaitForChild("Shared")
+local ByteNetPackets = require(Shared:WaitForChild("ByteNetPackets"))
+
+-- God Mode Functions
+local function getModules()
+    local gameCore = game.ReplicatedFirst:WaitForChild("GameCore", 5)
+    local shared = gameCore:WaitForChild("Shared", 5)
+    local enumeration = require(gameCore:WaitForChild("Enumeration"))
+    local doorAnimTypes = require(gameCore:FindFirstChild("DoorAnimTypes", true))
+    
+    return enumeration, doorAnimTypes
+end
+
+local function storeDoorState(door)
+    if originalDoorStates[door] then return end
+    
+    local doorState = {
+        canCollideStates = {}
+    }
+    
+    for _, part in ipairs(door:GetDescendants()) do
+        if part:IsA("BasePart") and part.Parent == door then
+            doorState.canCollideStates[part] = part.CanCollide
+        end
+    end
+    
+    originalDoorStates[door] = doorState
+    modifiedDoors[door] = true
+end
+
+local function restoreDoorState(door)
+    local doorState = originalDoorStates[door]
+    if not doorState then return end
+    
+    for part, originalState in pairs(doorState.canCollideStates) do
+        if part and part.Parent then
+            part.CanCollide = originalState
+        end
+    end
+end
+
+local function playDoorAnimation(door, animType)
+    storeDoorState(door)
+    
+    local enumeration, doorAnimTypes = getModules()
+    local animFunction = doorAnimTypes[enumeration.levelDoorAnimationTypes[animType or "Default"]]
+    
+    for _, part in ipairs(door:GetDescendants()) do
+        if part:IsA("BasePart") and part.Parent == door then
+            part.CanCollide = false
+        end
+    end
+    
+    if animFunction then
+        spawn(function()
+            animFunction(door)
+        end)
+    end
+end
+
+local function checkDoorProximity()
+    if not doorSystemActive then return end
+    
+    local Character = Player.Character
+    if not Character or not Character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+    
+    local rootPart = Character.HumanoidRootPart
+    local playerPos = rootPart.Position
+    local velocity = rootPart.AssemblyLinearVelocity.Magnitude / 7.5
+    local detectionRadius = 6 + velocity
+    
+    for _, door in pairs(CollectionService:GetTagged("LEVELDOOR")) do
+        if not door:GetAttribute("locked") and not processedDoors[door] then
+            local doorPos = door:GetPivot().Position
+            local distance = (playerPos - doorPos).Magnitude
+            
+            if distance <= detectionRadius then
+                processedDoors[door] = true
+                
+                local animType = door:GetAttribute("AnimType") or "Default"
+                playDoorAnimation(door, animType)
+                
+                spawn(function()
+                    wait(3)
+                    processedDoors[door] = nil
+                end)
+            end
+        end
+    end
+end
+
+local function blockActivationPackets()
+    pcall(function()
+        local gameCore = game.ReplicatedFirst:WaitForChild("GameCore", 5)
+        local shared = gameCore:WaitForChild("Shared", 5)
+        local byteNetPackets = shared:WaitForChild("ByteNetPackets", 5)
+        local packets = require(byteNetPackets)
+        
+        if packets and packets.packets and packets.packets.activateDoor then
+            if not originalPacketFunctions.activateDoor then
+                originalPacketFunctions.activateDoor = packets.packets.activateDoor.send
+            end
+            packets.packets.activateDoor.send = function() end
+        end
+    end)
+end
+
+local function restorePacketFunctions()
+    pcall(function()
+        local gameCore = game.ReplicatedFirst:WaitForChild("GameCore", 5)
+        local shared = gameCore:WaitForChild("Shared", 5)
+        local byteNetPackets = shared:WaitForChild("ByteNetPackets", 5)
+        local packets = require(byteNetPackets)
+        
+        if packets and packets.packets and packets.packets.activateDoor and originalPacketFunctions.activateDoor then
+            packets.packets.activateDoor.send = originalPacketFunctions.activateDoor
+        end
+    end)
+end
+
+local function restoreAllDoors()
+    local doorCount = 0
+    for door, _ in pairs(modifiedDoors) do
+        if door and door.Parent then
+            restoreDoorState(door)
+            doorCount = doorCount + 1
+        end
+    end
+    
+    originalDoorStates = {}
+    modifiedDoors = {}
+    processedDoors = {}
+end
+
+local function toggleGodMode(enabled)
+    godModeEnabled = enabled
+    
+    if enabled and doorActivatorEnabled then
+        doorActivatorToggle:SetValue(false)
+    end
+    
+    if enabled then
+        doorSystemActive = true
+        blockActivationPackets()
+        
+        if not doorSystemConnection then
+            doorSystemConnection = RunService.Heartbeat:Connect(checkDoorProximity)
+        end
+    else
+        doorSystemActive = false
+        
+        if doorSystemConnection then
+            doorSystemConnection:Disconnect()
+            doorSystemConnection = nil
+        end
+        
+        restoreAllDoors()
+        restorePacketFunctions()
+    end
+end
+
+-- Door Activator Functions
+local function activateAllDoors()
+    if not doorActivatorEnabled then return end
+    
+    local doors = CollectionService:GetTagged("LEVELDOOR")
+    
+    for i, door in pairs(doors) do
+        if not doorActivatorEnabled then break end
+        
+        if not door:GetAttribute("activated") and not door:GetAttribute("locked") then
+            if not CollectionService:HasTag(door, "_doorwait") then
+                CollectionService:AddTag(door, "_doorwait")
+                ByteNetPackets.packets.activateDoor.send(door)
+                task.wait(0.1)
+            end
+        end
+    end
+end
+
+local function setupAutoActivation()
+    if autoActivationConnection then
+        autoActivationConnection:Disconnect()
+    end
+    
+    autoActivationConnection = CollectionService:GetInstanceAddedSignal("LEVELDOOR"):Connect(function(newDoor)
+        if not doorActivatorEnabled then return end
+        
+        task.wait(0.5)
+        
+        if doorActivatorEnabled and not newDoor:GetAttribute("activated") and not newDoor:GetAttribute("locked") then
+            if not CollectionService:HasTag(newDoor, "_doorwait") then
+                CollectionService:AddTag(newDoor, "_doorwait")
+                ByteNetPackets.packets.activateDoor.send(newDoor)
+            end
+        end
+    end)
+end
+
+local function disableAutoActivation()
+    if autoActivationConnection then
+        autoActivationConnection:Disconnect()
+        autoActivationConnection = nil
+    end
+end
+
+-- Teleport to Items Function
+local isTeleporting = false
+local function getItemPosition(item)
+    if not item or not item.Parent then
+        return nil
+    end
+    
+    local targetPosition = nil
+    
+    if item:IsA("BasePart") and item.Position then
+        targetPosition = item.Position
+    elseif item:IsA("Model") then
+        local primaryPart = item.PrimaryPart or item:FindFirstChild("HumanoidRootPart")
+        if primaryPart and primaryPart.Position then
+            targetPosition = primaryPart.Position
+        else
+            local part = item:FindFirstChildWhichIsA("BasePart")
+            if part and part.Position then
+                targetPosition = part.Position
+            end
+        end
+    elseif item:FindFirstChildWhichIsA("BasePart") then
+        local part = item:FindFirstChildWhichIsA("BasePart")
+        if part and part.Position then
+            targetPosition = part.Position
+        end
+    end
+    
+    return targetPosition
+end
+
+local function teleportToItems()
+    if not teleportToItemsEnabled or isTeleporting or radioCompleted then return end
+    
+    local character = Player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+    
+    local humanoidRootPart = character.HumanoidRootPart
+    local dropItems = workspace:FindFirstChild("DropItems")
+    
+    if not dropItems then
+        return
+    end
+    
+    isTeleporting = true
+    
+    if TeleportActive and AutoTeleportToggle then
+        AutoTeleportWasEnabledItems = true
+        AutoTeleportToggle:SetValue(false)
+    end
+    
+    local validItems = {}
+    local items = dropItems:GetChildren()
+    
+    for _, item in pairs(items) do
+        local position = getItemPosition(item)
+        if position then
+            table.insert(validItems, {
+                item = item,
+                position = position,
+                name = item.Name or "Unknown"
+            })
+        end
+    end
+    
+    local itemCount = #validItems
+    
+    if itemCount == 0 then
+        isTeleporting = false
+        if AutoTeleportWasEnabledItems and AutoTeleportToggle then
+            AutoTeleportToggle:SetValue(true)
+        end
+        return
+    end
+    
+    for i, itemData in pairs(validItems) do
+        if itemData.item and itemData.item.Parent and getItemPosition(itemData.item) then
+            local currentPosition = getItemPosition(itemData.item)
+            if currentPosition then
+                local safeHeight = math.max(currentPosition.Y + 10, 50)
+                local teleportPosition = Vector3.new(currentPosition.X, safeHeight, currentPosition.Z)
+                humanoidRootPart.CFrame = CFrame.new(teleportPosition)
+                
+                task.wait(0.05)
+                local finalPosition = Vector3.new(currentPosition.X, currentPosition.Y + 5, currentPosition.Z)
+                humanoidRootPart.CFrame = CFrame.new(finalPosition)
+                
+                task.wait(0.15)
+            end
+        end
+    end
+    
+    isTeleporting = false
+    if AutoTeleportWasEnabledItems and AutoTeleportToggle then
+        AutoTeleportToggle:SetValue(true)
+    end
+end
+
+-- Anti-Ragdoll System
+local DefaultJoints = {
+    ["Neck"] = { CFrame.new(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, -0.5, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["LeftShoulder"] = { CFrame.new(-1, 0.5, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0), CFrame.new(0.5, 0.5, 0, 0, 0, 1, 0, 1, -0, -1, 0, 0) },
+    ["RightShoulder"] = { CFrame.new(1, 0.5, 0, 0, 0, 1, 0, 1, -0, -1, 0, 0), CFrame.new(-0.5, 0.5, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0) },
+    ["LeftHip"] = { CFrame.new(-1, -1, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0), CFrame.new(0.5, 1, 0, 0, 0, 1, 0, 1, -0, -1, 0, 0) },
+    ["RightHip"] = { CFrame.new(1, -1, 0, 0, 0, 1, 0, 1, -0, -1, 0, 0), CFrame.new(-0.5, 1, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0) },
+    ["Root"] = { CFrame.new(0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["Waist"] = { CFrame.new(0, 0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, -0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["LeftShoulder"] = { CFrame.new(-0.15, 0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0.15, 0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["LeftElbow"] = { CFrame.new(0, -0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, 0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["LeftWrist"] = { CFrame.new(0, -0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, 0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["RightShoulder"] = { CFrame.new(0.15, 0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(-0.15, 0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["RightElbow"] = { CFrame.new(0, -0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, 0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["RightWrist"] = { CFrame.new(0, -0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, 0.2, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["LeftHip"] = { CFrame.new(-0.1, -0.15, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0.1, 0.15, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["LeftKnee"] = { CFrame.new(0, -0.3, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, 0.3, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["LeftAnkle"] = { CFrame.new(0, -0.15, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, 0.15, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["RightHip"] = { CFrame.new(0.1, -0.15, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(-0.1, 0.15, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["RightKnee"] = { CFrame.new(0, -0.3, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, 0.3, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) },
+    ["RightAnkle"] = { CFrame.new(0, -0.15, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0), CFrame.new(0, 0.15, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0) }
+}
+
+local AntiRagdoll = {}
+local ragdollConnections = {}
+local originalJoints = {}
+
+function AntiRagdoll.RestoreJoint(joint)
+    if not joint or not joint.Parent then return end
+    
+    local jointName = joint.Name
+    local jointData = DefaultJoints[jointName]
+    
+    if jointData and joint:IsA("Motor6D") then
+        joint.C0 = jointData[1]
+        joint.C1 = jointData[2]
+        joint.Enabled = true
+        
+        if joint.Part0 and joint.Part1 then
+            joint.Part0.Anchored = false
+            joint.Part1.Anchored = false
+            joint.Part0.CanCollide = false
+            joint.Part1.CanCollide = false
+        end
+    end
+end
+
+function AntiRagdoll.RestoreCharacter(character)
+    if not character then return end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.PlatformStand = false
+        humanoid.Sit = false
+        humanoid:ChangeState(Enum.HumanoidStateType.Running)
+        
+        if humanoid.Health <= 0 then
+            humanoid.Health = humanoid.MaxHealth
+        end
+    end
+    
+    for _, joint in pairs(character:GetDescendants()) do
+        if joint:IsA("Motor6D") then
+            AntiRagdoll.RestoreJoint(joint)
+        end
+    end
+    
+    for _, part in pairs(character:GetChildren()) do
+        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+            part.Anchored = false
+            part.CanCollide = false
+            
+            for _, constraint in pairs(part:GetChildren()) do
+                if constraint:IsA("BallSocketConstraint") or 
+                   constraint:IsA("HingeConstraint") or 
+                   constraint:IsA("RodConstraint") or
+                   constraint:IsA("UniversalConstraint") then
+                    constraint:Destroy()
+                end
+            end
+        end
+    end
+end
+
+function AntiRagdoll.MonitorCharacter(character)
+    if not character then return end
+    
+    for _, joint in pairs(character:GetDescendants()) do
+        if joint:IsA("Motor6D") then
+            originalJoints[joint] = {
+                C0 = joint.C0,
+                C1 = joint.C1,
+                Enabled = joint.Enabled
+            }
+        end
+    end
+    
+    local function checkRagdoll()
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid and (humanoid.PlatformStand or humanoid:GetState() == Enum.HumanoidStateType.Physics) then
+            AntiRagdoll.RestoreCharacter(character)
+        end
+        
+        for _, joint in pairs(character:GetDescendants()) do
+            if joint:IsA("Motor6D") and originalJoints[joint] then
+                if not joint.Enabled or joint.Parent == nil then
+                    AntiRagdoll.RestoreJoint(joint)
+                end
+            end
+        end
+    end
+    
+    ragdollConnections[#ragdollConnections + 1] = RunService.Heartbeat:Connect(checkRagdoll)
+    
+    ragdollConnections[#ragdollConnections + 1] = character.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Motor6D") then
+            originalJoints[descendant] = {
+                C0 = descendant.C0,
+                C1 = descendant.C1,
+                Enabled = descendant.Enabled
+            }
+        end
+    end)
+    
+    ragdollConnections[#ragdollConnections + 1] = character.DescendantRemoving:Connect(function(descendant)
+        if descendant:IsA("Motor6D") then
+            task.wait()
+            AntiRagdoll.RestoreCharacter(character)
+        end
+    end)
+end
+
+function AntiRagdoll.Start()
+    local function onCharacterAdded(character)
+        character:WaitForChild("Humanoid")
+        character:WaitForChild("HumanoidRootPart")
+        
+        task.wait(1)
+        
+        AntiRagdoll.MonitorCharacter(character)
+    end
+    
+    if Player.Character then
+        onCharacterAdded(Player.Character)
+    end
+    
+    Player.CharacterAdded:Connect(onCharacterAdded)
+end
+
+AntiRagdoll.Start()
+
+local Tab = Window:AddTab({
+    Title = "หลัก",
+    Icon = "home"
+})
+
+Tab:AddParagraph({
+    Title = "สถานะ",
+    Content = "ทำงานได้ดีที่สุดใน Single Player"
+})
+
+godModeToggle = Tab:AddToggle("GodMode", {
+    Title = "แช่แข็งศัตรู (โหมดพระเจ้า)",
+    Default = false,
+    Callback = function(Value)
+        toggleGodMode(Value)
+    end
+})
+
+local codes = {
+    "200KLIKES",
+    "Hugecode",
+    "WDEV1",
+    "WDEV2"
+}
+
+task.spawn(function()
+    for _, code in ipairs(codes) do
+        task.spawn(function()
+            local args = {code}
+            game:GetService("ReplicatedStorage").Packets.RedeemCode:InvokeServer(unpack(args))
+        end)
+        task.wait(0.5)
+    end
+end)
+
+local TeleportSection = Tab:AddSection("Teleport Controls")
+local CombatSection = Tab:AddSection("Combat Controls")
+local MovementSection = Tab:AddSection("Movement Controls")
+local ObjectiveSection = Tab:AddSection("Objective Automation")
+
+local CONFIG = {
+    DefaultHeightOffset = 6,
+    MinHeightOffset = -50,
+    MaxHeightOffset = 12,
+    MaxTeleportDistance = 500,
+    SafetyDistance = 50,
+}
+
+local doorSystemConnectionOrig
+local noclipEnabled = false
+local noclipConnection = nil
+
+local TeleportActive = false
+local HeightOffset = CONFIG.DefaultHeightOffset
+local teleportConnection
+local TargetHead = true
+local TeleportStats = {
+    totalTeleports = 0,
+    lastTarget = "None"
+}
+local DoorAvoidanceDistance = 15
+
+local ObjectiveAutomationActive = false
+local AutoTeleportWasEnabled = false
+local AutoTeleportToggle
+local firing = false
+
+local Skill1Toggle, Skill2Toggle, Skill3Toggle, UltimateToggle, InfPerkActive = false, false, false, false, false
+local AllSkillsToggle = false
+local BufferSpamActive = false
+local AutoSpinActive = false
+local SpamRate = 0.05
+
+local ByteNetReliable = ReplicatedStorage:WaitForChild("ByteNetReliable")
+
+local SkillBuffers = {
+    buffer.fromstring("\8\5\0"),
+    buffer.fromstring("\8\6\0"),
+    buffer.fromstring("\8\7\0"),
+    buffer.fromstring("\8\3\0")
+}
+local bufferData = buffer.fromstring("\8\4\0")
+local infPerkBuffer = buffer.fromstring("\12")
+
+local doorCache = {}
+local doorCacheTime = 0
+local targetCache = {}
+local targetCacheTime = 0
+local CACHE_DURATION = 2
+
+local function updateCharacterReferences()
+    Character = Player.Character or Player.CharacterAdded:Wait()
+    HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+end
+
+local function teleportTo(target)
+    if not target then return end
+    
+    local targetPosition
+    if target:IsA("BasePart") then
+        targetPosition = target.CFrame
+    elseif target:IsA("Model") then
+        local primaryPart = target.PrimaryPart
+        if not primaryPart then
+            for _, child in pairs(target:GetChildren()) do
+                if child:IsA("BasePart") then
+                    primaryPart = child
+                    break
+                end
+            end
+        end
+        if primaryPart then
+            targetPosition = primaryPart.CFrame
+        end
+    end
+    
+    if targetPosition then
+        HumanoidRootPart.CFrame = targetPosition
+    end
+end
+
+local function getNearestPrompt()
+    local nearestPrompt = nil
+    local shortestDistance = math.huge
+    for _, descendant in pairs(workspace:GetDescendants()) do
+        if descendant:IsA("ProximityPrompt") and descendant.Enabled then
+            local promptPart = descendant.Parent:IsA("BasePart") and descendant.Parent
+            if promptPart then
+                local distance = (HumanoidRootPart.Position - promptPart.Position).Magnitude
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    nearestPrompt = descendant
+                end
+            end
+        end
+    end
+    return nearestPrompt
+end
+
+local function activatePrompt(prompt, targetObject, maxRetries)
+    if not prompt or not prompt:IsA("ProximityPrompt") then return end
+    
+    maxRetries = maxRetries or 10
+    local attempts = 0
+    local wasTriggered = false
+    
+    local connection
+    connection = prompt.Triggered:Connect(function()
+        wasTriggered = true
+        
+        if ObjectiveAutomationActive and AutoTeleportWasEnabled and AutoTeleportToggle then
+            AutoTeleportToggle:SetValue(true)
+        end
+        
+        if connection then connection:Disconnect() end
+    end)
+    
+    local function attemptActivation()
+        attempts = attempts + 1
+        
+        teleportTo(targetObject)
+        task.wait(0.3)
+        
+        prompt.HoldDuration = 0
+        prompt.Enabled = true
+        prompt.RequiresLineOfSight = false
+        prompt.MaxActivationDistance = 1000
+        
+        pcall(function()
+            prompt:InputHoldBegin()
+            task.wait(0.1)
+            prompt:InputHoldEnd()
+        end)
+        
+        task.wait(0.2)
+        
+        pcall(function()
+            fireproximityprompt(prompt)
+        end)
+        
+        task.wait(0.2)
+        
+        pcall(function()
+            for _, triggerConnection in pairs(getconnections(prompt.Triggered)) do
+                triggerConnection:Fire()
+            end
+        end)
+        
+        task.wait(0.2)
+        
+        pcall(function()
+            prompt.TriggerEnded:Fire()
+        end)
+        
+        task.wait(0.5)
+        
+        if not wasTriggered and (targetObject.Name == "jarst_radio" or targetObject.Name == "RadioObjective") then
+            local autoFireAttempts = 0
+            local maxAutoFireAttempts = 20
+            
+            while not wasTriggered and autoFireAttempts < maxAutoFireAttempts do
+                autoFireAttempts = autoFireAttempts + 1
+                
+                if not firing then
+                    firing = true
+                    
+                    local nearestPrompt = getNearestPrompt()
+                    if nearestPrompt and nearestPrompt == prompt then
+                        pcall(function()
+                            fireproximityprompt(nearestPrompt)
+                        end)
+                        
+                        task.wait(0.3)
+                        
+                        pcall(function()
+                            nearestPrompt:InputHoldBegin()
+                            task.wait(0.1)
+                            nearestPrompt:InputHoldEnd()
+                        end)
+                        
+                        task.wait(0.2)
+                        
+                        for i = 1, 3 do
+                            pcall(function()
+                                fireproximityprompt(nearestPrompt)
+                            end)
+                            task.wait(0.1)
+                        end
+                    end
+                    
+                    firing = false
+                    task.wait(0.2)
+                end
+                
+                if wasTriggered then
+                    break
+                end
+            end
+        end
+        
+        task.wait(0.5)
+        
+        if not wasTriggered and attempts < maxRetries then
+            task.wait(1)
+            attemptActivation()
+        elseif not wasTriggered then
+            if ObjectiveAutomationActive and AutoTeleportWasEnabled and AutoTeleportToggle then
+                AutoTeleportToggle:SetValue(true)
+            end
+            
+            if connection then connection:Disconnect() end
+        end
+    end
+    
+    attemptActivation()
+end
+
+local function setupGlobalListener(parent)
+    parent.DescendantAdded:Connect(function(descendant)
+        if not ObjectiveAutomationActive then return end
+        
+        task.wait(0.1)
+        
+        if descendant.Name == "jarst_radio" then
+            if TeleportActive and AutoTeleportToggle then
+                AutoTeleportWasEnabled = true
+                AutoTeleportToggle:SetValue(false)
+            end
+            if teleportToItemsEnabled and teleportToItemsToggle then
+                teleportToItemsToggle:SetValue(false)
+            end
+            
+            task.wait(5)
+            
+            updateCharacterReferences()
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            local prompt = descendant:FindFirstChildOfClass("ProximityPrompt")
+            if not prompt then
+                for _, child in pairs(descendant:GetDescendants()) do
+                    if child:IsA("ProximityPrompt") then
+                        prompt = child
+                        break
+                    end
+                end
+            end
+            
+            if prompt then
+                activatePrompt(prompt, descendant)
+            end
+            
+        elseif descendant.Name == "RadioObjective" then
+            if TeleportActive and AutoTeleportToggle then
+                AutoTeleportWasEnabled = true
+                AutoTeleportToggle:SetValue(false)
+            end
+            if teleportToItemsEnabled and teleportToItemsToggle then
+                teleportToItemsToggle:SetValue(false)
+            end
+            
+            task.wait(5)
+            
+            updateCharacterReferences()
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            local prompt = descendant:FindFirstChild("ProximityPrompt")
+            if not prompt then
+                for _, child in pairs(descendant:GetDescendants()) do
+                    if child:IsA("ProximityPrompt") then
+                        prompt = child
+                        break
+                    end
+                end
+            end
+            
+            if prompt then
+                activatePrompt(prompt, descendant)
+            end
+            
+        elseif descendant.Name == "generator" then
+            if TeleportActive and AutoTeleportToggle then
+                AutoTeleportWasEnabled = true
+                AutoTeleportToggle:SetValue(false)
+            end
+            if teleportToItemsEnabled and teleportToItemsToggle then
+                teleportToItemsToggle:SetValue(false)
+            end
+            
+            task.wait(5)
+            
+            updateCharacterReferences()
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            local prompt = descendant:FindFirstChildOfClass("ProximityPrompt")
+            if not prompt then
+                for _, child in pairs(descendant:GetDescendants()) do
+                    if child:IsA("ProximityPrompt") then
+                        prompt = child
+                        break
+                    end
+                end
+            end
+            
+            if prompt then
+                activatePrompt(prompt, descendant)
+            end
+            
+        elseif descendant.Name == "HeliWall" then
+            descendant.AncestryChanged:Connect(function()
+                if not descendant.Parent then
+                    task.wait(0.5)
+                    
+                    local heliObj = nil
+                    
+                    pcall(function()
+                        heliObj = workspace.School.Rooms.RooftopBoss.HeliObjective
+                        if heliObj and heliObj.Parent then
+                        else
+                            heliObj = nil
+                        end
+                    end)
+                    
+                    if not heliObj then
+                        for _, obj in pairs(workspace:GetDescendants()) do
+                            if obj.Name == "HeliObjective" then
+                                heliObj = obj
+                                break
+                            end
+                        end
+                    end
+                    
+                    if heliObj then
+                        if TeleportActive and AutoTeleportToggle then
+                            AutoTeleportWasEnabled = true
+                            AutoTeleportToggle:SetValue(false)
+                        end
+                        if teleportToItemsEnabled and teleportToItemsToggle then
+                            teleportToItemsToggle:SetValue(false)
+                        end
+                        
+                        teleportTo(heliObj)
+                        task.wait(0.3)
+                        
+                        local heliPrompt = nil
+                        
+                        pcall(function()
+                            heliPrompt = workspace.School.Rooms.RooftopBoss.HeliObjective.ProximityPrompt
+                            if heliPrompt and heliPrompt:IsA("ProximityPrompt") then
+                            else
+                                heliPrompt = nil
+                            end
+                        end)
+                        
+                        if not heliPrompt then
+                            heliPrompt = heliObj:FindFirstChild("ProximityPrompt")
+                            if not heliPrompt then
+                                for _, child in pairs(heliObj:GetDescendants()) do
+                                    if child:IsA("ProximityPrompt") then
+                                        heliPrompt = child
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                        
+                        if heliPrompt then
+                            activatePrompt(heliPrompt, heliObj, 20)
+                        else
+                            local clickDetector = heliObj:FindFirstChildOfClass("ClickDetector")
+                            if clickDetector then
+                                pcall(function()
+                                    fireclickdetector(clickDetector)
+                                end)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end
+
+local function checkExisting()
+    for _, descendant in pairs(workspace:GetDescendants()) do
+        if descendant.Name == "jarst_radio" then
+            if TeleportActive and AutoTeleportToggle then
+                AutoTeleportWasEnabled = true
+                AutoTeleportToggle:SetValue(false)
+            end
+            if teleportToItemsEnabled and teleportToItemsToggle then
+                teleportToItemsToggle:SetValue(false)
+            end
+            
+            task.wait(5)
+            
+            updateCharacterReferences()
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            local prompt = descendant:FindFirstChildOfClass("ProximityPrompt")
+            if not prompt then
+                for _, child in pairs(descendant:GetDescendants()) do
+                    if child:IsA("ProximityPrompt") then
+                        prompt = child
+                        break
+                    end
+                end
+            end
+            
+            if prompt then
+                activatePrompt(prompt, descendant)
+            end
+            
+        elseif descendant.Name == "RadioObjective" then
+            if TeleportActive and AutoTeleportToggle then
+                AutoTeleportWasEnabled = true
+                AutoTeleportToggle:SetValue(false)
+            end
+            if teleportToItemsEnabled and teleportToItemsToggle then
+                teleportToItemsToggle:SetValue(false)
+            end
+            
+            task.wait(5)
+            
+            updateCharacterReferences()
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            local prompt = descendant:FindFirstChild("ProximityPrompt")
+            if not prompt then
+                for _, child in pairs(descendant:GetDescendants()) do
+                    if child:IsA("ProximityPrompt") then
+                        prompt = child
+                        break
+                    end
+                end
+            end
+            
+            if prompt then
+                activatePrompt(prompt, descendant)
+            end
+            
+        elseif descendant.Name == "generator" then
+            if TeleportActive and AutoTeleportToggle then
+                AutoTeleportWasEnabled = true
+                AutoTeleportToggle:SetValue(false)
+            end
+            if teleportToItemsEnabled and teleportToItemsToggle then
+                teleportToItemsToggle:SetValue(false)
+            end
+            
+            task.wait(5)
+            
+            updateCharacterReferences()
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            teleportTo(descendant)
+            task.wait(0.5)
+            
+            local prompt = descendant:FindFirstChildOfClass("ProximityPrompt")
+            if not prompt then
+                for _, child in pairs(descendant:GetDescendants()) do
+                    if child:IsA("ProximityPrompt") then
+                        prompt = child
+                        break
+                    end
+                end
+            end
+            
+            if prompt then
+                activatePrompt(prompt, descendant)
+            end
+            
+        elseif descendant.Name == "HeliWall" then
+            descendant.AncestryChanged:Connect(function()
+                if not descendant.Parent then
+                    task.wait(0.5)
+                    
+                    local heliObj = nil
+                    
+                    pcall(function()
+                        heliObj = workspace.School.Rooms.RooftopBoss.HeliObjective
+                        if heliObj and heliObj.Parent then
+                        else
+                            heliObj = nil
+                        end
+                    end)
+                    
+                    if not heliObj then
+                        for _, obj in pairs(workspace:GetDescendants()) do
+                            if obj.Name == "HeliObjective" then
+                                heliObj = obj
+                                break
+                            end
+                        end
+                    end
+                    
+                    if heliObj then
+                        if TeleportActive and AutoTeleportToggle then
+                            AutoTeleportWasEnabled = true
+                            AutoTeleportToggle:SetValue(false)
+                        end
+                        if teleportToItemsEnabled and teleportToItemsToggle then
+                            teleportToItemsToggle:SetValue(false)
+                        end
+                        
+                        teleportTo(heliObj)
+                        task.wait(0.3)
+                        
+                        local heliPrompt = nil
+                        
+                        pcall(function()
+                            heliPrompt = workspace.School.Rooms.RooftopBoss.HeliObjective.ProximityPrompt
+                            if heliPrompt and heliPrompt:IsA("ProximityPrompt") then
+                            else
+                                heliPrompt = nil
+                            end
+                        end)
+                        
+                        if not heliPrompt then
+                            heliPrompt = heliObj:FindFirstChild("ProximityPrompt")
+                            if not heliPrompt then
+                                for _, child in pairs(heliObj:GetDescendants()) do
+                                    if child:IsA("ProximityPrompt") then
+                                        heliPrompt = child
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                        
+                        if heliPrompt then
+                            activatePrompt(heliPrompt, heliObj, 20)
+                        else
+                            local clickDetector = heliObj:FindFirstChildOfClass("ClickDetector")
+                            if clickDetector then
+                                pcall(function()
+                                    fireclickdetector(clickDetector)
+                                end)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end
+
+local function getRoot(char)
+    return char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+end
+
+local function isValidPosition(position)
+    if not position then return false end
+    
+    if position.Y < -1000 then return false end
+    
+    if math.abs(position.X) > 10000 or math.abs(position.Z) > 10000 then return false end
+    
+    return true
+end
+
+local function toggleNoclip(enabled)
+    noclipEnabled = enabled
+    
+    if noclipEnabled then
+        noclipConnection = RunService.Stepped:Connect(function()
+            local character = Player.Character
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
+        
+        local character = Player.Character
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+end
+
+local function setupInfiniteJump()
+    local function enableInfiniteJump()
+        local character = Player.Character
+        if not character then return end
+        
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if not humanoid then return end
+        
+        local connection
+        connection = UserInputService.JumpRequest:Connect(function()
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end)
+        
+        character.AncestryChanged:Connect(function()
+            if not character.Parent then
+                connection:Disconnect()
+            end
+        end)
+    end
+    
+    if Player.Character then
+        enableInfiniteJump()
+    end
+    
+    Player.CharacterAdded:Connect(enableInfiniteJump)
+end
+
+setupInfiniteJump()
+
+local function CleanupMemory()
+    pcall(function()
+        if #targetCache > 100 then
+            local toRemove = #targetCache - 50
+            for i = 1, toRemove do
+                table.remove(targetCache, 1)
+            end
+        end
+        
+        if doorCacheTime + 10 < tick() then
+            doorCache = {}
+            doorCacheTime = tick()
+        end
+        
+        collectgarbage("step", 100)
+    end)
+end
+
+local function IsMobAlive(entity)
+    if not entity or not entity.Parent then
+        return false
+    end
+    
+    local head = entity:FindFirstChild("Head")
+    if not head then return false end
+    
+    local entityHealth = head:FindFirstChild("EntityHealth")
+    if not entityHealth then return false end
+    
+    local healthBar = entityHealth:FindFirstChild("HealthBar")
+    if not healthBar then return false end
+    
+    local bar = healthBar:FindFirstChild("Bar")
+    if not bar then return false end
+    
+    if bar:IsA("Frame") and bar.Size.X.Scale <= 0.01 then
+        return false
+    end
+    
+    if bar:IsA("Frame") and bar.BackgroundColor3 == Color3.fromRGB(255, 0, 0) and bar.Size.X.Scale <= 0.1 then
+        return false
+    end
+    
+    return true
+end
+
+local function GetAllDoors()
+    local currentTime = tick()
+    if currentTime - doorCacheTime < CACHE_DURATION and #doorCache > 0 then
+        return doorCache
+    end
+    
+    doorCache = {}
+    
+    local function addDoorPosition(doorObj, doorName)
+        local doorPosition = nil
+        
+        if doorObj:IsA("BasePart") then
+            doorPosition = doorObj.Position
+        elseif doorObj:IsA("Model") then
+            local primaryPart = doorObj.PrimaryPart
+            if primaryPart then
+                doorPosition = primaryPart.Position
+            else
+                local doorPart = doorObj:FindFirstChild("Door") or 
+                                doorObj:FindFirstChild("Handle") or
+                                doorObj:FindFirstChild("Part") or
+                                doorObj:FindFirstChild("Main")
+                
+                if doorPart and doorPart:IsA("BasePart") then
+                    doorPosition = doorPart.Position
+                else
+                    for _, child in pairs(doorObj:GetChildren()) do
+                        if child:IsA("BasePart") then
+                            doorPosition = child.Position
+                            break
+                        end
+                    end
+                end
+            end
+        end
+        
+        if doorPosition then
+            table.insert(doorCache, {
+                name = doorName,
+                position = doorPosition,
+                object = doorObj
+            })
+        end
+    end
+    
+    local schoolFolder = workspace:FindFirstChild("School")
+    if schoolFolder then
+        local doorsFolder = schoolFolder:FindFirstChild("Doors")
+        if doorsFolder then
+            for _, doorObj in pairs(doorsFolder:GetChildren()) do
+                if string.find(doorObj.Name:lower(), "door") then
+                    addDoorPosition(doorObj, doorObj.Name)
+                end
+            end
+        end
+    end
+    
+    doorCacheTime = currentTime
+    return doorCache
+end
+
+local function IsNearDoor(position, doors)
+    for _, door in pairs(doors) do
+        local distance = (position - door.position).Magnitude
+        if distance <= DoorAvoidanceDistance then
+            return true, door.name, distance
+        end
+    end
+    return false, nil, nil
+end
+
+local function GetBestMobTarget()
+    local Character = Player.Character
+    if not Character then return nil end
+    local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+    if not HumanoidRootPart then return nil end
+    
+    local entitiesFolder = workspace:FindFirstChild("Entities")
+    if not entitiesFolder then return nil end
+    
+    local entityCount = 0
+    local aliveCount = 0
+    local safeTargets = {}
+    local doorTargets = {}
+    local playerPos = HumanoidRootPart.Position
+    local doors = GetAllDoors()
+    
+    local targetParts = TargetHead and {"Head", "Torso", "HumanoidRootPart"} or {"Left Leg", "Right Leg", "Torso", "HumanoidRootPart"}
+    
+    local function processEntity(entity)
+        if entity.Name ~= "Entities" and entity ~= Character and entity.Name ~= "Highlight" then
+            entityCount = entityCount + 1
+            
+            if not IsMobAlive(entity) then
+                return
+            end
+            
+            aliveCount = aliveCount + 1
+            
+            for _, partName in ipairs(targetParts) do
+                local targetPart = entity:FindFirstChild(partName)
+                if targetPart and targetPart:IsA("BasePart") then
+                    local distance = (targetPart.Position - playerPos).Magnitude
+                    
+                    if distance <= CONFIG.MaxTeleportDistance then
+                        local targetPos = targetPart.Position
+                        
+                        if not isValidPosition(targetPos) then
+                            return
+                        end
+                        
+                        local target = {
+                            part = targetPart,
+                            entity = entity,
+                            distance = distance,
+                            partName = partName,
+                            position = targetPos
+                        }
+                        
+                        local isNearDoor, doorName, doorDistance = IsNearDoor(targetPos, doors)
+                        
+                        if isNearDoor then
+                            target.nearDoor = true
+                            target.doorName = doorName
+                            target.doorDistance = doorDistance
+                            table.insert(doorTargets, target)
+                        else
+                            table.insert(safeTargets, target)
+                        end
+                    end
+                    break
+                end
+            end
+        end
+    end
+    
+    for _, entity in pairs(entitiesFolder:GetChildren()) do
+        processEntity(entity)
+    end
+    
+    for _, folder in pairs(entitiesFolder:GetChildren()) do
+        if folder:IsA("Folder") or folder:IsA("Model") then
+            if folder.Name ~= "Highlight" then
+                for _, numberedFolder in pairs(folder:GetChildren()) do
+                    if numberedFolder:IsA("Model") or numberedFolder:IsA("Folder") then
+                        processEntity(numberedFolder)
+                    end
+                end
+            end
+        end
+    end
+    
+    table.sort(safeTargets, function(a, b) return a.distance < b.distance end)
+    table.sort(doorTargets, function(a, b) return a.distance < b.distance end)
+    
+    local bestTarget = nil
+    
+    if #safeTargets > 0 then
+        bestTarget = safeTargets[1]
+    elseif #doorTargets > 0 then
+        bestTarget = doorTargets[1]
+    else
+        return nil
+    end
+    
+    TeleportStats.lastTarget = bestTarget.entity.Name
+    return bestTarget.position
+end
+
+local function TeleportToMob()
+    local Character = Player.Character
+    if not Character then return end
+    local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+    if not HumanoidRootPart then return end
+    
+    local targetPosition = GetBestMobTarget()
+    if not targetPosition then return end
+    
+    local finalPosition = targetPosition + Vector3.new(0, HeightOffset, 0)
+    
+    if not isValidPosition(finalPosition) then
+        return
+    end
+    
+    local currentPos = HumanoidRootPart.Position
+    local distance = (currentPos - finalPosition).Magnitude
+    
+    if distance > CONFIG.MaxTeleportDistance * 2 then
+        return
+    end
+    
+    HumanoidRootPart.CFrame = CFrame.new(finalPosition)
+    
+    TeleportStats.totalTeleports = TeleportStats.totalTeleports + 1
+    
+    CleanupMemory()
+end
+
+local radioCompleted = false
+local function waitForCharacter()
+    local character = Player.Character or Player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart", 10)
+    return character, humanoidRootPart
+end
+
+local function enableNoclip()
+    local character = Player.Character
+    if character then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide then
+                part.CanCollide = false
+            end
+        end
+    end
+end
+
+local function completeRadioObjective(radio)
+    if radioCompleted then return end
+    radioCompleted = true
+    
+    if TeleportActive and AutoTeleportToggle then
+        AutoTeleportToggle:SetValue(false)
+    end
+    if teleportToItemsEnabled and teleportToItemsToggle then
+        teleportToItemsToggle:SetValue(false)
+    end
+    
+    wait(5)
+    
+    local character, humanoidRootPart = waitForCharacter()
+    if not humanoidRootPart then
+        radioCompleted = false
+        return
+    end
+    
+    enableNoclip()
+    
+    humanoidRootPart.CFrame = radio.CFrame + Vector3.new(0, 3, 0)
+    wait(1)
+    
+    local proximityPrompt = radio:FindFirstChild("ProximityPrompt")
+    if proximityPrompt then
+        proximityPrompt.Enabled = true
+        proximityPrompt.HoldDuration = 0
+        fireproximityprompt(proximityPrompt)
+        
+        wait(2)
+        
+        local currentPosition = humanoidRootPart.CFrame
+        humanoidRootPart.CFrame = currentPosition + Vector3.new(0, 8, 0)
+        
+        wait(5)
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/smaller"))()
+    else
+        radioCompleted = false
+    end
+end
+
+local function onDescendantAdded(descendant)
+    if descendant.Name == "RadioObjective" and not radioCompleted then
+        task.spawn(completeRadioObjective, descendant)
+    end
+end
+
+-- Setup item detection for Teleport to Items
+local function checkForItems()
+    if not teleportToItemsEnabled or isTeleporting or radioCompleted then return end
+    
+    local dropItems = workspace:FindFirstChild("DropItems")
+    if dropItems and #dropItems:GetChildren() > 0 then
+        teleportToItems()
+    end
+end
+
+-- Monitor for new items
+local itemConnection
+local function setupItemListener()
+    if itemConnection then
+        itemConnection:Disconnect()
+    end
+    
+    local dropItems = workspace:FindFirstChild("DropItems")
+    if dropItems then
+        itemConnection = dropItems.ChildAdded:Connect(function()
+            if teleportToItemsEnabled and not radioCompleted then
+                checkForItems()
+            end
+        end)
+    end
+end
+
+-- Initial setup for item listener
+setupItemListener()
+
+-- Monitor workspace for DropItems folder creation
+workspace.ChildAdded:Connect(function(child)
+    if child.Name == "DropItems" and teleportToItemsEnabled and not radioCompleted then
+        setupItemListener()
+        checkForItems()
+    end
+end)
+
+-- Periodic check for items
+task.spawn(function()
+    while true do
+        if teleportToItemsEnabled and not radioCompleted then
+            checkForItems()
+        end
+        task.wait(0.5) -- Check every 0.5 seconds for responsiveness
+    end
+end)
+
+workspace.DescendantAdded:Connect(onDescendantAdded)
+
+for _, obj in pairs(workspace:GetDescendants()) do
+    if obj.Name == "RadioObjective" and not radioCompleted then
+        task.spawn(completeRadioObjective, obj)
+        break
+    end
+end
+
+ObjectiveSection:AddToggle("ObjectiveAutomation", {
+    Title = "บรรลุวัตถุประสงค์ทั้งหมด",
+    Default = false,
+    Callback = function(Value)
+        ObjectiveAutomationActive = Value
+        
+        if Value then
+            AutoTeleportWasEnabled = TeleportActive
+            
+            if TeleportActive and AutoTeleportToggle then
+                AutoTeleportToggle:SetValue(false)
+            end
+            if teleportToItemsEnabled and teleportToItemsToggle then
+                teleportToItemsToggle:SetValue(false)
+            end
+            
+            setupGlobalListener(workspace)
+            checkExisting()
+        else
+            AutoTeleportWasEnabled = false
+        end
+    end
+})
+
+ObjectiveSection:AddToggle("InstantCompleteV2", {
+    Title = "ทำตามวัตถุประสงค์ทั้งหมด V2 ทันที (เฉพาะในโรงเรียน)",
+    Default = false,
+    Callback = function(Value)
+        radioCompleted = not Value
+        if Value then
+            if TeleportActive and AutoTeleportToggle then
+                AutoTeleportToggle:SetValue(false)
+            end
+            if teleportToItemsEnabled and teleportToItemsToggle then
+                teleportToItemsToggle:SetValue(false)
+            end
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj.Name == "RadioObjective" and not radioCompleted then
+                    task.spawn(completeRadioObjective, obj)
+                    break
+                end
+            end
+        end
+    end
+})
+
+ObjectiveSection:AddToggle("ReplayGame", {
+    Title = "เล่นเกมซ้ำ",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            task.spawn(function()
+                while Value do
+                    local args = {
+                        [1] = "Test-Data"
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("external", 9e9):WaitForChild("Packets", 9e9):WaitForChild("voteReplay", 9e9):FireServer(unpack(args))
+                    task.wait(1)
+                end
+            end)
+        end
+    end
+})
+
+AutoTeleportToggle = TeleportSection:AddToggle("AutoTeleport", {
+    Title = "โจมตีซอมบี้",
+    Default = false,
+    Callback = function(Value)
+        pcall(function()
+            TeleportActive = Value
+            
+            if TeleportActive then
+                teleportConnection = RunService.Heartbeat:Connect(function()
+                    if not teleportToItemsEnabled or not isTeleporting then
+                        TeleportToMob()
+                    end
+                end)
+            else
+                if teleportConnection then
+                    teleportConnection:Disconnect()
+                    teleportConnection = nil
+                end
+            end
+        end)
+    end
+})
+
+TeleportSection:AddToggle("TargetPart", {
+    Title = "หัว (ปิด = ขา)",
+    Default = true,
+    Callback = function(Value)
+        pcall(function()
+            TargetHead = Value
+        end)
+    end
+})
+
+TeleportSection:AddSlider("HeightOffset", {
+    Title = "ระยะห่างเหนือซอมบี้",
+    Min = CONFIG.MinHeightOffset,
+    Max = CONFIG.MaxHeightOffset,
+    Default = CONFIG.DefaultHeightOffset,
+    Rounding = 1,
+    Callback = function(Value)
+        pcall(function()
+            HeightOffset = Value
+        end)
+    end
+})
+
+TeleportSection:AddButton({
+    Title = "แผนที่ 2 จุดปลอดภัย",
+    Callback = function()
+        pcall(function()
+            local Character = Player.Character
+            if Character and Character:FindFirstChild("HumanoidRootPart") then
+                Character.HumanoidRootPart.CFrame = CFrame.new(-98.7486877, 32.2496185, 0.000988006592, -1.1920929e-07, 0, -1.00000012, 0, -1.00000024, -0, -1.00000012, 0, -1.1920929e-07)
+            end
+        end)
+    end
+})
+
+CombatSection:AddToggle("AllSkills", {
+    Title = "เปิดใช้งานทักษะทั้งหมด",
+    Default = false,
+    Callback = function(Value)
+        pcall(function()
+            AllSkillsToggle = Value
+            Skill1Toggle = Value
+            Skill2Toggle = Value
+            Skill3Toggle = Value
+            UltimateToggle = Value
+        end)
+    end
+})
+
+CombatSection:AddToggle("BufferSpam", {
+    Title = "โจมตีอัตโนมัติ",
+    Default = false,
+    Callback = function(Value)
+        pcall(function()
+            BufferSpamActive = Value
+        end)
+    end
+})
+
+CombatSection:AddToggle("InfPerk", {
+    Title = "เปิดใช้งานทักษะพิเศษ",
+    Default = false,
+    Callback = function(Value)
+        pcall(function()
+            InfPerkActive = Value
+        end)
+    end
+})
+
+doorActivatorToggle = CombatSection:AddToggle("DoorActivator", {
+    Title = "เปิดประตูทั้งหมด",
+    Default = false,
+    Callback = function(Value)
+        doorActivatorEnabled = Value
+        
+        if Value and godModeEnabled then
+            godModeToggle:SetValue(false)
+        end
+        
+        if Value then
+            setupAutoActivation()
+            spawn(function()
+                activateAllDoors()
+            end)
+        else
+            disableAutoActivation()
+        end
+    end
+})
+
+teleportToItemsToggle = CombatSection:AddToggle("TeleportToItems", {
+    Title = "เก็บไอเท็ม",
+    Default = false,
+    Callback = function(Value)
+        teleportToItemsEnabled = Value
+        if Value then
+            setupItemListener()
+            checkForItems()
+        else
+            if itemConnection then
+                itemConnection:Disconnect()
+                itemConnection = nil
+            end
+        end
+    end
+})
+
+MovementSection:AddToggle("Noclip", {
+    Title = "นอคลิป",
+    Default = false,
+    Callback = function(Value)
+        pcall(function()
+            toggleNoclip(Value)
+        end)
+    end
+})
+
+Player.CharacterAdded:Connect(function(newCharacter)
+    pcall(function()
+        Character = newCharacter
+        HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+        updateCharacterReferences()
+        wait(1)
+        GetBestMobTarget()
+        
+        if godModeEnabled then
+            toggleGodMode(true)
+        end
+    end)
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    pcall(function()
+        if input.KeyCode == Enum.KeyCode.T then
+            TeleportToMob()
+        end
+    end)
+end)
+
+task.spawn(function()
+    while true do
+        pcall(function()
+            CleanupMemory()
+        end)
+        task.wait(5)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        pcall(function()
+            if Skill1Toggle then
+                pcall(function()
+                    ByteNetReliable:FireServer(SkillBuffers[1], {tick()})
+                end)
+            end
+            if Skill2Toggle then
+                pcall(function()
+                    ByteNetReliable:FireServer(SkillBuffers[2], {tick()})
+                end)
+            end
+            if Skill3Toggle then
+                pcall(function()
+                    ByteNetReliable:FireServer(SkillBuffers[3], {tick()})
+                end)
+            end
+            if UltimateToggle then
+                pcall(function()
+                    ByteNetReliable:FireServer(SkillBuffers[4], {0})
+                end)
+            end
+        end)
+        task.wait(SpamRate)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        pcall(function()
+            if BufferSpamActive then
+                pcall(function()
+                    local dynamicNumber = tick()
+                    ByteNetReliable:FireServer(bufferData, {dynamicNumber})
+                end)
+                task.wait(SpamRate)
+            else
+                task.wait(0.1)
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        pcall(function()
+            if AutoSpinActive then
+                pcall(function()
+                    local args = {
+                        [1] = 1,
+                        [3] = true,
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Packets", 9e9):WaitForChild("WeaponSpin", 9e9):InvokeServer(unpack(args))
+                end)
+                task.wait(1)
+            else
+                task.wait(0.1)
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        pcall(function()
+            if InfPerkActive then
+                pcall(function()
+                    ByteNetReliable:FireServer(infPerkBuffer)
+                end)
+                task.wait(5)
+            else
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+task.wait(1)
+pcall(function()
+    GetBestMobTarget()
+end)
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/deeznuts"))()
