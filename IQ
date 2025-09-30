@@ -10335,4 +10335,4 @@
 
 ]]
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/12345678kanhai/silence/refs/heads/main/LICENSE"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/PET/refs/heads/main/COP"))()
