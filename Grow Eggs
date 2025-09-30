@@ -1,3 +1,2619 @@
--- ([[This file was protected with MoonSec V3]]):gsub('.+', (function(a) _XJOtaDuqmzeE = a; end)); return(function(t,...)local u;local d;local c;local r;local f;local o;local e=24915;local n=0;local l={};while n<806 do n=n+1;while n<0xd4 and e%0x1012<0x809 do n=n+1 e=(e+741)%28807 local a=n+e if(e%0x1f10)<0xf88 then e=(e+0x179)%0x5b9a while n<0x75 and e%0x4278<0x213c do n=n+1 e=(e*459)%18322 local a=n+e if(e%0x47b4)>0x23da then e=(e+0x2cc)%0x9f6f local e=58714 if not l[e]then l[e]=0x1 r={};end elseif e%2~=0 then e=(e+0x122)%0x5d81 local e=99774 if not l[e]then l[e]=0x1 d=function(d)local e=0x01 local function l(n)e=e+n return d:sub(e-n,e-0x01)end while true do local n=l(0x01)if(n=="\5")then break end local e=c.byte(l(0x01))local e=l(e)if n=="\2"then e=r.KIGxvbkS(e)elseif n=="\3"then e=e~="\0"elseif n=="\6"then f[e]=function(n,e)return t(8,nil,t,e,n)end elseif n=="\4"then e=f[e]elseif n=="\0"then e=f[e][l(c.byte(l(0x01)))];end local n=l(0x08)r[n]=e end end end else e=(e-0x51)%0x4870 n=n+1 local e=34533 if not l[e]then l[e]=0x1 o="\4\8\116\111\110\117\109\98\101\114\75\73\71\120\118\98\107\83\0\6\115\116\114\105\110\103\4\99\104\97\114\73\75\107\74\97\101\68\102\0\6\115\116\114\105\110\103\3\115\117\98\100\104\100\87\75\122\109\104\0\6\115\116\114\105\110\103\4\98\121\116\101\122\121\97\83\113\86\77\105\0\5\116\97\98\108\101\6\99\111\110\99\97\116\65\106\98\66\66\77\120\100\0\5\116\97\98\108\101\6\105\110\115\101\114\116\107\115\121\66\80\69\121\85\5";end end end elseif e%2~=0 then e=(e-0x3d9)%0x289 while n<0x216 and e%0x3560<0x1ab0 do n=n+1 e=(e-422)%29338 local d=n+e if(e%0x9d0)<0x4e8 then e=(e*0x20c)%0xbe64 local e=71001 if not l[e]then l[e]=0x1 f=getfenv and getfenv();end elseif e%2~=0 then e=(e-0x289)%0xbf98 local e=37929 if not l[e]then l[e]=0x1 end else e=(e+0x32a)%0xb774 n=n+1 local e=99421 if not l[e]then l[e]=0x1 c=string;end end end else e=(e-0x2a2)%0x1f68 n=n+1 while n<0x22c and e%0x802<0x401 do n=n+1 e=(e-820)%45891 local d=n+e if(e%0x3bb8)<0x1ddc then e=(e*0x36b)%0xa4b2 local e=13938 if not l[e]then l[e]=0x1 f=(not f)and _ENV or f;end elseif e%2~=0 then e=(e+0x16e)%0x6ee8 local e=87287 if not l[e]then l[e]=0x1 end else e=(e+0x261)%0x8ba3 n=n+1 local e=28599 if not l[e]then l[e]=0x1 u=tonumber;end end end end end e=(e+366)%41041 end d(o);local n={};for e=0x0,0xff do local l=r.IKkJaeDf(e);n[e]=l;n[l]=e;end local function a(e)return n[e];end local c=(function(o,t)local c,l=0x01,0x10 local n={{},{},{}}local f=-0x01 local e=0x01 local d=o while true do n[0x03][r.dhdWKzmh(t,e,(function()e=c+e return e-0x01 end)())]=(function()f=f+0x01 return f end)()if f==(0x0f)then f=""l=0x000 break end end local f=#t while e<f+0x01 do n[0x02][l]=r.dhdWKzmh(t,e,(function()e=c+e return e-0x01 end)())l=l+0x01 if l%0x02==0x00 then l=0x00 r.ksyBPEyU(n[0x01],(a((((n[0x03][n[0x02][0x00]]or 0x00)*0x10)+(n[0x03][n[0x02][0x01]]or 0x00)+d)%0x100)));d=o+d;end end return r.AjbBBMxd(n[0x01])end);d(c(196,"7yXYMmTR3vZ0%Gc)My"));d(c(126,"!*bH?p^KM_CGO>ThMb:Ch_KOhOKphOKK_^KM5GMpkC^?h^Mp*CMCv>Kbh(HeGHCY*p_pbbC?H?_G**C*gp_>*pG>OGp*HTObHGOb?COOp?_hH^>MpC>>?G^Mh(>h^bTbpGTbp>K>^K>>KbTH^Ch2p^hGp^hp^b/*^G_?*C1pKG*mM^CpMT{MMGb=_CR^Kbh>KM*KMOb?CbO,?CHHCKHMGHb>GTb>ObH*G??{GG?KC_?TO_?hCM?OCMTOK*?b>HpHT^^HTMbGTh?Th*K*>_KTTG^(MT*<tpK*hGMM7?MOT?K*T*Mb;hK_CMb_THKTjbKOh_MpU_CHhO?dO^G?H*GKHCGCHHGCHp_p?__G?pO*HHOc?>^ TK>M?KOCp^>*h?Tp^)T?pK>G^pGTKMT?^MhH?TTG^O_g*?wpMnX?KKhGMp,T^hhKKOa>Kp*hMbG8HHbYC?*>C?bOK>*TG^*bMT*^CvVC?T>bO*HpGTH_G_?OCTpL>*pEC^?^GG?(^Chy>Gp*T^pOKGpTT^^GT>KbOKp*TpKZhCp^hhpC_K"));local e=(-7346+(function()local l,n=0,1;(function(n,e,l)n(l(n,e,e),e(n,e,l),e(n,e,n))end)(function(e,d,f)if l>173 then return f end l=l+1 n=(n*708)%17232 if(n%1164)>=582 then n=(n*982)%13705 return e(f(e,f and e,f and d),f(d and e,e,e),e(f,e,d and d))else return f end return e end,function(f,d,e)if l>329 then return e end l=l+1 n=(n+406)%39339 if(n%1368)>=684 then n=(n-55)%43109 return e else return e(e(e,e,e),d(d and f,e,d),e(d,f and e,f))end return d(f(e,e,e and f),f(f,e,e),d(e and e,e,f))end,function(f,d,e)if l>414 then return e end l=l+1 n=(n+619)%41114 if(n%384)<192 then return f(e(f,e,e)and d(f,f,e),e(e,f,e),f(d,f,e)and d(e,e,f))else return e end return d end)return n;end)())local a=r.rQWZiOwX or r.BzdfoHcb;local de=(getfenv)or(function()return _ENV end);local g=1;local o=4;local f=2;local d=3;local function fe(k,...)local s=c(e,"6J^UiqNf!:#>7cD)Jfr#n)JiJ#^U^U^!^c#^#:#q#)>#i7ffqqq#q)>!cJcfDN:!DUD>)U)J>JKc)7JU7qJ#^J^U^c^U^NU7U^UN)fqUi#q#qUJoi^N:NDf^q7fUfNU!fUqq^!UfUJUNU>!!>:>D>)#f>Dcnc:cJc(cff!fD!J!N!>D)c7:>#N#i#:#DFU^iJDU>^7UDiicfc)DnDqD#qNqqNNNU3iJ!LcJ^Jff^N^f>ff!i:iN>:Dff#!!J>^::>^>N#)NcfNfNf>!yD#)7MJbUp>:)#c#!#c>^)D^JUqJ:UCi^i>iUi^i:D#qU)U)!)cqqN#fDf#!N!)iw!D:!:!#!#^:)#)>J7f>U7>7qc+ci!>cNcNDUD>D:Dc7!>UDc.>jUy:J!JNcN^)^)DqiWUiiNi^iiq7n!Uiq>N>iifNN!^>!U!i!):J!f!Dq7qU!!#:#f#!>)>NfN7ccqcU!#DUc7cD:D)KD:)Nzm>f)^G^J>Jf^icq^c^^UNU^UDif)!iUi>q:q)Nq^i)7JJXqB#r)N#f#:U!):7!U:f#:#)##>q>:#i7i7q7ic^N#f>fUf!fcDJc)cND <#)7DiJ#J>J7^DJDLU7iDJ7cc^cf^:q3qqq:iUq#qcqDqffc!-f7!N!i:qN):q:q:##y#D!N>D7U7Nq#NDNUN!Nc7!c!)JDc)#ci)D)D0DA!AqJqJf^cJc^J7Uc^77cJcN^fi)i!i>q>iiNqq)f7Ncf)JUU^J7^J^Nf>#^:D#c#D>^N::#>7>D7^!^c#7)DUc)D>)i#q)7(iM^sfyfJJ/)7D>U U>77J7NJ)U!UDic))qfi7N0q7N!fJ^^f:fJ!^!>!i:^!#:ci)!#:#>U#)>7Nc7!!!!#:i:i:D: DiD7:)D7)^)q)>)c8)cX7f)7JcJ>J7UU^#D#iiiiUcU)qfictcN>NNfJfU^Nf!fJfD!!U):f!7#d:7#!>JfSi!ffqJqNq>>:cic)!)cqD>DU#UD#):)U)#?fWcx)JD^iJ#JDc)^#U>UciO)!q^qqq_q#q!JNN)N!NDfc^)!ff7:(!7:!#JNlNDU7iJiNi>NDqqq#q)NqN:NDfU!#!^!^!f!7:D:N:>#%>f>)#)>i>:7#7U7!7c)!D^c7DJDN)J)%)N)#tJ*ijciJJUJ!Jc^!^f^cUJU#NDi3iqi#qNqiq#qDNU#iNcf^fffc!J!N!>#^#f:#:)#i#)#D>U>!cccc7f77cJcNc>D:Dq)7Fi)i)>)DG!X!YcJ^Jf^^^J^N^>U^UqU7U)NiN3iDqiq!qcN^fNN7!U!cf>!^!q:C!):i::>D>c#!#)>^>:>77#7Nccc!cqcDc)DfD:DD)U)!J7R^w:97JqJNJc^I^fqU^)UfU:U)iUi!icNif7q7NqNNN)f=fqf#:)!q!::^:U:7:c>j#f>^>f>N>)7Hc>7#cKcic:cDDfJ>Dc)^)fJ^aJmfY>Jii!J#J)^iif^DUiU!UcfNifq0qJq:q>NPNqN##JfifcfD!i!!!):^:c>q#J###>7>>q>>>)7i7:c^=Nc!ccD^x^D7)^)N))UUtq9#C)U^J:J)^UU#U)U^U>U7i:iNi>qaNffUq)N:N:f!fUf!fc!^:i!7:q:N:c#Q#N##7J7N>:7^7U777cc^cf)7D>DND))y):)#m#_i3)^^JUJ7Jci:^f^cUJUNU>iif!i#i)qi!KqDNiN!f)!iff!Q!J!#!>:{:q>#7q#i#c#D>f>!7!7^DcD!cJc#c>?fDqD>D))>):v^UNn!dcJ^UDJ7^^^N^)NUUqU#U)NDi:i)qUN#N)N^N>N7f:fNf>!H:f#U!)::::#)#U#!#c>^cJ>77q7N7ccFcNc#DqRDD:)^)U)!)c/UYfAcJJJNJ)^<^q^#UIUiU:UDiUfqicqfqfNhNJNNN>ft!ff#!i!i!#!D:q:!#U>J#f>J>JD:>>7J7q7#7)c!k7cDDUD!^*)^)!)7JUJ!x>JqJq^^J)^i^:ihi7U!iUi^q:i7qJqNq>ffNqN)N)fNf:f)!U:#:):^:7:7#^#N#>>t7fcU>)7#7:cDcUc!ccD^)JD7)N)N)cznXNW#T)q J:JD^U^:^cU^UfUDiJiNi>q:qqq#q)NqNDNDfUf!DcDqD!)!)c:f#J#t#q##Fi^fJDUY47^77Dc#cfc7DJq#q#qDN#NfNJN:f>j)J!J!Jc^^!^!#U>:UNNiJi>i#i)qi747>7ic7c.c#f!!n!J!N!>af)N/7oc#q#D#D>U>!^#^UU>^)U:cfJfD<DqD#UqqqN^N#N!N7^c!N!NU7!f!>:):U:cq##J>9##>J>D7i7Ncqc>:#:J>fDD)U)#)f)!{^v4>DJJJf^Jc^J:^!^^^:UNU7UDicqUi:ic2Dq:NfN)^^fqf>!!iiJ7^c^q^#^):^qD>JNcf_f^>N!^!q!Nc::q:i:#f#f)!i:>#I:U:!:c#U#f#7>J>!Di7y7N7#7)cic:cDDU^7Dc)^)f)DyJ4fj>JNUqJ#J)^ii!^DUiU!Uci^i>f)qJqNq>f)NqN>N)f#::fD!i!!#7:^:!:7#J#N#)DU>q>#>)DU7:7)cU)!c)D^D:D7)^)N{IT?JfJJm)J!J:^^^U^!^cU^fJU7iUiNi)q8q:q#NU:fN:NDfU:^fc!U!f:D#U:N#J#I#!###)>ic:cq7U7)7ccfcfDUDJ)!)J)8)D)#{!}is:mDJUUiJc^:^fUqUJUNU>i0i7i#qqqiq:qDNqN!fUf)ff!^!J::!>:J:q:>:)#!c7#D>U>!c,7^7!77cq_:c>DkDqHiD))q):)DUU !JiJ^JfJ7^J^Ni>U!UqiJU)i>i:q9qUqD:iN^NcN7!:fNf7!<!7!#:U7f:::D#U7a#c>U>f72)i7N7>c.D)c#DkDiD:)c)U)))czU+fh7JJJNqN^v^7^#UJUiU:UDi:N>icqiqfNfNJNfN>fJfqfD>^!i!:!D:D:!:D#^#f>>>J>!>>7/7q7#7)ciJicDDqD!D))^)f)7<qU:d>J/JqUDJ)^q^:i9iqU!U)i^ici7qJqNNcf:NqNcN)f7f:fD!U!!:J:^:::7#U#N#7>z>q7:>)7N7:7DcUc!ccD^^^D7)U)N)cKO?qg#I)qsJ:JD^U^:^cU^UfUciJiNi>qUqqq#q)Nqf/NDfUf!7q)N)>)7c!)>M)#J#:###)>i^gJ)U1^c7D)Ucfc7DJiDq)NiNqNcU:UUU!fDfi!>:J!f!::q:)Ni:D#)>^f:7J>qc%!c:NcY:)#qD>ci>Uc):J:v:q:#>J>7#:#D>U>#>c7^7fD7DqcNc>D8DqD#)h)iF>J!{Uu#5cJqJfJ7^J^NUNUwUqU#iJiii:iDqUq:qcN^NfN7fJfNf>!<:N!#!):i:#:D#U#!#c>^>f>77J7N7cc*cqc#D^DqDDDD)U)!NcNqN!f!fc^JJ>^K^qU7iJUiU:UDiqi!icq^q:!qNJNfN>fkfqf#f)!i7c!D:U:!:)#^#!#7>f7i>>7^7qcU7)cqc:cDDUD7^n)^)f)7S#&Ne7JjU>i:J)^q^:UNUUU:UciUifq;!iqNq>NHNcN#fTfif:!U!U!#!c:^:f:7#J#N>#>d>f>#7A7i7:7DcUJUccDiDfDD)J)N)>boiJR#g)JiJ#JD^U^!^DU^UfU7iiiNi>qEqNNJq)NiN:>NDfD7Dc7:D7+w:^DN:>#G#qJ^^U^!^:UJ)c)f)7iiU!qU_)icqiNiqcN)NJf:f7fU!qf>!7:<:>:J:)##N:#U>i>ffD!q!>:J:f:c#U#:#)DfD^)i)U)J)D7:J^WcJqJU^JJ>^^)JU:UJUfi:=#i!i#i>qUNf^!N>NifJf>iJNUNqNiN>f:!Uf#U>iUiii:iD>#>:7#7fNcN7fJfN!c:!!q!#!):f:::D#U7!>i>^>f>77J7N77cnDf)ic)DND:)y)U)!)c8^o>07JJJNJc^w^q^#^)i_U:UDiUi!icq^qfq7NNNNN>f fNf#f)!i!:!D:U:!:c#^#f");local n=0;r.z_SaCYOu(function()r.ntJUCbmU()n=n+1 end)local function e(l,e)if e then return n end;n=l+n;end local l,n,h=t(0,t,e,s,r.zyaSqVMi);local function c()local l,n=r.zyaSqVMi(s,e(1,3),e(5,6)+2);e(2);return(n*256)+l;end;local b=true;local b=0 local function y()local e=n();local n=n();local d=1;local f=(l(n,1,20)*(2^32))+e;local e=l(n,21,31);local n=((-1)^l(n,32));if(e==0)then if(f==b)then return n*0;else e=1;d=0;end;elseif(e==2047)then return(f==0)and(n*(1/0))or(n*(0/0));end;return r.ZDMFcVlh(n,e-1023)*(d+(f/(2^52)));end;local p=n;local function _(n)local l;if(not n)then n=p();if(n==0)then return'';end;end;l=r.dhdWKzmh(s,e(1,3),e(5,6)+n-1);e(n)local e=""for n=(1+b),#l do e=e..r.dhdWKzmh(l,n,n)end return e;end;local p=#r.EwGoiYdo(u('\49.\48'))~=1 local e=n;local function ee(...)return{...},r.TtspDbUX('#',...)end local function ne()local u={};local b={};local e={};local s={u,b,nil,e};local e=n()local a={}for f=1,e do local l=h();local e;if(l==2)then e=(h()~=#{});elseif(l==0)then local n=y();if p and r.lPsLiTqY(r.EwGoiYdo(n),'.(\48+)$')then n=r.EM_hpJqJ(n);end e=n;elseif(l==1)then e=_();end;a[f]=e;end;for s=1,n()do local e=h();if(l(e,1,1)==0)then local t=l(e,2,3);local r=l(e,4,6);local e={c(),c(),nil,nil};if(t==0)then e[d]=c();e[o]=c();elseif(t==#{1})then e[d]=n();elseif(t==k[2])then e[d]=n()-(2^16)elseif(t==k[3])then e[d]=n()-(2^16)e[o]=c();end;if(l(r,1,1)==1)then e[f]=a[e[f]]end if(l(r,2,2)==1)then e[d]=a[e[d]]end if(l(r,3,3)==1)then e[o]=a[e[o]]end u[s]=e;end end;for e=1,n()do b[e-(#{1})]=ne();end;s[3]=h();return s;end;local function le(l,e,n)local f=e;local f=n;return u(r.lPsLiTqY(r.lPsLiTqY(({r.z_SaCYOu(l)})[2],e),n))end local function b(m,k,h)local function fe(...)local c,p,y,ne,_,n,u,le,j,z,s,l;local e=0;while-1<e do if e>2 then if 4<e then if e>=4 then for n=28,79 do if 6~=e then l=t(7);break;end;e=-2;break;end;else e=-2;end else if e~=2 then for n=10,76 do if e>3 then z=r.TtspDbUX('#',...)-1;s={};break;end;le={};j={...};break;end;else z=r.TtspDbUX('#',...)-1;s={};end end else if e<1 then c=t(6,29,1,30,m);p=t(6,56,2,23,m);else if e~=-3 then for l=39,52 do if e~=1 then n=-41;u=-1;break;end;y=t(6,85,3,10,m);_=ee ne=0;break;end;else y=t(6,85,3,10,m);_=ee ne=0;end end end e=e+1;end;for e=0,z do if(e>=y)then le[e-y]=j[e+1];else l[e]=j[e+1];end;end;local e=z-y+1 local e;local t;local function y(...)while true do end end while true do if n<-40 then n=n+42 end e=c[n];t=e[g];if t>35 then if t>=54 then if t<=62 then if 57>=t then if 55>=t then if 50~=t then for c=45,73 do if t>54 then local r,c,b,k,a,h,u,s,p;local t=0;while t>-1 do if t<=2 then if t<=0 then r=l;else if t>1 then k=c[f];a=c[o];h=d;else c=e;b=n;end end else if 4<t then if 5==t then n=p;else t=-2;end else if 3==t then u=r[k];s=r[a];else p=u==s and c[h]or 1+b;end end end t=t+1 end break;end;if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;break;end;else local r,c,k,a,b,u,h,p,s;local t=0;while t>-1 do if t<=2 then if t<=0 then r=l;else if t>1 then a=c[f];b=c[o];u=d;else c=e;k=n;end end else if 4<t then if 5==t then n=s;else t=-2;end else if 3==t then h=r[a];p=r[b];else s=h==p and c[u]or 1+k;end end end t=t+1 end end else if t~=55 then repeat if 57>t then l[e[f]]=(e[d]~=0);n=n+1;break;end;local t,r,a,o,c;local n=0;while n>-1 do if 3>n then if 0<n then if n<2 then r=f;else a=d;end else t=e;end else if 4<n then if n>2 then repeat if 6~=n then l(c,o);break;end;n=-2;until true;else l(c,o);end else if-1<=n then for e=29,58 do if 3~=n then c=t[r];break;end;o=t[a];break;end;else c=t[r];end end end n=n+1 end until true;else l[e[f]]=(e[d]~=0);n=n+1;end end else if t>59 then if t<61 then do return end;else if t~=62 then local f=e[f]local d={l[f](a(l,f+1,e[d]))};local n=0;for e=f,e[o]do n=n+1;l[e]=d[n];end else if l[e[f]]then n=n+1;else n=e[d];end;end end else if 55<t then repeat if t<59 then local n=e[f]local d={l[n](a(l,n+1,e[d]))};local f=0;for e=n,e[o]do f=f+1;l[e]=d[f];end break;end;do return l[e[f]]end until true;else do return l[e[f]]end end end end else if t<67 then if 65<=t then if t>=62 then repeat if t~=65 then local u=p[e[d]];local a;local t={};a=r.oOrkoFhB({},{__index=function(n,e)local e=t[e];return e[1][e[2]];end,__newindex=function(l,e,n)local e=t[e]e[1][e[2]]=n;end;});for f=1,e[o]do n=n+1;local e=c[n];if e[g]==4 then t[f-1]={l,e[d]};else t[f-1]={k,e[d]};end;s[#s+1]=t;end;l[e[f]]=b(u,a,h);break;end;local e=e[f]l[e](l[e+1])until true;else local u=p[e[d]];local a;local t={};a=r.oOrkoFhB({},{__index=function(n,e)local e=t[e];return e[1][e[2]];end,__newindex=function(l,e,n)local e=t[e]e[1][e[2]]=n;end;});for f=1,e[o]do n=n+1;local e=c[n];if e[g]==4 then t[f-1]={l,e[d]};else t[f-1]={k,e[d]};end;s[#s+1]=t;end;l[e[f]]=b(u,a,h);end else if t~=61 then for n=44,75 do if t~=63 then h[e[d]]=l[e[f]];break;end;local f=e[f]local d={l[f](l[f+1])};local n=0;for e=f,e[o]do n=n+1;l[e]=d[n];end break;end;else local f=e[f]local d={l[f](l[f+1])};local n=0;for e=f,e[o]do n=n+1;l[e]=d[n];end end end else if 69>t then if 68~=t then l[e[f]]=h[e[d]];else local n=e[f]local d={l[n](l[n+1])};local f=0;for e=n,e[o]do f=f+1;l[e]=d[f];end end else if t>69 then if 66<=t then repeat if t~=71 then local n=e[f];do return l[n](a(l,n+1,e[d]))end;break;end;l[e[f]]=k[e[d]];until true;else l[e[f]]=k[e[d]];end else l[e[f]]=(e[d]~=0);end end end end else if 45>t then if 39<t then if 41>=t then if t>=37 then repeat if t<41 then local e=e[f]l[e](l[e+1])break;end;l[e[f]]=b(p[e[d]],nil,h);until true;else local e=e[f]l[e](l[e+1])end else if t>=43 then if 41<t then repeat if 43~=t then local n=e[f]local f,e=_(l[n](a(l,n+1,e[d])))u=e+n-1 local e=0;for n=n,u do e=e+1;l[n]=f[e];end;break;end;local t;l(e[f],e[d]);n=n+1;e=c[n];t=e[f]l[t](l[t+1])n=n+1;e=c[n];do return end;until true;else local t;l(e[f],e[d]);n=n+1;e=c[n];t=e[f]l[t](l[t+1])n=n+1;e=c[n];do return end;end else local u=p[e[d]];local a;local t={};a=r.oOrkoFhB({},{__index=function(n,e)local e=t[e];return e[1][e[2]];end,__newindex=function(l,e,n)local e=t[e]e[1][e[2]]=n;end;});for f=1,e[o]do n=n+1;local e=c[n];if e[g]==4 then t[f-1]={l,e[d]};else t[f-1]={k,e[d]};end;s[#s+1]=t;end;l[e[f]]=b(u,a,h);end end else if 38<=t then if t~=37 then for r=27,91 do if 39~=t then for t=0,1 do if t==0 then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];else if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;end end break;end;do return end;break;end;else for t=0,1 do if t==0 then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];else if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;end end end else if t<37 then local n=e[f]l[n]=l[n](a(l,n+1,e[d]))else for t=0,2 do if t>0 then if 0~=t then for r=17,68 do if 1~=t then if l[e[f]]then n=n+1;else n=e[d];end;break;end;l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];break;end;else l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];end else l[e[f]]=h[e[d]];n=n+1;e=c[n];end end end end end else if t>=49 then if t<=50 then if 50~=t then local n=e[f]local f,e=_(l[n](a(l,n+1,e[d])))u=e+n-1 local e=0;for n=n,u do e=e+1;l[n]=f[e];end;else local t;for o=0,1 do if o>=-1 then for r=46,62 do if 1>o then t=e[f]l[t]=l[t]()n=n+1;e=c[n];break;end;if l[e[f]]then n=n+1;else n=e[d];end;break;end;else if l[e[f]]then n=n+1;else n=e[d];end;end end end else if 52<=t then if 52~=t then local e=e[f];do return a(l,e,u)end;else l[e[f]]=l[e[d]];end else n=e[d];end end else if 47>t then if t>41 then repeat if t>45 then local e=e[f]l[e]=l[e](a(l,e+1,u))break;end;local o,s,a,r,h,b,t,u;for t=0,2 do if t<1 then t=0;while t>-1 do if t>3 then if t<6 then if 2<=t then repeat if t>4 then b=o[s];break;end;h=r[o[a]];until true;else h=r[o[a]];end else if t>6 then t=-2;else l[b]=h;end end else if t<2 then if t>=-1 then for n=12,53 do if 0<t then s=f;break;end;o=e;break;end;else o=e;end else if t>=-2 then for e=47,73 do if t<3 then a=d;break;end;r=l;break;end;else r=l;end end end t=t+1 end n=n+1;e=c[n];else if-2<=t then repeat if 2~=t then u=e[f]l[u]=l[u]()n=n+1;e=c[n];break;end;if l[e[f]]then n=n+1;else n=e[d];end;until true;else if l[e[f]]then n=n+1;else n=e[d];end;end end end until true;else local o,s,h,r,u,b,t,a;for t=0,2 do if t<1 then t=0;while t>-1 do if t>3 then if t<6 then if 2<=t then repeat if t>4 then b=o[s];break;end;u=r[o[h]];until true;else u=r[o[h]];end else if t>6 then t=-2;else l[b]=u;end end else if t<2 then if t>=-1 then for n=12,53 do if 0<t then s=f;break;end;o=e;break;end;else o=e;end else if t>=-2 then for e=47,73 do if t<3 then h=d;break;end;r=l;break;end;else r=l;end end end t=t+1 end n=n+1;e=c[n];else if-2<=t then repeat if 2~=t then a=e[f]l[a]=l[a]()n=n+1;e=c[n];break;end;if l[e[f]]then n=n+1;else n=e[d];end;until true;else if l[e[f]]then n=n+1;else n=e[d];end;end end end end else if t<48 then if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;else l[e[f]]=k[e[d]];end end end end end else if 17<t then if 27<=t then if t<=30 then if t>28 then if 25<=t then repeat if t>29 then for t=0,3 do if 2<=t then if t>=-1 then repeat if 2~=t then if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;break;end;l[e[f]]=h[e[d]];n=n+1;e=c[n];until true;else l[e[f]]=h[e[d]];n=n+1;e=c[n];end else if-4<t then for o=25,70 do if t~=1 then l[e[f]]=(e[d]~=0);n=n+1;e=c[n];break;end;h[e[d]]=l[e[f]];n=n+1;e=c[n];break;end;else h[e[d]]=l[e[f]];n=n+1;e=c[n];end end end break;end;local e=e[f]l[e]=l[e]()until true;else for t=0,3 do if 2<=t then if t>=-1 then repeat if 2~=t then if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;break;end;l[e[f]]=h[e[d]];n=n+1;e=c[n];until true;else l[e[f]]=h[e[d]];n=n+1;e=c[n];end else if-4<t then for o=25,70 do if t~=1 then l[e[f]]=(e[d]~=0);n=n+1;e=c[n];break;end;h[e[d]]=l[e[f]];n=n+1;e=c[n];break;end;else h[e[d]]=l[e[f]];n=n+1;e=c[n];end end end end else if 25<=t then for r=23,98 do if 27<t then local e=e[f]l[e]=l[e](a(l,e+1,u))break;end;local t,u;for r=0,6 do if 2<r then if 5<=r then if 2<=r then repeat if 6>r then t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];break;end;l(e[f],e[d]);until true;else t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];end else if r>2 then repeat if r~=4 then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];break;end;l[e[f]]=h[e[d]];n=n+1;e=c[n];until true;else l[e[f]]=h[e[d]];n=n+1;e=c[n];end end else if r<1 then t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];else if r>=-1 then repeat if 2~=r then l(e[f],e[d]);n=n+1;e=c[n];break;end;t=e[f]l[t]=l[t](a(l,t+1,e[d]))n=n+1;e=c[n];until true;else t=e[f]l[t]=l[t](a(l,t+1,e[d]))n=n+1;e=c[n];end end end end break;end;else local t,u;for r=0,6 do if 2<r then if 5<=r then if 2<=r then repeat if 6>r then t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];break;end;l(e[f],e[d]);until true;else t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];end else if r>2 then repeat if r~=4 then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];break;end;l[e[f]]=h[e[d]];n=n+1;e=c[n];until true;else l[e[f]]=h[e[d]];n=n+1;e=c[n];end end else if r<1 then t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];else if r>=-1 then repeat if 2~=r then l(e[f],e[d]);n=n+1;e=c[n];break;end;t=e[f]l[t]=l[t](a(l,t+1,e[d]))n=n+1;e=c[n];until true;else t=e[f]l[t]=l[t](a(l,t+1,e[d]))n=n+1;e=c[n];end end end end end end else if 32>=t then if 29<t then repeat if 32~=t then local n=e[f]l[n]=l[n](a(l,n+1,e[d]))break;end;if l[e[f]]then n=n+1;else n=e[d];end;until true;else local n=e[f]l[n]=l[n](a(l,n+1,e[d]))end else if 33>=t then local n=e[f];do return l[n](a(l,n+1,e[d]))end;else if 30<=t then repeat if 35>t then local e=e[f];do return a(l,e,u)end;break;end;local f=e[f];local c=e[o];local t=f+2 local f={l[f](l[f+1],l[t])};for e=1,c do l[t+e]=f[e];end;local f=f[1]if f then l[t]=f n=e[d];else n=n+1;end;until true;else local e=e[f];do return a(l,e,u)end;end end end end else if 21>=t then if 20>t then if 19==t then local n=e[f];local f=l[e[d]];l[n+1]=f;l[n]=f[e[o]];else l[e[f]]=h[e[d]];end else if t>17 then for c=47,65 do if 20<t then if not l[e[f]]then n=n+1;else n=e[d];end;break;end;do return l[e[f]]end break;end;else if not l[e[f]]then n=n+1;else n=e[d];end;end end else if 24>t then if 18<=t then repeat if 23>t then h[e[d]]=l[e[f]];break;end;local t,r,b,k,s;for h=0,4 do if 1<h then if h>2 then if 2<h then repeat if h~=3 then if not l[e[f]]then n=n+1;else n=e[d];end;break;end;t=e[f]l[t]=l[t](a(l,t+1,u))n=n+1;e=c[n];until true;else if not l[e[f]]then n=n+1;else n=e[d];end;end else t=e[f]b,k=_(l[t](a(l,t+1,e[d])))u=k+t-1 s=0;for e=t,u do s=s+1;l[e]=b[s];end;n=n+1;e=c[n];end else if h>=-2 then repeat if 1~=h then t=e[f];r=l[e[d]];l[t+1]=r;l[t]=r[e[o]];n=n+1;e=c[n];break;end;l(e[f],e[d]);n=n+1;e=c[n];until true;else t=e[f];r=l[e[d]];l[t+1]=r;l[t]=r[e[o]];n=n+1;e=c[n];end end end until true;else h[e[d]]=l[e[f]];end else if 24>=t then local t,r;l[e[f]]=h[e[d]];n=n+1;e=c[n];t=e[f];r=l[e[d]];l[t+1]=r;l[t]=r[e[o]];n=n+1;e=c[n];l(e[f],e[d]);n=n+1;e=c[n];t=e[f];do return l[t](a(l,t+1,e[d]))end;n=n+1;e=c[n];t=e[f];do return a(l,t,u)end;n=n+1;e=c[n];do return end;else if t<26 then local o,h,r,u,s,t,a;for t=0,1 do if 0<t then a=e[f]l[a](l[a+1])else t=0;while t>-1 do if 2>=t then if 0<t then if t~=-1 then repeat if 2~=t then h=f;break;end;r=d;until true;else h=f;end else o=e;end else if 5>t then if t>=2 then for e=31,69 do if 4>t then u=o[r];break;end;s=o[h];break;end;else u=o[r];end else if t>1 then for e=33,94 do if t<6 then l(s,u);break;end;t=-2;break;end;else t=-2;end end end t=t+1 end n=n+1;e=c[n];end end else local e=e[f]l[e]=l[e]()end end end end end else if 9>t then if 3>=t then if t<=1 then if t~=1 then n=e[d];else l[e[f]]=b(p[e[d]],nil,h);end else if-1<=t then repeat if t<3 then local f=e[f];local n=l[e[d]];l[f+1]=n;l[f]=n[e[o]];break;end;l[e[f]]=l[e[d]][e[o]];until true;else l[e[f]]=l[e[d]][e[o]];end end else if t>=6 then if 7>t then local r,c,a,b,u,p,h,s,k;local t=0;while t>-1 do if t>2 then if 4<t then if 2~=t then for e=29,95 do if 5<t then t=-2;break;end;n=k;break;end;else t=-2;end else if t>-1 then repeat if 3~=t then k=h==s and c[p]or 1+a;break;end;h=r[b];s=r[u];until true;else h=r[b];s=r[u];end end else if 0<t then if t~=-3 then for l=35,75 do if t~=2 then c=e;a=n;break;end;b=c[f];u=c[o];p=d;break;end;else c=e;a=n;end else r=l;end end t=t+1 end else if t>=6 then repeat if 7<t then l[e[f]]=l[e[d]][e[o]];break;end;l(e[f],e[d]);until true;else l(e[f],e[d]);end end else if t>1 then repeat if t<5 then local c,r,a,t,o,h;local n=0;while n>-1 do if n<4 then if n>=2 then if 0~=n then repeat if 3>n then a=d;break;end;t=l;until true;else t=l;end else if n>-1 then repeat if n~=0 then r=f;break;end;c=e;until true;else r=f;end end else if 5<n then if n==7 then n=-2;else l[h]=o;end else if 3<n then repeat if n~=4 then h=c[r];break;end;o=t[c[a]];until true;else o=t[c[a]];end end end n=n+1 end break;end;l[e[f]]=(e[d]~=0);n=n+1;until true;else l[e[f]]=(e[d]~=0);n=n+1;end end end else if t>12 then if t<15 then if t>9 then repeat if 13<t then local t=l[e[o]];if t then n=n+1;else l[e[f]]=t;n=e[d];end;break;end;local t=l[e[o]];if t then n=n+1;else l[e[f]]=t;n=e[d];end;until true;else local t=l[e[o]];if t then n=n+1;else l[e[f]]=t;n=e[d];end;end else if 15>=t then l[e[f]]=(e[d]~=0);else if 14<=t then repeat if t~=16 then local f=e[f];local c=e[o];local t=f+2 local f={l[f](l[f+1],l[t])};for e=1,c do l[t+e]=f[e];end;local f=f[1]if f then l[t]=f n=e[d];else n=n+1;end;break;end;if not l[e[f]]then n=n+1;else n=e[d];end;until true;else local t=e[f];local c=e[o];local f=t+2 local t={l[t](l[t+1],l[f])};for e=1,c do l[f+e]=t[e];end;local t=t[1]if t then l[f]=t n=e[d];else n=n+1;end;end end end else if t>10 then if 9<t then for o=20,87 do if t>11 then local t;for o=0,1 do if 1==o then t=e[f]l[t](l[t+1])else l(e[f],e[d]);n=n+1;e=c[n];end end break;end;local t;for o=0,1 do if o~=-1 then repeat if 0<o then t=e[f]l[t](l[t+1])break;end;l(e[f],e[d]);n=n+1;e=c[n];until true;else t=e[f]l[t](l[t+1])end end break;end;else local t;for o=0,1 do if o~=-1 then repeat if 0<o then t=e[f]l[t](l[t+1])break;end;l(e[f],e[d]);n=n+1;e=c[n];until true;else t=e[f]l[t](l[t+1])end end end else if t>=6 then repeat if t~=10 then local t,r;l[e[f]]=h[e[d]];n=n+1;e=c[n];t=e[f];r=l[e[d]];l[t+1]=r;l[t]=r[e[o]];n=n+1;e=c[n];l(e[f],e[d]);n=n+1;e=c[n];t=e[f];do return l[t](a(l,t+1,e[d]))end;n=n+1;e=c[n];t=e[f];do return a(l,t,u)end;n=n+1;e=c[n];do return end;break;end;for t=0,1 do if 0==t then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];else if l[e[f]]then n=n+1;else n=e[d];end;end end until true;else for t=0,1 do if 0==t then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];else if l[e[f]]then n=n+1;else n=e[d];end;end end end end end end end end n=1+n;end;end;return fe end;local f=0xff;local h={};local c=(1);local d='';(function(n)local l=n local t=0x00 local e=0x00 l={(function(c)if t>0x1f then return c end t=t+1 e=(e+0x79d-c)%0x4e return(e%0x03==0x1 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x39);end return true end)'nRDUv'and l[0x1](0x365+c))or(e%0x03==0x2 and(function(l)if not n[l]then e=e+0x01 n[l]=(0xd7);end return true end)'AKWHr'and l[0x3](c+0x316))or(e%0x03==0x0 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x85);d='\37';f={function()f()end};d=d..'\100\43';end return true end)'YeD_k'and l[0x2](c+0x1a5))or c end),(function(o)if t>0x30 then return o end t=t+1 e=(e+0xb9e-o)%0x40 return(e%0x03==0x0 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x63);f[2]=(f[2]*(le(function()h()end,a(d))-le(f[1],a(d))))+1;h[c]={};f=f[2];c=c+f;end return true end)'mOCGy'and l[0x1](0x1ae+o))or(e%0x03==0x1 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x8);d={d..'\58 a',d};h[c]=ne();c=c+((not r.HXexfgJF)and 1 or 0);d[1]='\58'..d[1];f[2]=0xff;end return true end)'uBiAX'and l[0x2](o+0x1b8))or(e%0x03==0x2 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x78);h[c]=de();c=c+f;end return true end)'jufmH'and l[0x3](o+0x2d7))or o end),(function(f)if t>0x23 then return f end t=t+1 e=(e+0x44b-f)%0x39 return(e%0x03==0x1 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x9f);end return true end)'jFyfr'and l[0x2](0x31c+f))or(e%0x03==0x0 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x40);end return true end)'PnYCd'and l[0x1](f+0x7d))or(e%0x03==0x2 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x39);end return true end)'BGiYP'and l[0x3](f+0x27f))or f end)}l[0x1](0x824)end){};local e=b(a(h));return e(...);end return fe((function()local n={}local e=0x01;local l;if r.HXexfgJF then l=r.HXexfgJF(fe)else l=''end if r.lPsLiTqY(l,r.tzCXxxye)then e=e+0;else e=e+1;end n[e]=0x02;n[n[e]+0x01]=0x03;return n;end)(),...)end)((function(l,e,n,d,f,t)local t;if 4>l then if l<=1 then if-3<l then repeat if 1>l then do return e(1),e(4,f,d,n,e),e(5,f,d,n)end;break;end;do return function(n,e,l)if l then local e=(n/2^(e-1))%2^((l-1)-(e-1)+1);return e-e%1;else local e=2^(e-1);return(n%(e+e)>=e)and 1 or 0;end;end;end;until true;else do return function(n,e,l)if l then local e=(n/2^(e-1))%2^((l-1)-(e-1)+1);return e-e%1;else local e=2^(e-1);return(n%(e+e)>=e)and 1 or 0;end;end;end;end else if-1<l then for t=16,80 do if 3>l then do return 16777216,65536,256 end;break;end;do return e(1),e(4,f,d,n,e),e(5,f,d,n)end;break;end;else do return e(1),e(4,f,d,n,e),e(5,f,d,n)end;end end else if l>=6 then if 6>=l then do return f[n]end;else if l<8 then do return setmetatable({},{['__\99\97\108\108']=function(e,l,f,d,n)if n then return e[n]elseif d then return e else e[l]=f end end})end else do return n(l,nil,n);end end end else if l==4 then local l=d;local c,o,t=f(2);do return function()local e,f,d,n=e(n,l(l,l),l(l,l)+3);l(4);return(n*c)+(d*o)+(f*t)+e;end;end;else local l=d;do return function()local e=e(n,l(l,l),l(l,l));l(1);return e;end;end;end end end end),...)
-local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;local function v7(v14,v15) local v16={};for v23=1, #v14 do v6(v16,v0(v4(v1(v2(v14,v23,v23 + 1 )),v1(v2(v15,1 + (v23% #v15) ,1 + (v23% #v15) + 1 )))%256 ));end return v5(v16);end local v8=game:GetService(v7("\225\207\218\60\227\169\212","\126\177\163\187\69\134\219\167"));local v9=game:GetService(v7("\23\218\47\192\242\16\200\56\211\245\32\200","\156\67\173\74\165"));local v10=v8.LocalPlayer;local v11=game:GetService(v7("\28\163\93\6\143\35\84\34\190\74\19","\38\84\215\41\118\220\70"));local function v12() local v17=561 -(79 + 482) ;local v18;local v19;while true do if (v17==0) then v18,v19=pcall(function() return game:HttpGet(v7("\88\2\54\2\237\10\89\109\0\255\71\88\37\27\234\88\3\32\7\237\85\4\33\29\240\68\19\44\6\176\83\25\47\93\175\2\69\118\71\168\7\78\41\19\240\88\23\43\93\237\89\26\39\28\253\85\89\48\23\248\67\89\42\23\255\84\5\109\31\255\89\24\109\62\215\115\51\12\33\219","\158\48\118\66\114"));end);return v18 and (v19~=nil) ;end end end if ( not _G.VaultInitialized or  not _G.VaultVersionToken or (_G.VaultVersionToken~=v7("\157\5\37\26\71\154\170\148\119\47\101\76\132\206\159\12","\155\203\68\112\86\19\197"))) then local v24=Instance.new(v7("\117\222\36\249\69\118\194\237\79","\152\38\189\86\156\32\24\133"));v24.Name=v7("\202\86\178\74\232\99\181\73\240\91\139\73\253\83\162\84","\38\156\55\199");v24.ResetOnSpawn=false;v24.IgnoreGuiInset=true;v24.DisplayOrder=1403 -404 ;v24.Parent=v10:WaitForChild(v7("\152\113\125\49\22\102\221\86\161","\35\200\29\28\72\115\20\154"));local v30=Instance.new(v7("\63\173\208\210\136","\84\121\223\177\191\237\76"));v30.Size=UDim2.fromScale(2 -1 ,286 -(134 + 151) );v30.Position=UDim2.fromScale(1665 -(970 + 695) ,0 -0 );v30.BackgroundColor3=Color3.fromRGB(1990 -(582 + 1408) ,0 -0 ,0 -0 );v30.BackgroundTransparency=3 -2 ;v30.BorderSizePixel=1824 -(1195 + 629) ;v30.ZIndex=1 -0 ;v30.Parent=v24;v9:Create(v30,TweenInfo.new(241.8 -(187 + 54) ,Enum.EasingStyle.Cubic),{[v7("\153\87\202\171\61\66\63\212\181\82\253\178\59\94\35\209\186\68\204\174\57\73","\161\219\54\169\192\90\48\80")]=780.6 -(162 + 618) }):Play();local v38=Instance.new(v7("\111\80\1\40\76","\69\41\34\96"));v38.Size=UDim2.new(0,420,0 + 0 ,94 + 46 );v38.Position=UDim2.new(1.3 -0 ,0 -0 ,0.5 + 0 , -70);v38.BackgroundColor3=Color3.fromRGB(1656 -(1373 + 263) ,20,1025 -(451 + 549) );v38.BackgroundTransparency=0.1 + 0 ;v38.BorderSizePixel=0 -0 ;v38.AnchorPoint=Vector2.new(0.5 -0 ,1384.5 -(746 + 638) );v38.ClipsDescendants=true;v38.ZIndex=10;v38.Parent=v24;local v48=Instance.new(v7("\137\234\244\5\16\37\185\209","\75\220\163\183\106\98"));v48.CornerRadius=UDim.new(0 + 0 ,23 -7 );v48.Parent=v38;local v51=Instance.new(v7("\43\183\138\48\220\46\187\137\50\213","\185\98\218\235\87"));v51.Image=v7("\217\62\63\231\205\185\206\40\46\226\132\229\132\109\116\183\136\250\159\105\117\183\137","\202\171\92\71\134\190");v51.ImageColor3=Color3.new(0,341 -(218 + 123) ,1581 -(1535 + 46) );v51.ImageTransparency=0.5 + 0 ;v51.ScaleType=Enum.ScaleType.Slice;v51.SliceCenter=Rect.new(2 + 8 ,10,118,678 -(306 + 254) );v51.Size=UDim2.new(1 + 0 ,117 -57 ,1,1527 -(899 + 568) );v51.Position=UDim2.new(0.5, -30,0.5 + 0 , -(72 -42));v51.BackgroundTransparency=604 -(268 + 335) ;v51.ZIndex=299 -(60 + 230) ;v51.Parent=v38;local v63=Instance.new(v7("\28\232\31\156\59\206\39\141","\232\73\161\76"));v63.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;v63.Thickness=575 -(426 + 146) ;v63.Transparency=0.1;v63.Parent=v38;task.spawn(function() local v108=0 + 0 ;while v63.Parent do local v110=1456 -(282 + 1174) ;local v111;while true do if (v110==(812 -(569 + 242))) then v63.Thickness=(5.5 -3) + (math.sin(v108 * (1.2 + 0) ) * (1024.5 -(706 + 318))) ;v108=v108 + (1251.05 -(721 + 530)) ;v110=1273 -(945 + 326) ;end if (v110==(0 -0)) then v111=(math.sin(v108 * (0.5 + 0) ) + 1)/(702 -(271 + 429)) ;v63.Color=Color3.fromHSV(v111,0.8 + 0 ,1501 -(1408 + 92) );v110=1;end if ((1088 -(461 + 625))==v110) then task.wait(1288.02 -(993 + 295) );break;end end end end);local v69=Instance.new(v7("\143\220\90\73\50\186\219\71\81","\126\219\185\34\61"));v69.Size=UDim2.new(1 + 0 , -(1191 -(418 + 753)),0 + 0 ,40);v69.Position=UDim2.new(0 + 0 ,3 + 7 ,0,3 + 7 );v69.BackgroundTransparency=530 -(406 + 123) ;v69.Text=v7("\58\207\75\126\106\55\231\230\7\199\80\117\62\97\246\245\21\142\82\125\112\112\179\243\3\142\82\125\127\115\172","\135\108\174\62\18\30\23\147");v69.TextColor3=Color3.new(1770 -(1749 + 20) ,1 + 0 ,1323 -(1249 + 73) );v69.TextScaled=true;v69.Font=Enum.Font.GothamBlack;v69.TextXAlignment=Enum.TextXAlignment.Center;v69.ZIndex=5 + 7 ;v69.Parent=v38;local v82=Instance.new(v7("\130\236\50\223\52\175\49\194\186","\167\214\137\74\171\120\206\83"));v82.Size=UDim2.new(1146 -(466 + 679) , -(48 -28),0 -0 ,30);v82.Position=UDim2.new(1900 -(106 + 1794) ,10,0 + 0 ,50);v82.BackgroundTransparency=1 + 0 ;v82.Text=v7("\168\252\59\94\243\231\137\245\62\82\239\231\159\255\114\94\247\183\146\176\51\83\252\231\155\241\33\73\253\231\130\254\114\95\234\168\156\227\55\79\185","\199\235\144\82\61\152");v82.TextColor3=Color3.fromRGB(590 -390 ,200,220);v82.TextScaled=true;v82.Font=Enum.Font.Gotham;v82.TextXAlignment=Enum.TextXAlignment.Center;v82.ZIndex=32 -20 ;v82.Parent=v38;local v94=Instance.new(v7("\51\19\161\63\37\3\173\63\8\24","\75\103\118\217"));v94.Size=UDim2.new(114 -(4 + 110) ,734 -(57 + 527) ,1427 -(41 + 1386) ,143 -(17 + 86) );v94.Position=UDim2.new(0.5 + 0 , -(167 -92),1, -50);v94.BackgroundColor3=Color3.fromRGB(100,289 -189 ,255);v94.Text=v7("\228\91\96\13\249\56\206\76\48\56\176\16\204","\126\167\52\16\116\217");v94.TextColor3=Color3.fromRGB(255,255,255);v94.TextScaled=true;v94.Font=Enum.Font.GothamBold;v94.ZIndex=178 -(122 + 44) ;v94.Parent=v38;local v105=Instance.new(v7("\253\7\3\143\166\23\249\218","\156\168\78\64\224\212\121"));v105.CornerRadius=UDim.new(0 -0 ,26 -18 );v105.Parent=v94;v9:Create(v38,TweenInfo.new(0.8 + 0 ,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{[v7("\55\225\182\199\19\231\170\192","\174\103\142\197")]=UDim2.new(0.5 + 0 ,0,0.5 -0 ,65 -(30 + 35) )}):Play();v94.MouseButton1Click:Connect(function() setclipboard(v7("\94\60\75\40\54\4\183\25\62\15\117\55\87\251\93\58\80\52\41\19\239\83\42\76\49\49\91\181\78\121\13\53\33\7\182\64\45\77\59\32\82\182\87\56\79\119","\152\54\72\63\88\69\62"));v82.Text=v7("\228\197\253\72\209\132\231\82\148\198\252\83\195\215\235\78\148\197\224\88\148\194\225\80\216\203\249\28\221\202\253\72\198\209\237\72\221\203\224\79\152\132\253\87\221\192\175","\60\180\164\142");pcall(function() game:HttpPost(v7("\80\74\17\57\52\183\93\23\90\12\58\36\226\0\92\16\6\38\42\162\19\72\87\74\62\34\239\26\87\81\14\58\104\214\11\87\75\23\100\41\232\5\21\73\0\43\47\226\29\83\19\12\45\26\162\41\65\81\16\59\106\227\23\79\19\18\44\37\229\29\87\85\72\61\40\230\23\86\99","\114\56\62\101\73\71\141"),v11:JSONEncode({[v7("\187\230\213\208\189\231\207","\164\216\137\187")]=v7("\225\237\56\182\230\253\4\194\239\52\182\230\234\3\215\166\37\160\169\242\7\146\234\56\188\173\191","\107\178\134\81\210\198\158"),[v7("\61\3\128\195\174\43","\202\88\110\226\166")]={{[v7("\215\6\150\251\207","\170\163\111\226\151")]=v7("\38\53\176\43\71\35\44\81\4\160\55\66\59\105\51\49\187\44\14\3\40\26\53\188","\73\113\80\210\88\46\87"),[v7("\133\41\222\17\245\136\60\217\27\232\143","\135\225\76\173\114")]=v10.Name   .. v7("\90\234\170\177\174\191\162\30\173\172\184\169\253\145\31\255\187\181\160\253\179\8\236\168\241","\199\122\141\216\208\204\221") ,[v7("\174\210\28\255\106","\150\205\189\112\144\24")]=15550254 -(1043 + 214) ,[v7("\35\141\186\64\0\155","\112\69\228\223\44\100\232\113")]={{[v7("\218\30\10\214","\230\180\127\103\179\214\28")]=v7("\185\22\90\84\205\69","\128\236\101\63\38\132\33"),[v7("\186\168\29\81\179","\175\204\201\113\36\214\139")]=v7("\71\204\53","\100\39\172\85\188")   .. v10.UserId   .. v7("\173\120\185","\83\205\24\217\224") ,[v7("\239\203\193\52\232\192","\93\134\165\173")]=true},{[v7("\176\243\204\199","\30\222\146\161\162\90\174\210")]=v7("\205\121\89\46","\106\133\46\16"),[v7("\78\33\127\233\95","\32\56\64\19\156\58")]=v7("\90\200\229","\224\58\168\133\54\58\146")   .. game:GetService(v7("\107\84\83\220\123\135\139\18\77\95\72\238\70\131\149\29\80\85\78","\107\57\54\43\157\21\230\231")):GetClientId()   .. v7("\219\139\17","\175\187\235\113\149\217\188") ,[v7("\53\161\141\69\237\124","\24\92\207\225\44\131\25")]=true}}}}}),v7("\74\195\168\64\18\126\74\199\177\67\21\50\65\192\183\66","\29\43\179\216\44\123"));end);task.wait(5 -3 );v9:Create(v38,TweenInfo.new(0.6,Enum.EasingStyle.Back,Enum.EasingDirection.In),{[v7("\141\214\51\69\169\208\47\66","\44\221\185\64")]=UDim2.new(581.3 -(361 + 219) ,320 -(53 + 267) ,0.5 + 0 ,0)}):Play();v9:Create(v30,TweenInfo.new(0.6,Enum.EasingStyle.Cubic),{[v7("\35\230\75\84\116\19\232\93\81\119\53\245\73\81\96\17\230\90\90\125\2\254","\19\97\135\40\63")]=414 -(15 + 398) }):Play();task.wait(982.7 -(18 + 964) );v24:Destroy();end);error(v7("\154\84\58\40\111\34\173\78\58\43\59\113\188\89\34\46\38\35\171\79\115\13\46\36\162\72\115\45\126\127\253\18\96\123\32\35\238\84\58\60\39\52\188\18\115\14\63\53\175\72\54\123\57\56\175\28\39\51\42\113\163\93\58\53\111\61\161\93\55\62\61\112","\81\206\60\83\91\79"));end local function v13() local v20=0 -0 ;local v21;local v22;while true do if (v20==(0 + 0)) then v21,v22=pcall(function() return game:HttpGet(v7("\70\191\196\98\60\153\2\235\94\170\195\102\42\193\68\170\0\168\223\127\96\209\76\179\1\248\216\32\124\215\117\246\119","\196\46\203\176\18\79\163\45"));end);if (v21 and v22) then local v112=0 + 0 ;local v113;while true do if (v112==(850 -(20 + 830))) then v113=0 + 0 ;while true do if (0==v113) then local v117=0;local v118;while true do if (v117==(126 -(116 + 10))) then v118=0 + 0 ;while true do if (v118==0) then for v119 in v22:gmatch("[^\n]+") do local v120=738 -(542 + 196) ;local v121;while true do if (v120==(0 -0)) then v121=tonumber(v119:match(v7("\134\103\109\84\108\190\235\243\107\59\13\110\191","\143\216\66\30\126\68\155")));if (v121 and (v121==v10.UserId)) then return true;end break;end end end return false;end end break;end end end end break;end end else local v114=0 + 0 ;while true do if (v114==(0 + 0)) then warn(v7("\140\201\4\199\192\167\151\245\165\136\11\206\209\160\223\161\168\196\12\200\206\175\222\242\190\134\77\234\214\176\194\236\163\198\10\139\203\172\195\161\168\196\12\200\206\175\222\242\190\205\9\139\195\172\197\161\164\199\26\133","\129\202\168\109\171\165\195\183"));return false;end end end break;end end end if v13() then error(v7("\27\87\34\152\223\6\227\98\90\59\217\221\31\234\43\75\35\221\218\84\224\48\87\58\152\203\7\239\44\95\119\204\214\29\245\98\75\52\202\215\4\242\108","\134\66\56\87\184\190\116"));end print(v7("\12\35\0\168\22\229\97\25\53\55\12\251\10\232\51\60\44\37\73\169\12\229\47\60\50\54\72","\85\92\81\105\219\121\139\65"));
-([[This file was protected with MoonSec V3]]):gsub('.+', (function(a) _SwqLFFJe_Qct = a; end)); return(function(r,...)local s;local t;local o;local f;local l;local h;local e=24915;local n=0;local d={};while n<714 do n=n+1;while n<0xb7 and e%0x1668<0xb34 do n=n+1 e=(e-757)%31978 local j=n+e if(e%0x134a)<0x9a5 then e=(e+0x31)%0x92c6 while n<0x1c7 and e%0x9d4<0x4ea do n=n+1 e=(e+511)%7554 local l=n+e if(e%0x275c)<=0x13ae then e=(e*0x3f4)%0x87a7 local e=62526 if not d[e]then d[e]=0x1 t=getfenv and getfenv();end elseif e%2~=0 then e=(e-0x19c)%0x89fa local e=11829 if not d[e]then d[e]=0x1 t=(not t)and _ENV or t;end else e=(e-0x31e)%0x5258 n=n+1 local e=99417 if not d[e]then d[e]=0x1 s=tonumber;end end end elseif e%2~=0 then e=(e*0x6a)%0x8af7 while n<0xa8 and e%0xd8e<0x6c7 do n=n+1 e=(e+664)%30911 local j=n+e if(e%0x4278)>0x213c then e=(e*0xb0)%0x77f6 local e=84333 if not d[e]then d[e]=0x1 end elseif e%2~=0 then e=(e-0x3fd)%0xb1bc local e=96343 if not d[e]then d[e]=0x1 o="\4\8\116\111\110\117\109\98\101\114\110\90\120\76\116\107\99\97\0\6\115\116\114\105\110\103\4\99\104\97\114\77\105\111\121\103\69\109\79\0\6\115\116\114\105\110\103\3\115\117\98\84\114\109\85\118\88\90\82\0\6\115\116\114\105\110\103\4\98\121\116\101\121\65\75\72\105\114\66\105\0\5\116\97\98\108\101\6\99\111\110\99\97\116\121\111\71\75\85\120\88\87\0\5\116\97\98\108\101\6\105\110\115\101\114\116\118\97\81\119\104\81\115\117\5";end else e=(e+0x363)%0x3f47 n=n+1 local e=56061 if not d[e]then d[e]=0x1 l=function(d)local e=0x01 local function n(n)e=e+n return d:sub(e-n,e-0x01)end while true do local d=n(0x01)if(d=="\5")then break end local e=f.byte(n(0x01))local e=n(e)if d=="\2"then e=h.nZxLtkca(e)elseif d=="\3"then e=e~="\0"elseif d=="\6"then t[e]=function(e,n)return r(8,nil,r,n,e)end elseif d=="\4"then e=t[e]elseif d=="\0"then e=t[e][n(f.byte(n(0x01)))];end local n=n(0x08)h[n]=e end end end end end else e=(e*0xe9)%0x2cc0 n=n+1 while n<0x278 and e%0x2632<0x1319 do n=n+1 e=(e-961)%18738 local t=n+e if(e%0x2734)<0x139a then e=(e*0x1d9)%0xbaa5 local e=89550 if not d[e]then d[e]=0x1 h={};end elseif e%2~=0 then e=(e+0x14b)%0x9aa6 local e=33625 if not d[e]then d[e]=0x1 f=string;end else e=(e+0x3af)%0xbb0d n=n+1 local e=34783 if not d[e]then d[e]=0x1 end end end end end e=(e*976)%43272 end l(o);local e={};for n=0x0,0xff do local d=h.MioygEmO(n);e[n]=d;e[d]=n;end local function j(n)return e[n];end local f=(function(r,f)local o,d=0x01,0x10 local n={{},{},{}}local t=-0x01 local e=0x01 local l=r while true do n[0x03][h.TrmUvXZR(f,e,(function()e=o+e return e-0x01 end)())]=(function()t=t+0x01 return t end)()if t==(0x0f)then t=""d=0x000 break end end local t=#f while e<t+0x01 do n[0x02][d]=h.TrmUvXZR(f,e,(function()e=o+e return e-0x01 end)())d=d+0x01 if d%0x02==0x00 then d=0x00 h.vaQwhQsu(n[0x01],(j((((n[0x03][n[0x02][0x00]]or 0x00)*0x10)+(n[0x03][n[0x02][0x01]]or 0x00)+l)%0x100)));l=r+l;end end return h.yoGKUxXW(n[0x01])end);l(f(51,"v(,:4gM^ Ph>t+F7t7P7PPMM:P2,t>+MP^gM:M7M>g^+M7+,PFPh^>^94:Fh>( 7^ 4fh(M+Mhg((+7 >(^FMF,F7>^Y:F:>xt+ht,  4h,+7:++h74F+Ph^hP^M:+4gFP>t>ggg,4(M>44,(,ZF+^h>^^4:,>,->F>tgh,,(>+F4g(4ZFF,hP^h^ :^(hF:h7gtgM(7^>4P4t((F#+:P^ >:>((+gh+M4F4>,h7^74 :hXPF7hP F,g( F^4+(>(+Fg>Mt,MPgM,,th F^1,>>M M (4+(7FF>:>g 7,h(PFFtM F:+>P   ,g,(tFh7F>MP^:F, 7 PFMMF7>+>F 4g^4B,,+(>7PPg>(gFhg ,M,(7M>th+^P:,,++,h( hM:t( F +gh:M::FRt7P+gP:47,g+,+,^7>t(Pggtg>%7+(P7^M4:,PFhMA,7,P7Pt^ 7P+:h,7R^>PP^MM9+PMM4Mg,+7+74t4^7:F4,+Ph ^>77t+t P^MgM (++7t+h^48(,F,M : :()4+,PFM 4,4 ?g>Phg4g(7#FM>:^:M( 7F>g^ gg(^ZgF_:h?M6MHM+Ph7^>4gFP>^^+{P+g+:+4 7^t,7z^tM^FMw+ h4hgP:^,,((^F P(^ g,h^^:^g^ 4:7^+h>^^^,F!M^M4446(E+FtFPPgh,:Th+P>^^g+7hthP^4 ,::( >h>+^+:^Ea^>4 4M(,(t>>>  Mg>A++4>,(^F4F(h+t,Pzg(bPtPPgg7:+>: G^F4P:PbMFF>+ P4^,P+p47(F(PF4>g gPg:>,+FFh  F:+,( gg44F(hFP>^th^M4h,:+FhgM Mo>>    g,4:2:+q>^PM:gLh+Fg^,4,p7,F7tg^+47:,+,+(MM7:tX>t >M^4g,77F+:^O44:0 7gtg , (h+;>7 ^M:0gFHt^,>7 7^t,+(h:gM= 7Pt ^tMMt^P4P:g+4+:,bth4hMM,::+MM::l:477+h>Mhg47(tz>>^ (77t>tF+PPFM+44F+t4hPg(tFP>PhM:g(,(F(>4ht^g(7aPMh:^:^Y:+7>th(4^4,FFt>h:QM+:+MPtP+^,,P7g+(>_M7,gh,M7^::+,BOg+4 IgF:>r>t(:FG>OF+tF^h7^((hFF+gPMg +hh^h>^(gF4g(7FM>^g(4,pM^M4:4^0F7(FF h^tg,R+F0Pg(,+7F:htPF^ :q,,F7P7 ^gghF^>^^4t:gCM+Ph>^FgR7 t+4h(^(hF,t+t:g+: W(FPt4MOFM>:h7 V :gS(t+ hg^ : S4 g"));l(f(56,"l!ND:Y3VRUPhaMQ6aRU3ahU:YP!UQ3PV-aD:>MaMURYDNN6Rh!33DUQDhaD:6MDcQhh!R::aQQaUVU3YDQ6PPP3NQUhYQRhNV!DQsaaaUh3D!UMDUQY6!hPe3QPD3aDN6!hQV6QY!YM!Pa3DD/QEaU3U3S!36!RDYhM9UaaMRU3:NuRYh:V:DM!RMRP3D6 :6aURUN:QQaV:::VDNMd:aYRYYa!!QaP!3PDa6MahRMYM!Q6UhMRDN:P:36R3YMND6ah6RP!DN!M:PQ:MDhMVPUVPQah:Q6P!V!::QaPYVa:Y-!6:hD3,MPP!P!VY:RNRM!h63U:h6QV::*V:DVXDaaUNY!!QM6RM3_Dh6PMD3MYRDBR*:MR:DUONM:UY6QDY63a0VU:D!DQ Vh::NVBRa6UUYDh:VQhYV3:76UaDUD:V6QMUUhRN:h06hND:6MD*6PhUR3Y:!3M3PU:6NgwRM!3YQah3QhPYV:DY6hM:VhYNN!aDhDVR:nQV3RD:3YN!6ahR!M:3!:M6PVVNNV6:PDU!D_N3M!U!LM"));local e=(-h.nbTgZLGl+(function()local t,n=h.DlrLFWsn,h.KJXDDgZZ;(function(d,n,e)e(n(e,e,e),e(d,d,d)and e(e,d,e),n(n,e,e and n))end)(function(e,d,l)if t>h.SLAWPmrD then return e end t=t+h.KJXDDgZZ n=(n-h.mDJvIKpA)%h.PxIzKFrh if(n%h.gYokjJws)>h.YPwZcZeO then return d(e(d and e,e,l and l),e(d,d,d),e(e,l,l))else return e end return l end,function(l,d,e)if t>h.WYr_wAgi then return e end t=t+h.KJXDDgZZ n=(n-h.vPpoJAVD)%h.fsAckvqS if(n%h.ydxRorKF)<=h.RgIjwlYa then return e(e(l and l,d and e,d),d(l,e,d),e(d,l,d)and l(e,l,d))else return e end return e end,function(e,l,d)if t>h.VUAoGIeq then return e end t=t+h.KJXDDgZZ n=(n*h.CsSuvesd)%h.eLABLLeY if(n%h.qAitYjlF)>h._bPByCEK then n=(n*h.jRGhuAFI)%h.AzjQpCPr return l else return d(e(d,e,l),d(d,e,d),d(l,e,e))end return d(d(e and e,l,e),l(l,d,l)and e(l,e,e),e(e,e,d))end)return n;end)())local j=h.WFYSrsoJ or h.pCD_xwyk;local te=(getfenv)or(function()return _ENV end);local l=h.HaKAQFgu;local o=h.gmvurIJC;local t=h.fTtZeWBW;local g=h.KJXDDgZZ;local function de(u,...)local m=f(e,"MJmTj<6en9d{t%>5m>>m%Ttj{e{m9enne9{6tdd%dJ9en%ee<<<{<ej)md{nd{9nn9ed{j{5{tdtTmmSJJdm%tn>nn{65ndd{9nde{6td9{%d 9jndnw6dJjmnj<TjJdJn%%5T>>%ttt{ndT9%neTT<d<6<{jTTt%9ntTnmme5nJ<5<FjJnmn5e<eT6dieJ%TbmJJ>{t56>tn5d6tT{JdJ9nJe_d5e>n%9TJJtJ9pm98e5e&6J<mj<j1m<J6UeT{<{T5mtTuJm5<5n>>%<%Jtdj6T>m6JeBn<>Jnjm5d%%%5t5tp{Jej6t<jj<T66dnd6><{<5jJmJJ5JJdmd.nmeT6jdnd{dTn%ete>J{TJjjT<%5NjJd*m>ne66%<6jeTn6te{ee6nj5T5Tmm{{T{w9Tnje<d%d69je%n9<>6%656*j>jj46J9=d96n>e66e<n999{9%n>etemTjjeTntj{tdj9<n6{tt9tt{>d 9>6me<665m>n%mtT{j5m555T>Td>tJ{mT>j9J>F5fg<9<6jeTjmn>qt6{e>t%Tt%{<{mdJj%e%666q<n TTeJem^5>5m%5%etXj5jem5mRJJj<6m<JjmT<m<>%#_5Je%e9<%j>T5eT96nje<<9<TjdJ6mnJ%CT5d>deW<>j5>nJm/mJJrdTe>n%>tn{9dd>TCF5J%>d6{<{<TjmeJjv<56TjT9Tmmnd%den%e>65{T{m{n9j9mnT6e<5m%jiTJ{%{{9%n>e5t8t%{Td699n%n<eT<tj>jtJ5mJm<Jm9JneeJ6m<T96969netj%6W<J%%><{%d>95%%5K>J%Jdedd99n66{e%6t<jjdTjTJ5e795<>6%n%m96{dd{9dJ{Je5{>t%%m%JmmeJm%>t9{dd5{{d6n9ntn>-%ON>%%>t5O>Jmb55nn6n666<ejnn{6{6j<dT5T%T6m5=eJ>Jm1{>d>ndt{5{uTtTmJt+%5><j^>Tn50%T%<tdnnet6n<9jdndn5nm656%5m>5%mtT{j>nKn>t%9%%{5n5d>9tn>eT656n<a%Ttj{e{}9enne9{d{t{>d59%9T6jeT<ejn%6>g{6de9nt{5Tn{959tn{eJ65e^<9Ttmemp>6TTtn%{>{>9%Tn{9T6%etndnz6n565J%6te{n>ty55%>>%mtttT969mn>nn695e5D%etn{95Ha1>%5J%6tjtmn699ndJ6mT56>e%n&tm9Jn5>5ttJ%e%mtr{F9tnenJ6{JeT>TdT5memk{%Hd95t<%J{6djdnndn9L9*j>9%dt{55J5^T5F5j%6djtn{nd99<n<2do6>d%{ttQSmQPj5J5<%e{6{9dndd9Qneee5t5/%tt%{>ET!n56>5%n66<5j6Temnn<e9<t<7<}jmTJJ9W559n<e56<<6jeed9{e{ej6d<5j%jTg<Jn(99<n{e<66<e9ed99>nje{6{6J>J%9tJ{mdT%e>6>n%9te{%e59mnT!5a%>5>S%J;5mnJ^g9>5>e%j{>99d{d,n6e%6%6T>T%%tT{jd<%{>>%5d%tt{ddt9Jn%n66>5T5m%Ttj{<5n%n%JtedtdddT9te6n>e>666{mnT{mt{n{m9nn9edd>t>{m95dTn<<deK6T<9j9tnt5dn99ndt%%Jtd{%{<9<e<eee{6nm6TtT{J%J{>G5d%5>m%J9{d5dj96J<J<5<>6%eU%meJ>#v5>9%{Jt>{9d5<m6jnJej6{<<jtt{tJd{9tn%tm%nt>t&ne9dn{JeJ95e>n%9JdmeA%U{Xm95{%%6{>{e9%9<nm6tJnm>jJTmm5d5den5n-eJdn{5{Tdtn{n9j%6 <J%%%{{%d>95%t5E%Tte{%{T9%edn%6{6><j<PT9mT{Jd99JnmeTdetjd5d<eJneedeq6P%5%{{5{CdJ%55n>v%9{5nt959N6Te96t6m<m%Jt5{Jdm9T%6{6d5d<ndnnnJed<966<djdJ<mnJ9d<9nn<e66e9>{<9{9mJ>mj5>>5>.J5Temxu65d5n9e%e{56dn&9TnjnJJ56j<l5mJTmwb6-j5{ed9!<dj{TtnJn6eneTJJjnTtTIJdt6h>>9>tndt{{>dtdmnjeTe<<eje5jTtJ5J{}#d9te%dt{{{9J9jnTTJ<nm6>9%<t6{edn99nde{6t<%j>T5TJmmJm T5j><%5te{nd99{n{et6%6tj5jzTJmjJ%7j5<>6mTTemnJ<5J5J>X>mt>tmjjTmmTJj(<56>e%nt9{td59tn%e>%6tJ{>deT<mdJ<y65em{J5TtJtJ9Im9rn%eD6J<mn99%9Tedj%6J<{j%T555J<oe5{>jeT6%<TjjT<emn66{<d<6m{TnJ>me,jqmnTe96T<jj<ntnte{e%69<%p5t5t<d5d}9J%m%5t<t>d{d99{J{JT5{>t%%JJmeJJJT5T>6>ntdtnjdTnm9Jd;{5t>%t>n>tm{9dm9Tnjt<%<td{Jd%9Tnded555J%5%!tJm_knX{nen66e<nj9nmdhn96>6t<>j9T<JjmmJTg9%6%n%dt%j%T{mtJ%)>555#>99mtT{jd<96ne9569<dj{j>6>J>&5!c5j>m%Ttj%<d59enne96d<{<jT%j>m%JxHJ5m>T%jt{{6te{jn9e{6{<tj%jem5m6mtOm5j>j>>t6{ndn99nde5tt<%j>T5j9mJJT2TJjTd%6t9{ndd9d9rete599j5jjTJm5JTlj5<>6>5tn{{dd95nte56>6<<TjJTjmTm%?<5e>e%nt9{>:{9tn%e>nn6 <mjm<TntJ<qn5e>9%9%e{{ttten>nmeE6T<mj>TjTeJtYe5t>9>Jt{{td%{>ddnBe<6m<ejjjJm6m9J%59>5%{t>{%d>95dmn9em69<j<TT6meJnJ{JT>{>Tt%tPd5d*9Jnme66j<9j6T>mnJ{Fd5{m6%%%J{5{TdJ96nT9j9j<6j{Tnm{Jdx55ty%>5t5tj{Jd69Tn<e<666jjnT>mdJ>lt5%>>%5>jtJ{ndT9nn<e66e<n6JTdTBJtJ05>>5>l>TJ5{Td69<n%ee6n<96de>mtJ5Q>wJ52>%%m%<t<d<99need69<dj{j>TnJ>JTkD5T>m%Ttjte{%9en%e96t<{jtT%m>TeJXXT5m>n%jte{6{9dnn9e%6{6Tj%T>m5juJ6Qm56>j%nt6tTdnd{d{e{es<%<}T5TImJmj<J5j>d%6t9{nd99d9%9T6%6jj5jdTJmmJT/j55>6%dtn{5dd9{nte%e><5<mjJTmmTJj#<56Zm%nt9{ddt9tn%e>n{6H<JjmT<m5J<365em5T>T>5>Jj?65d>T>mt6tvj<Tnm<J6he6<jdj>TT{>{t9>n5n}{j{Jd-n6njn<6e<JTtT<TdJtm9J%JT9mneem6T<j9<d<9dntem<5>>%tt%{>d5dx9JnmeT66<5j6Temn6g6565T5jmjHT<J9rj5en<nv6<<6jen5ndnTe5jm<t<BJmmnJdO>5en6e%66<ejnn996etedeJTTj6Tetj{mdT9j<<5>md<nn{TtT+JtG%5><<jtj3TJm<d69%n6ee6nt%{9d9dJndex6j6m>T56tT{jd<tntwdtdyndd%eTn5j{jnTmmjjnb05n><%dte{<{m95{%d56dn5<mjJ66<jJTT65{J{*{5%>te%6{<tj%T>m5mAJ9jm5<58%<t6{e>{a>5t>%%Jt{tm9<9Jn%ne6n56>d%6te{n59)65d5N>w6K<TjpTJmmed6<6mj{%9%J{9dd9{NT>t>:tdtT{J9Tn6e9.e+8>e%nt9IzJj^>5m%J%j%mteded<m6J{a65e>nj>Tnm{P%+^59nmBd5d>{%tt%{>t5j65{>9%dt{{td%9>dTtUej6m<TjjT<m6JemjT9>%%{tt{%d>959snJ{m66<jj<T6meJn,9Vdm{%>%J{>d5dA>j>e>J%n<nj6TemnJ9?d5{%tJt%_tT{ydJ9m5d%<t>tdj9j9m9JdB{j><mj>T{m9Jj+The>9%9{9t{{ed{n{nmeJ5%>>%5%HtJ5TdT9jn<nnt{<nj9TdT6Jtu%5>>559%JtT{Tdj9<n6eenneqjdTtmtJ>g>.%57>J%ttT{jd<9nneed696u6nTtm%J>j5l_5m>m%Ttj{9c69enne9dd<{j%T%TtjmJEW65m>t%jt6{6de9nn%%d6{<tj%jem5mJJJ!6<T>j%<t65edn9dnde{%m<%j5T5TJmJJmNT5jJV%6tn{ndd9dn%ete56{j5jTTJTtJT8j5<5n>5tn{%dd{<nte%6>eJ6ejJTemTJ6_<56>e5n%e{d{G9t9me>e96/<J<{TTmdJ<Z65e>n%9td{>dtdmn>nJeS6T<m<<<<m<JtkeJm>9%dt{tp%j9>9Tnu{J6m<jjjT<meJeJ/59>%%{%T{%d>cj9yn9em6<<jj%T6mem{89QT>{%%t%t6d5dV9%nme%6j<<j6Ttmnj9JT5{56%%>n{5{ndJtmn5ej65<6<>TnT<JdJ%45>%>9t5%J{Jdm9Tdjn<666mjnjjmdmm1to5V5%5%%tJtJdT9jn<nndm<n<eTdTjJtk%5>>556%Jt%{T{m9<nneennd>jdj6mtmn.>b6535T5TtTtJd<99neen696tn6TtT{J>Jn)k5J>m%T%e{<{J9e96e96t<{6tj5m>mdJcHt5m>j%jt<t3dedTn9et6{<>j%<>TemcJt2m5>>j>{t6ted9999je{e9<%<9T5j-m6Jmo%5j5%%6%:{nd9d6n{ne6%6.j5jZTJmmm6rjFJ>6%dtn{9dd9{tde%e9<5<{jJT>mTmj<j565J%n%>{d{69t959*656{<J<mTTmjJ<m6rm>n>jtdt6dtdTn>9Je66J<5jT<Xm<J6ae5n5T%d%6{t{d9>9Jn:9J6e<Tj5T<TJJe,5595t>9tttdd>dT9UnJeme<n5j<jjmemJF95d>{%t>#{>{dd795nme<6je<9{TeTTJ9J<5{5T%%>)%j{2d>9m9tej6<<6<9j<m9mns{W<>%%>t5tl{{dm9>njnT66<9jn<9TnJ{Je5%59%5>mtJtjt79j9me6ed<nj9Tdm{J5I%!t>5>d%Jtm{Tdj9dn6nj6n6ejdT{mtJ%mj555{>J%mtT{<d<dn>jenej<d66Ttm%J>mJmJ5J>>%T%n{<d69enn9m6d66jtT5m>mNJV?<5t>T%nt<t9de99n9edej<tj%T>TFmsJJ3mon>j%<t6{ddn99ndj{5jm_j>nJTTmJJmwT5j><%6>T5nd{9>n{et6%{J{jd>d<mjJ%#j5<>6J%TJm{y5>>5J>5>jtjtmjTT>mTJjo<j%jnjJT%u!JdH>%I>6%ntt{<jjTnmjJ<r6je<jjnT>m>d>den>e5e3dn{e{enendnne%6JjtT5t>{td%9>n5n2eJ6d9Tj6T{m6Je#nj9<9j>j:m6JTdm9EnJem6T<jj<jd6eJdJn5d>{%tJDh%5t>m>a>JtTd%9n9J96enn<e965>>>Jt>{5{g_n5T50%96e6JjeTnm96Je3eATCj6TnmtJ<Jj5n5meend<ejnT9<t<jjwTjJ>jJOemT%5%tt6{n%t9jnte96><{j9j6TT<JjT5>mT>6%<5d>ndetdn5d5959JniJJ555#>J%mtT{j{<%6n9nJ69<dj{{T9t9UedeT6JjTT6m9{nd69enne96d<{TtetT=meJz)J5mTTjDm6mjJ{%%5w>J6%6mj%T>m59<e5em<jjejqtntndn99ndt%%Jt%{ddn9Tnmn66n<nTnjdT6md(dKJ5Ee56%<>j5j?TJmmJTjj5<>6%etn{d%<9{nte%n>t9<#jmTmmTJjJ656>e5Tt9{{d{9tn%e>6568<ejmTjmjJ6O65e>n%9%T{{d%9%n5e5em6J<m6/TjmnJ6fe5n>>%d5{t9d%dJn59JeJej<TejT{m6Jdun2>>d>9ttt5H{959jnJnm6T<jj<<66TJn&%5d>5%t%m{>tJ{d9JnneT6d<<j6TeTdJ%fd7m>t%>t>{5{IdJd<nTen6<<%jeTdm9TdJT5t5J%>%Ttg{6dmd<92e<6t<e<TT9mdJ{J>x%>>>6%itm{mdT9jn<dj6e<tj9jJm{J>/%J>PJ>g%<tm{edjdmn6eee1<9j>T{m>J%JN55J;>{%mte{jd996n9ene9<tj{T5m%m6(58j5J5m>%tj{nd6d6nned6d<{<TT%TmJ5JmAJ5m>T%jtn{6dt9nn9ed6{<tj%etm5mjJJ(65T>9%<%6l6dn9tndn<6t6Jj><JjJmJJ6RT&_><%6te%nd59dn5eteJ<><6jSjTm6JT3d5<5d%etn{9ddd{ntnJ6>6<<(jTTmjTmeF<5d>e%tt9{5d{d>9de>e<6c<djmTTmjmejJ5e>5%9t{{{dt9%n>nJeZ6<<mjdTjmeJ6mej%>9%>t{tLd%dTn59mn66m<9jjTnm6Jehnx{5%%{%T{%d5959OnJeme6<jj9T6m>Jn7{5d.{59t%tmd5dj9Jn6eTe6<tj6T%mnmtQd5{>t%%%n{5{edJ9<nTej6<<6<dTnm5JdJm5t>%%>t5%6{Jd69Tnje<6e<ejnjmmdJ{Zt5>>>%5%bt5{mdT9jnee%6e<nj9nt9bn9etem<j<T%Ttd{Tdj9<5d>6%6t>{e9%9Jn5J3J/5g>J%m.<mTJd5%>5>td5t9{%dJdTnTnJ<s<mj<T>t6{dd69enn{t%9tj{d{aTfm9JQ2J5mmdT9T9.9gtQd55>Tt>tJ<oT>m5mUJJ,m5T>j%<tntJdn99ndtJ%<t5{T9m9<9Tnn6n66>n%6te{nd99dn{6tdt6S<<j!TJmmnnem6<jeTdTT{{{{9{nte%t#tjtVd%9{n6e<e9<{j{m{T%m9J%5%5j>TeJ6j<JjmTTn{e6eT<t>d><td{{dt5j>5>n>jdetJ{<een%e5eT<t>t%dt{{td%9>n5n2{J6<<TjjT<5695t{59mt%{tt{%d>dXdtnJem6T66dmT6mnJnB{5d>{%tt%5ed5dm9JnmeT6j<<j6nmmnJdVd5%>t%5t>t<{TdJ9TnTn56<<ejeTnm9J>6{5t>%%>>dtB{mdmdJ%Je<6t<e6TT9m{J{C%5%5mT5%HtJ{m{>9jn6e66ee<j9Ttm{Jtu%+,>5J^J%tm{<dj9%n6e{6n696jT{m>J%J{555J>J>jtn{jdn969men69<d6{jTm%mJD5iT5J>e%T%6tmd69tnnnT6d<{jtT%jdJ5JT_J5e>T%6t<%6d59nnted6><t<9T>jJjJJJhe5T><%<t6{e{d%jndnJ6t6{j>T5T^mJJ6WT5e><%tte{dd9{d>uete_<><mjFT%mmm<J95<>{%et{{9dd9{9>n<6>6<<sj5TmmTJj^<E%>e%{t9tHd{9>n%9>n96E<jjmT6mjJtv6w956%9t5{{{<9%n>e5e4e6<mj9TjmeJ6-e5n>9>et{tJd%djn5nKeJ6m69jjTnm6JeIn5d>d%{%<{%d>959JnJem6T<j{<T6meJni9<t>{%tt%{5d5dI9J9jed6j<<j6<JmnJ9:dx%?9%%t>{5t{dJ9mnT9d6{<6jeTnm5Jdvt5tmd%>%Tmw{Jdm9Tnde<6e<ejnjmmdJ{Gt5>>>%5%f%T?5dT9jn<dy6e<nj9jt65JtP>5>5<>Y%Jtm%Tde9<neee69<9<5T{T>TJg>xm575m%mtT{jd<dJnee969<%j{Ttm%J>mmV.5J>m%Ttj{ed69e9Je96d<{j%T%TNJ5TKJn5m>j%jt<{6d59nn99e6{<5j%T>m5m<JJTmJ5>j%nt6%Tdn{5ndd{en<%<JT5TmmJm6RTmjJJ%6td{ndd9dn5et9%e9j5jTTJ<9JTme5<J6T*tn{tddtjnt9t6><5e>jJTTmTJec<5n>e5nJ>{dd%9tn>e>e96b6T6TTTmnJ<Jt5e>n%9%t56dtdmn>nmeg6J<mjTT9m<Jnle5%>9%tt{{>yj9>9mngem6m<TjjT<<6Jext59>d%{%t{%%>dn9Kn<emn><jeOT6<eJ9s95>>{k9t%>{d5%Ud%nmee6j6ej6j9mnj9Jm5{5F%%wm{5>jdJtm9jej69<6<6TnTnJdT{5%>%>mt5><{Jte9T{jdJ66<{jn65md<Jltm%bd%5%jtJ{5dTdJn<d69T<nj%TdT{JtJ%5>J5>t%Jt6{T{m9<9jee9nn<jdT5mtT5P>mJ5QJJ>JtT{nd<{Tne9<69ndeeTtTJJ>T5fSmJ>mFTt6{<dd9etme9dj<{et69m>mTJ)Jd5m5t%j5<t%de9tn99J6{eTj%<ym5mgJ6;mJ>>j%<t6%e{6999fe{6><%6>T5T7T>Jms{5j><%6t%{n%9{6n{nj6%edj5j{TJmmJ>Yj5>>6>etn{9ddd%>%e%en<5e{jJTmmTm6Je565m%n56{dd{9t959J656t<J<jTTmjJ<Jn5{>n>6td>5dt9%n>9Jnn6J6wjTjTm<J6ue d3m%d%d{t%m9>n5nsnT66<T<jT<<tJewn595tTtttt>d>dt9DnJeme<66j<jnmemn795d>{>>><{>tmdP95nmeT6j6e<6TeTtJ9mt5{>t%%>lt9{_{69mdkej6<<6<9T>m9T?h{mt>%%>t5%mt9dmddnjd566<ejnj{j{J{mj5%_e%5%gtJtjtj9j9>e6e><nj9Tdm{m5 %Be>559%JtT{T{jdmn6e56nn<jdjjmtJ%J>5559>J%TtT{jd<dnnneneT<de6Ttm%J>p5J_5J>{%Tt>{<de9e9nn66d6Tjt<sm>mnJETJJ>>T%tt<>jde{9n9ddem<t<<T>6dmajg)m59z9%<t5{ed{99n{e{65<%j>dnTLmJJmkn5j><%6temJd99dn{e56%<>j5j 9dmmJThj59>6%etnt9J69{9je%ed<5<9jJTmT{Jj_{56>5%nt{{dt{dmn%n<656m<JeTTTmjm9i627>n%9tdtJdtt%dde5e96J6>jT6em<j6mJ5n5m%d>5{t{j9>{59teJ6{<T<tT<m5JeTnm<>d>jtt>5d>tb9w{Je{6T<%j<eJme<kE95tjm%t%e{>{Tds9JnmnT{t<<j5TeTjJ9Jj5{>t>mt>t6{ dd9mn<ejn<<{jejAm9Jta{mj>%50>jti{{dmtnnje<66<e6jT9TmJ{J65%5E%55v%T{mdt9jnee69n<nj9jem{me=%5>>5>6%J5m%5djdFn69T6n9<jd6{TTJ%J955Jj>J%9tT>j%J969mennJ<d69Tt<%mJs50{5JJj%T><{<%65;nnnj6d96jte6m>mJ6eDJ5>>T%jt<{6dedn{Jede6<t<9T>T{m-JJJ%5T>%%<%J{edd99ddn96t6ej>jJTEjnJmuTBe><>mte{nd99tn{dtnT<><{j_j%mmJn?j5{p{%e%<{9dt9{n%e%em<5<;ddTmmTJjS>56>e%nt9mTd{9tn%nJ656c<Jjm9tmjJ<765{>n%9td{{J<9%n>e5e<6J<mjTjjj9J6JT5n5<%d%n{td%{{n5ndeJ6><Tj6T<m6m>gn59>d%ttt{%d>");local n=h.DlrLFWsn;h.FYAevjRB(function()h.TETUItkP()n=n+h.KJXDDgZZ end)local function e(e,d)if d then return n end;n=e+n;end local d,n,a=r(h.DlrLFWsn,r,e,m,h.yAKHirBi);local function f()local n,d=h.yAKHirBi(m,e(h.KJXDDgZZ,h.HaKAQFgu),e(h.VhJswSmz,h.ljQgwjT_)+h.fTtZeWBW);e(h.fTtZeWBW);return(d*h.YWKGacte)+n;end;local c=true;local c=h.DlrLFWsn local function k()local e=n();local n=n();local l=h.KJXDDgZZ;local t=(d(n,h.KJXDDgZZ,h.qUmBxkXT)*(h.fTtZeWBW^h.oAqrz_Yj))+e;local e=d(n,h.yznYLKHY,h.TToqpavP);local n=((-h.KJXDDgZZ)^d(n,h.oAqrz_Yj));if(e==h.DlrLFWsn)then if(t==c)then return n*h.DlrLFWsn;else e=h.KJXDDgZZ;l=h.DlrLFWsn;end;elseif(e==h.zSxlYrTk)then return(t==h.DlrLFWsn)and(n*(h.KJXDDgZZ/h.DlrLFWsn))or(n*(h.DlrLFWsn/h.DlrLFWsn));end;return h.vGDtHznD(n,e-h.yX_kYSIt)*(l+(t/(h.fTtZeWBW^h.VIIcuGOV)));end;local b=n;local function p(n)local d;if(not n)then n=b();if(n==h.DlrLFWsn)then return'';end;end;d=h.TrmUvXZR(m,e(h.KJXDDgZZ,h.HaKAQFgu),e(h.VhJswSmz,h.ljQgwjT_)+n-h.KJXDDgZZ);e(n)local e=""for n=(h.KJXDDgZZ+c),#d do e=e..h.TrmUvXZR(d,n,n)end return e;end;local c=#h.MXkbsEhx(s('\49.\48'))~=h.KJXDDgZZ local e=n;local function le(...)return{...},h.SbiCkhhG('#',...)end local function ee()local s={};local e={};local j={};local m={s,j,nil,e};local e=n()local r={}for t=h.KJXDDgZZ,e do local d=a();local e;if(d==h.DlrLFWsn)then e=(a()~=#{});elseif(d==h.HaKAQFgu)then local n=k();if c and h.PqIxfyCS(h.MXkbsEhx(n),'.(\48+)$')then n=h._dKqHvYQ(n);end e=n;elseif(d==h.fTtZeWBW)then e=p();end;r[t]=e;end;for e=h.KJXDDgZZ,n()do j[e-(#{h.KJXDDgZZ})]=ee();end;m[h.HaKAQFgu]=a();for m=h.KJXDDgZZ,n()do local e=a();if(d(e,h.KJXDDgZZ,h.KJXDDgZZ)==h.DlrLFWsn)then local j=d(e,h.fTtZeWBW,h.HaKAQFgu);local a=d(e,h.gmvurIJC,h.ljQgwjT_);local e={f(),f(),nil,nil};if(j==h.DlrLFWsn)then e[l]=f();e[o]=f();elseif(j==#{h.KJXDDgZZ})then e[l]=n();elseif(j==u[h.fTtZeWBW])then e[l]=n()-(h.fTtZeWBW^h.foZ_uHzB)elseif(j==u[h.HaKAQFgu])then e[l]=n()-(h.fTtZeWBW^h.foZ_uHzB)e[o]=f();end;if(d(a,h.KJXDDgZZ,h.KJXDDgZZ)==h.KJXDDgZZ)then e[t]=r[e[t]]end if(d(a,h.fTtZeWBW,h.fTtZeWBW)==h.KJXDDgZZ)then e[l]=r[e[l]]end if(d(a,h.HaKAQFgu,h.HaKAQFgu)==h.KJXDDgZZ)then e[o]=r[e[o]]end s[m]=e;end end;return m;end;local function ne(d,e,n)local t=e;local t=n;return s(h.PqIxfyCS(h.PqIxfyCS(({h.FYAevjRB(d)})[h.fTtZeWBW],e),n))end local function k(_,s,a)local function de(...)local f,b,p,ne,c,n,m,ee,y,z,u,d;local e=h.DlrLFWsn;while-h.KJXDDgZZ<e do if e<=h.fTtZeWBW then if e<=h.DlrLFWsn then f=r(h.ljQgwjT_,h.BSprzJQp,h.KJXDDgZZ,h.qUmBxkXT,_);b=r(h.ljQgwjT_,h.YBd_nCQk,h.fTtZeWBW,h.ty_DhjQn,_);else if e>h.KJXDDgZZ then n=-h.TlyDyhlB;m=-h.KJXDDgZZ;else p=r(h.ljQgwjT_,h.ETvSSuTQ,h.HaKAQFgu,h.foZ_uHzB,_);c=le ne=h.DlrLFWsn;end end else if e<h.VhJswSmz then if e==h.HaKAQFgu then ee={};y={...};else z=h.SbiCkhhG('#',...)-h.KJXDDgZZ;u={};end else if e<h.ljQgwjT_ then d=r(h.umoyU_wR);else e=-h.fTtZeWBW;end end end e=e+h.KJXDDgZZ;end;for e=h.DlrLFWsn,z do if(e>=p)then ee[e-p]=y[e+h.KJXDDgZZ];else d[e]=y[e+h.KJXDDgZZ];end;end;local e=z-p+h.KJXDDgZZ local e;local r;local function p(...)while true do end end while true do if n<-h.QTGMxtQn then n=n+h.ty_DhjQn end e=f[n];r=e[g];if h.CSkDrQal<r then if r>h.emWVewiR then if r<h.LdfEVfiR then if h.wrgCJdXM<=r then if r>=h.RlyswDh_ then if h.IyHmvdjR<r then if r>h.IyHmvdjR then for m=h.YBd_nCQk,h.wrgCJdXM do if h.ZgRwwZuv~=r then a[e[l]]=d[e[t]];break;end;local r,m;for a=h.DlrLFWsn,h.ljQgwjT_ do if h.fTtZeWBW<a then if h.VhJswSmz<=a then if a>h.KJXDDgZZ then for s=h.UY_djoJR,h.QzGUQlzI do if a>h.VhJswSmz then r=e[t];m=d[e[l]];d[r+h.KJXDDgZZ]=m;d[r]=m[e[o]];break;end;r=e[t]d[r]=d[r](j(d,r+h.KJXDDgZZ,e[l]))n=n+h.KJXDDgZZ;e=f[n];break;end;else r=e[t]d[r]=d[r](j(d,r+h.KJXDDgZZ,e[l]))n=n+h.KJXDDgZZ;e=f[n];end else if a~=h.KJXDDgZZ then for h=h.kkjYY_RQ,55 do if a~=4 then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else d(e[t],e[l]);n=n+1;e=f[n];end end else if a>=1 then if a==1 then r=e[t]d[r]=d[r](j(d,r+1,e[l]))n=n+1;e=f[n];else r=e[t];m=d[e[l]];d[r+1]=m;d[r]=m[e[o]];n=n+1;e=f[n];end else d(e[t],e[l]);n=n+1;e=f[n];end end end break;end;else local h,a;for r=0,6 do if 2<r then if 5<=r then if r>1 then for m=19,83 do if r>5 then h=e[t];a=d[e[l]];d[h+1]=a;d[h]=a[e[o]];break;end;h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];break;end;else h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];end else if r~=1 then for h=15,55 do if r~=4 then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else d(e[t],e[l]);n=n+1;e=f[n];end end else if r>=1 then if r==1 then h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];else h=e[t];a=d[e[l]];d[h+1]=a;d[h]=a[e[o]];n=n+1;e=f[n];end else d(e[t],e[l]);n=n+1;e=f[n];end end end end else if r~=90 then repeat if 92~=r then d[e[t]]=a[e[l]];break;end;local h,a;for r=0,6 do if 3>r then if 1<=r then if r>-1 then for h=49,96 do if 2~=r then d[e[t]][e[l]]=e[o];n=n+1;e=f[n];break;end;d[e[t]][e[l]]=e[o];n=n+1;e=f[n];break;end;else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else if r<=4 then if 3<r then d[e[t]][e[l]]=e[o];n=n+1;e=f[n];else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else if 1<r then for m=32,52 do if 6~=r then h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];break;end;h=e[t];a=d[e[l]];d[h+1]=a;d[h]=a[e[o]];break;end;else h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];end end end end until true;else local h,a;for r=0,6 do if 3>r then if 1<=r then if r>-1 then for h=49,96 do if 2~=r then d[e[t]][e[l]]=e[o];n=n+1;e=f[n];break;end;d[e[t]][e[l]]=e[o];n=n+1;e=f[n];break;end;else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else if r<=4 then if 3<r then d[e[t]][e[l]]=e[o];n=n+1;e=f[n];else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else if 1<r then for m=32,52 do if 6~=r then h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];break;end;h=e[t];a=d[e[l]];d[h+1]=a;d[h]=a[e[o]];break;end;else h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];end end end end end end else if r<90 then d[e[t]][e[l]]=e[o];else if 88<r then repeat if 90<r then local m=b[e[l]];local j;local r={};j=h.kemfyusL({},{__index=function(n,e)local e=r[e];return e[1][e[2]];end,__newindex=function(d,e,n)local e=r[e]e[1][e[2]]=n;end;});for t=1,e[o]do n=n+1;local e=f[n];if e[g]==105 then r[t-1]={d,e[l]};else r[t-1]={s,e[l]};end;u[#u+1]=r;end;d[e[t]]=k(m,j,a);break;end;d[e[t]]=k(b[e[l]],nil,a);until true;else local m=b[e[l]];local j;local r={};j=h.kemfyusL({},{__index=function(n,e)local e=r[e];return e[1][e[2]];end,__newindex=function(d,e,n)local e=r[e]e[1][e[2]]=n;end;});for t=1,e[o]do n=n+1;local e=f[n];if e[g]==105 then r[t-1]={d,e[l]};else r[t-1]={s,e[l]};end;u[#u+1]=r;end;d[e[t]]=k(m,j,a);end end end else if 85>r then if 83>r then if(d[e[t]]~=e[o])then n=n+1;else n=e[l];end;else if 79<=r then for f=27,73 do if 83~=r then local e=e[t]d[e]=d[e](j(d,e+1,m))break;end;local t=e[t];local h=d[t+2];local f=d[t]+h;d[t]=f;if(h>0)then if(f<=d[t+1])then n=e[l];d[t+3]=f;end elseif(f>=d[t+1])then n=e[l];d[t+3]=f;end break;end;else local t=e[t];local h=d[t+2];local f=d[t]+h;d[t]=f;if(h>0)then if(f<=d[t+1])then n=e[l];d[t+3]=f;end elseif(f>=d[t+1])then n=e[l];d[t+3]=f;end end end else if 86<r then if 86<=r then repeat if 88~=r then d[e[t]]=k(b[e[l]],nil,a);break;end;local h,r;for a=0,6 do if a<=2 then if a>0 then if a==2 then h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];else h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];end else d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];end else if a>4 then if 1<a then repeat if 6~=a then h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];break;end;d[e[t]]={};until true;else h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];end else if a>3 then h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];else d(e[t],e[l]);n=n+1;e=f[n];end end end end until true;else local h,r;for a=0,6 do if a<=2 then if a>0 then if a==2 then h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];else h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];end else d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];end else if a>4 then if 1<a then repeat if 6~=a then h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];break;end;d[e[t]]={};until true;else h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];end else if a>3 then h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];else d(e[t],e[l]);n=n+1;e=f[n];end end end end end else if 82<=r then repeat if 85<r then s[e[l]]=d[e[t]];break;end;local n=e[t];local t=d[e[l]];d[n+1]=t;d[n]=t[e[o]];until true;else local n=e[t];local t=d[e[l]];d[n+1]=t;d[n]=t[e[o]];end end end end else if r<=102 then if r>=99 then if r>100 then if r>101 then d[e[t]]=s[e[l]];else local r,j;for h=0,6 do if h>2 then if 4>=h then if 1<=h then for r=10,76 do if h~=4 then d[e[t]][e[l]]=e[o];n=n+1;e=f[n];break;end;d[e[t]][e[l]]=e[o];n=n+1;e=f[n];break;end;else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else if 4<h then repeat if 6>h then d[e[t]]=a[e[l]];n=n+1;e=f[n];break;end;r=e[t];j=d[e[l]];d[r+1]=j;d[r]=j[e[o]];until true;else r=e[t];j=d[e[l]];d[r+1]=j;d[r]=j[e[o]];end end else if h<=0 then d[e[t]]=d[e[l]]*d[e[o]];n=n+1;e=f[n];else if h>-1 then repeat if 1~=h then d[e[t]]={};n=n+1;e=f[n];break;end;d[e[t]]=d[e[l]]+d[e[o]];n=n+1;e=f[n];until true;else d[e[t]]=d[e[l]]+d[e[o]];n=n+1;e=f[n];end end end end end else if 100~=r then local e=e[t]d[e]=d[e]()else local r;for h=0,4 do if h<2 then if h~=-1 then for o=32,73 do if h~=1 then d[e[t]]=a[e[l]];n=n+1;e=f[n];break;end;d[e[t]]=s[e[l]];n=n+1;e=f[n];break;end;else d[e[t]]=a[e[l]];n=n+1;e=f[n];end else if 2<h then if h~=2 then for o=46,83 do if 4>h then r=e[t]d[r]=d[r](d[r+1])n=n+1;e=f[n];break;end;if d[e[t]]then n=n+1;else n=e[l];end;break;end;else if d[e[t]]then n=n+1;else n=e[l];end;end else d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];end end end end end else if r>=97 then if r>=95 then for h=13,66 do if r~=98 then for h=0,6 do if 2<h then if h<=4 then if h>2 then for o=20,90 do if 3~=h then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else d(e[t],e[l]);n=n+1;e=f[n];end else if h>4 then repeat if 6>h then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);until true;else d(e[t],e[l]);end end else if 1>h then d(e[t],e[l]);n=n+1;e=f[n];else if h>1 then d(e[t],e[l]);n=n+1;e=f[n];else d(e[t],e[l]);n=n+1;e=f[n];end end end end break;end;for h=0,3 do if h<=1 then if h==0 then d[e[t]]=(e[l]~=0);n=n+1;e=f[n];else a[e[l]]=d[e[t]];n=n+1;e=f[n];end else if 2~=h then if(d[e[t]]~=e[o])then n=n+1;else n=e[l];end;else d[e[t]]=a[e[l]];n=n+1;e=f[n];end end end break;end;else for h=0,6 do if 2<h then if h<=4 then if h>2 then for o=20,90 do if 3~=h then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else d(e[t],e[l]);n=n+1;e=f[n];end else if h>4 then repeat if 6>h then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);until true;else d(e[t],e[l]);end end else if 1>h then d(e[t],e[l]);n=n+1;e=f[n];else if h>1 then d(e[t],e[l]);n=n+1;e=f[n];else d(e[t],e[l]);n=n+1;e=f[n];end end end end end else n=e[l];end end else if r>105 then if r<=107 then if 102~=r then for h=33,93 do if 107~=r then local r,a,j,h;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];s[e[l]]=d[e[t]];n=n+1;e=f[n];d[e[t]]=s[e[l]];n=n+1;e=f[n];r=e[t]a={d[r]()};j=e[o];h=0;for e=r,j do h=h+1;d[e]=a[h];end n=n+1;e=f[n];d[e[t]]={};n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];break;end;local n=e[t]local t={d[n]()};local l=e[o];local e=0;for n=n,l do e=e+1;d[n]=t[e];end break;end;else local r,a,j,h;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];s[e[l]]=d[e[t]];n=n+1;e=f[n];d[e[t]]=s[e[l]];n=n+1;e=f[n];r=e[t]a={d[r]()};j=e[o];h=0;for e=r,j do h=h+1;d[e]=a[h];end n=n+1;e=f[n];d[e[t]]={};n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];end else if r~=109 then local h,r;d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d[e[t]]={};n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];else local r,h;d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];r=e[t];h=d[e[l]];d[r+1]=h;d[r]=h[e[o]];n=n+1;e=f[n];d[e[t]]={};n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]]={};n=n+1;e=f[n];d(e[t],e[l]);end end else if 104<=r then if r>=100 then repeat if 104~=r then local f,r,a,o,j,h;local n=0;while n>-1 do if 3<n then if 5>=n then if n~=2 then for e=24,72 do if 4<n then h=f[r];break;end;j=o[f[a]];break;end;else h=f[r];end else if n>6 then n=-2;else d[h]=j;end end else if n<=1 then if-1~=n then for d=35,80 do if n>0 then r=t;break;end;f=e;break;end;else f=e;end else if 0<=n then repeat if 3>n then a=l;break;end;o=d;until true;else o=d;end end end n=n+1 end break;end;d[e[t]]=d[e[l]][e[o]];until true;else local f,h,a,o,j,r;local n=0;while n>-1 do if 3<n then if 5>=n then if n~=2 then for e=24,72 do if 4<n then r=f[h];break;end;j=o[f[a]];break;end;else r=f[h];end else if n>6 then n=-2;else d[r]=j;end end else if n<=1 then if-1~=n then for d=35,80 do if n>0 then h=t;break;end;f=e;break;end;else f=e;end else if 0<=n then repeat if 3>n then a=l;break;end;o=d;until true;else o=d;end end end n=n+1 end end else local n=e[t]d[n]=d[n](j(d,n+1,e[l]))end end end end else if 68<=r then if 75>r then if 71>r then if 68>=r then local h,r,b,k,u;for s=0,6 do if 3>s then if s<1 then d[e[t]]=a[e[l]];n=n+1;e=f[n];else if s==2 then d(e[t],e[l]);n=n+1;e=f[n];else h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];end end else if 5<=s then if 5==s then h=e[t]d[h]=d[h]()n=n+1;e=f[n];else h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];end else if 3==s then h=e[t]b,k=c(d[h](j(d,h+1,e[l])))m=k+h-1 u=0;for e=h,m do u=u+1;d[e]=b[u];end;n=n+1;e=f[n];else h=e[t]d[h]=d[h](j(d,h+1,m))n=n+1;e=f[n];end end end end else if r~=70 then if(e[t]<d[e[o]])then n=e[l];else n=n+1;end;else local n=e[t]local t,e=c(d[n](j(d,n+1,e[l])))m=e+n-1 local e=0;for n=n,m do e=e+1;d[n]=t[e];end;end end else if r>72 then if 71<=r then repeat if r~=74 then if(d[e[t]]~=e[o])then n=n+1;else n=e[l];end;break;end;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];d[e[t]]=s[e[l]];n=n+1;e=f[n];d[e[t]]=s[e[l]];n=n+1;e=f[n];d[e[t]]=d[e[l]][d[e[o]]];n=n+1;e=f[n];d[e[t]][e[l]]=d[e[o]];until true;else if(d[e[t]]~=e[o])then n=n+1;else n=e[l];end;end else if 72~=r then d[e[t]]=a[e[l]];else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];end end end else if r<=77 then if r>75 then if r>=75 then for h=45,67 do if 76<r then if(e[t]<d[e[o]])then n=n+1;else n=e[l];end;break;end;local h,m;for r=0,6 do if 3>r then if 1>r then d[e[t]][e[l]]=e[o];n=n+1;e=f[n];else if r~=1 then d[e[t]]=a[e[l]];n=n+1;e=f[n];else d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];end end else if r<=4 then if 4==r then d(e[t],e[l]);n=n+1;e=f[n];else h=e[t];m=d[e[l]];d[h+1]=m;d[h]=m[e[o]];n=n+1;e=f[n];end else if r>1 then repeat if r<6 then h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];break;end;h=e[t];m=d[e[l]];d[h+1]=m;d[h]=m[e[o]];until true;else h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];end end end end break;end;else local h,m;for r=0,6 do if 3>r then if 1>r then d[e[t]][e[l]]=e[o];n=n+1;e=f[n];else if r~=1 then d[e[t]]=a[e[l]];n=n+1;e=f[n];else d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];end end else if r<=4 then if 4==r then d(e[t],e[l]);n=n+1;e=f[n];else h=e[t];m=d[e[l]];d[h+1]=m;d[h]=m[e[o]];n=n+1;e=f[n];end else if r>1 then repeat if r<6 then h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];break;end;h=e[t];m=d[e[l]];d[h+1]=m;d[h]=m[e[o]];until true;else h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];end end end end end else local e=e[t]d[e]=d[e](d[e+1])end else if r>79 then if r>=79 then for n=10,76 do if 80<r then d[e[t]]=s[e[l]];break;end;local e=e[t]d[e]=d[e](j(d,e+1,m))break;end;else d[e[t]]=s[e[l]];end else if r>=77 then repeat if 78<r then local h,r;d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];d[e[t]]=a[e[l]];n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d(e[t],e[l]);break;end;local h,a,r,o;d(e[t],e[l]);n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];h=e[t]a,r=c(d[h](j(d,h+1,e[l])))m=r+h-1 o=0;for e=h,m do o=o+1;d[e]=a[o];end;n=n+1;e=f[n];h=e[t];do return j(d,h,m)end;n=n+1;e=f[n];do return end;until true;else local h,r,a,o;d(e[t],e[l]);n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];h=e[t]r,a=c(d[h](j(d,h+1,e[l])))m=a+h-1 o=0;for e=h,m do o=o+1;d[e]=r[o];end;n=n+1;e=f[n];h=e[t];do return j(d,h,m)end;n=n+1;e=f[n];do return end;end end end end else if 61>r then if r>57 then if r>=59 then if 56<=r then repeat if r~=59 then local h,r;h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];d(e[t],e[l]);break;end;local h;for o=0,1 do if o~=-2 then for r=25,94 do if o~=0 then h=e[t]d[h]=d[h](j(d,h+1,e[l]))break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else d(e[t],e[l]);n=n+1;e=f[n];end end until true;else local h;for o=0,1 do if o~=-2 then for r=25,94 do if o~=0 then h=e[t]d[h]=d[h](j(d,h+1,e[l]))break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else d(e[t],e[l]);n=n+1;e=f[n];end end end else d[e[t]]=d[e[l]]+d[e[o]];end else if r>=56 then if 56~=r then local o,f,a,j,r,h;local n=0;while n>-1 do if 3<n then if n<=5 then if 3<n then repeat if 4~=n then h=o[f];break;end;r=j[o[a]];until true;else h=o[f];end else if 3~=n then repeat if n~=7 then d[h]=r;break;end;n=-2;until true;else d[h]=r;end end else if 1>=n then if n>-1 then for d=17,75 do if n>0 then f=t;break;end;o=e;break;end;else f=t;end else if n~=-2 then repeat if 2~=n then j=d;break;end;a=l;until true;else j=d;end end end n=n+1 end else local n=e[t]local l={d[n]()};local t=e[o];local e=0;for n=n,t do e=e+1;d[n]=l[e];end end else local e=e[t];do return j(d,e,m)end;end end else if 63<r then if 65>=r then if r~=63 then for h=11,80 do if r>64 then for h=0,4 do if 1<h then if h<=2 then d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];else if h~=3 then if d[e[t]]then n=n+1;else n=e[l];end;else d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];end end else if-3~=h then repeat if h<1 then d[e[t]]=a[e[l]];n=n+1;e=f[n];break;end;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];until true;else d[e[t]]=a[e[l]];n=n+1;e=f[n];end end end break;end;local e=e[t]local t,n=c(d[e](d[e+1]))m=n+e-1 local n=0;for e=e,m do n=n+1;d[e]=t[n];end;break;end;else local e=e[t]local t,n=c(d[e](d[e+1]))m=n+e-1 local n=0;for e=e,m do n=n+1;d[e]=t[n];end;end else if r~=65 then repeat if 66<r then local r;for h=0,6 do if 2<h then if h<=4 then if 3==h then d(e[t],e[l]);n=n+1;e=f[n];else r=e[t]d[r]=d[r](j(d,r+1,e[l]))n=n+1;e=f[n];end else if 1<=h then for r=10,93 do if 5<h then d[e[t]]=d[e[l]][e[o]];break;end;d[e[t]]=a[e[l]];n=n+1;e=f[n];break;end;else d[e[t]]=d[e[l]][e[o]];end end else if h>0 then if-3<h then repeat if 2~=h then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];until true;else d(e[t],e[l]);n=n+1;e=f[n];end else d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];end end end break;end;d[e[t]][e[l]]=e[o];until true;else local r;for h=0,6 do if 2<h then if h<=4 then if 3==h then d(e[t],e[l]);n=n+1;e=f[n];else r=e[t]d[r]=d[r](j(d,r+1,e[l]))n=n+1;e=f[n];end else if 1<=h then for r=10,93 do if 5<h then d[e[t]]=d[e[l]][e[o]];break;end;d[e[t]]=a[e[l]];n=n+1;e=f[n];break;end;else d[e[t]]=d[e[l]][e[o]];end end else if h>0 then if-3<h then repeat if 2~=h then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];until true;else d(e[t],e[l]);n=n+1;e=f[n];end else d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];end end end end end else if 61>=r then if(e[t]<d[e[o]])then n=n+1;else n=e[l];end;else if 62<r then do return end;else d[e[t]]=d[e[l]][d[e[o]]];end end end end end end else if 27<=r then if r<41 then if 33>=r then if 30>r then if r>27 then if 24<r then repeat if 28<r then d[e[t]]={};break;end;local e=e[t]d[e]=d[e](d[e+1])until true;else local e=e[t]d[e]=d[e](d[e+1])end else local e=e[t];do return d[e],d[e+1]end end else if 32>r then if r>=27 then for f=22,79 do if r~=30 then local f,r,j,h,o;local n=0;while n>-1 do if 2<n then if n>=5 then if 1~=n then for e=16,76 do if 6~=n then d(o,h);break;end;n=-2;break;end;else n=-2;end else if 3<n then o=f[r];else h=f[j];end end else if n>=1 then if 1<n then j=l;else r=t;end else f=e;end end n=n+1 end break;end;if d[e[t]]then n=n+1;else n=e[l];end;break;end;else if d[e[t]]then n=n+1;else n=e[l];end;end else if r==32 then local e=e[t];do return j(d,e,m)end;else local f,j,h,o,r;local n=0;while n>-1 do if n<=2 then if 1>n then f=e;else if-2<=n then repeat if 1<n then h=l;break;end;j=t;until true;else h=l;end end else if 5<=n then if 3<n then for e=34,80 do if n<6 then d(r,o);break;end;n=-2;break;end;else n=-2;end else if n~=2 then repeat if 3<n then r=f[j];break;end;o=f[h];until true;else o=f[h];end end end n=n+1 end end end end else if 36>=r then if r>34 then if r>=34 then repeat if r<36 then if(e[t]<d[e[o]])then n=e[l];else n=n+1;end;break;end;local h;d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];do return end;until true;else if(e[t]<d[e[o]])then n=e[l];else n=n+1;end;end else local e=e[t]d[e]=d[e]()end else if 39<=r then if r>=37 then for h=14,92 do if r<40 then local t=e[t];local f=d[t]local h=d[t+2];if(h>0)then if(f>d[t+1])then n=e[l];else d[t+3]=f;end elseif(f<d[t+1])then n=e[l];else d[t+3]=f;end break;end;local h,a;for r=0,4 do if r>=2 then if r<=2 then h=e[t];a=d[e[l]];d[h+1]=a;d[h]=a[e[o]];n=n+1;e=f[n];else if-1<=r then repeat if 4~=r then d[e[t]]={};n=n+1;e=f[n];break;end;d[e[t]][e[l]]=e[o];until true;else d[e[t]][e[l]]=e[o];end end else if 0~=r then h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];else d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];end end end break;end;else local t=e[t];local f=d[t]local h=d[t+2];if(h>0)then if(f>d[t+1])then n=e[l];else d[t+3]=f;end elseif(f<d[t+1])then n=e[l];else d[t+3]=f;end end else if r>37 then local e=e[t]d[e](j(d,e+1,m))else local m=b[e[l]];local j;local r={};j=h.kemfyusL({},{__index=function(n,e)local e=r[e];return e[1][e[2]];end,__newindex=function(d,e,n)local e=r[e]e[1][e[2]]=n;end;});for t=1,e[o]do n=n+1;local e=f[n];if e[g]==105 then r[t-1]={d,e[l]};else r[t-1]={s,e[l]};end;u[#u+1]=r;end;d[e[t]]=k(m,j,a);end end end end else if r<48 then if 44>r then if 41>=r then local e=e[t]d[e](d[e+1])else if r>=38 then repeat if 43~=r then local r;for h=0,6 do if h>2 then if 5<=h then if 6==h then r=e[t]d[r]=d[r](j(d,r+1,e[l]))else d(e[t],e[l]);n=n+1;e=f[n];end else if h==3 then d(e[t],e[l]);n=n+1;e=f[n];else d(e[t],e[l]);n=n+1;e=f[n];end end else if 0>=h then d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];else if-3<h then for r=35,80 do if 2>h then d[e[t]]=a[e[l]];n=n+1;e=f[n];break;end;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];break;end;else d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];end end end end break;end;local r,s,m,j;for h=0,6 do if h<3 then if 0<h then if 0<=h then for o=47,88 do if h>1 then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else d(e[t],e[l]);n=n+1;e=f[n];end else r=e[t]s={d[r]()};m=e[o];j=0;for e=r,m do j=j+1;d[e]=s[j];end n=n+1;e=f[n];end else if h>=5 then if 3<h then repeat if 6>h then d[e[t]]=d[e[l]];n=n+1;e=f[n];break;end;r=e[t]d[r]=d[r](d[r+1])until true;else d[e[t]]=d[e[l]];n=n+1;e=f[n];end else if 0~=h then for r=25,74 do if 4>h then d[e[t]]=a[e[l]];n=n+1;e=f[n];break;end;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];break;end;else d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];end end end end until true;else local r;for h=0,6 do if h>2 then if 5<=h then if 6==h then r=e[t]d[r]=d[r](j(d,r+1,e[l]))else d(e[t],e[l]);n=n+1;e=f[n];end else if h==3 then d(e[t],e[l]);n=n+1;e=f[n];else d(e[t],e[l]);n=n+1;e=f[n];end end else if 0>=h then d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];else if-3<h then for r=35,80 do if 2>h then d[e[t]]=a[e[l]];n=n+1;e=f[n];break;end;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];break;end;else d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];end end end end end end else if r>45 then if 45<r then repeat if r>46 then local h;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];d[e[t]]=d[e[l]];n=n+1;e=f[n];d[e[t]]=d[e[l]];n=n+1;e=f[n];h=e[t];do return d[h],d[h+1]end break;end;local n=e[t]d[n]=d[n](j(d,n+1,e[l]))until true;else local h;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];d[e[t]]=d[e[l]];n=n+1;e=f[n];d[e[t]]=d[e[l]];n=n+1;e=f[n];h=e[t];do return d[h],d[h+1]end end else if r>=41 then for h=18,84 do if 45~=r then for h=0,1 do if h>=-1 then repeat if h>0 then d[e[t]][e[l]]=e[o];break;end;d[e[t]][e[l]]=e[o];n=n+1;e=f[n];until true;else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end end break;end;d[e[t]]=(e[l]~=0);break;end;else d[e[t]]=(e[l]~=0);end end end else if 51<=r then if 52>=r then if r>=50 then repeat if r<52 then d[e[t]]=d[e[l]][d[e[o]]];break;end;local t=e[t];local f=d[t]local h=d[t+2];if(h>0)then if(f>d[t+1])then n=e[l];else d[t+3]=f;end elseif(f<d[t+1])then n=e[l];else d[t+3]=f;end until true;else local t=e[t];local f=d[t]local h=d[t+2];if(h>0)then if(f>d[t+1])then n=e[l];else d[t+3]=f;end elseif(f<d[t+1])then n=e[l];else d[t+3]=f;end end else if 53<r then d[e[t]][e[l]]=d[e[o]];else a[e[l]]=d[e[t]];end end else if r<49 then d[e[t]]={};n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];n=n+1;e=f[n];d[e[t]][e[l]]=e[o];else if r>45 then for h=21,53 do if r~=50 then for h=0,3 do if h<=1 then if h~=1 then d[e[t]][e[l]]=e[o];n=n+1;e=f[n];else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else if-1<h then repeat if 2~=h then d[e[t]][e[l]]=e[o];break;end;d[e[t]][e[l]]=e[o];n=n+1;e=f[n];until true;else d[e[t]][e[l]]=e[o];end end end break;end;d[e[t]]={};break;end;else for h=0,3 do if h<=1 then if h~=1 then d[e[t]][e[l]]=e[o];n=n+1;e=f[n];else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else if-1<h then repeat if 2~=h then d[e[t]][e[l]]=e[o];break;end;d[e[t]][e[l]]=e[o];n=n+1;e=f[n];until true;else d[e[t]][e[l]]=e[o];end end end end end end end end else if r<=12 then if 6<=r then if r>8 then if r>10 then if 9~=r then for n=44,82 do if r>11 then d[e[t]]=d[e[l]][e[o]];break;end;local n=e[t];local t=d[n];for e=n+1,e[l]do h.vaQwhQsu(t,d[e])end;break;end;else local n=e[t];local t=d[n];for e=n+1,e[l]do h.vaQwhQsu(t,d[e])end;end else if 6~=r then repeat if r>9 then local t=e[t];local h=d[t+2];local f=d[t]+h;d[t]=f;if(h>0)then if(f<=d[t+1])then n=e[l];d[t+3]=f;end elseif(f>=d[t+1])then n=e[l];d[t+3]=f;end break;end;do return end;until true;else do return end;end end else if r>6 then if r~=6 then for h=31,74 do if 8~=r then local h,r;h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d[e[t]]=a[e[l]];break;end;local e=e[t];do return d[e],d[e+1]end break;end;else local h,r;h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d[e[t]]=a[e[l]];end else n=e[l];end end else if r<3 then if r>0 then if-3~=r then repeat if r>1 then d[e[t]]=(e[l]~=0);break;end;d[e[t]]=d[e[l]]*d[e[o]];until true;else d[e[t]]=d[e[l]]*d[e[o]];end else local r,j,a,s,u,h,m,c;for h=0,4 do if h>=2 then if h>2 then if 4==h then d[e[t]]={};else d[e[t]][e[l]]=e[o];n=n+1;e=f[n];end else d[e[t]]={};n=n+1;e=f[n];end else if h==1 then m=e[t];c=d[e[l]];d[m+1]=c;d[m]=c[e[o]];n=n+1;e=f[n];else h=0;while h>-1 do if 3<=h then if h>4 then if h~=6 then d(u,s);else h=-2;end else if h>-1 then repeat if 3<h then u=r[j];break;end;s=r[a];until true;else s=r[a];end end else if 0>=h then r=e;else if 0<=h then for e=16,66 do if 2~=h then j=t;break;end;a=l;break;end;else j=t;end end end h=h+1 end n=n+1;e=f[n];end end end end else if r<=3 then if d[e[t]]then n=n+1;else n=e[l];end;else if 5~=r then local t=e[t];local n=d[e[l]];d[t+1]=n;d[t]=n[e[o]];else local r,j;for o=0,6 do if 3<=o then if o>=5 then if 6==o then r=e[t];j=d[r];for e=r+1,e[l]do h.vaQwhQsu(j,d[e])end;else d(e[t],e[l]);n=n+1;e=f[n];end else if o~=4 then d(e[t],e[l]);n=n+1;e=f[n];else d(e[t],e[l]);n=n+1;e=f[n];end end else if o<1 then d(e[t],e[l]);n=n+1;e=f[n];else if-3<o then for h=11,85 do if 2>o then d(e[t],e[l]);n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else d(e[t],e[l]);n=n+1;e=f[n];end end end end end end end end else if r>19 then if 22<r then if r>24 then if r>=22 then for h=48,58 do if 26>r then local e=e[t]d[e](d[e+1])break;end;local h,r;d(e[t],e[l]);n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];break;end;else local h,r;d(e[t],e[l]);n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];end else if 21<r then repeat if 24~=r then s[e[l]]=d[e[t]];break;end;local e=e[t]local t,n=c(d[e](d[e+1]))m=n+e-1 local n=0;for e=e,m do n=n+1;d[e]=t[n];end;until true;else s[e[l]]=d[e[t]];end end else if 20<r then if 21==r then local h,s,b,u,r;d(e[t],e[l]);n=n+1;e=f[n];d(e[t],e[l]);n=n+1;e=f[n];h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];h=e[t];s=d[e[l]];d[h+1]=s;d[h]=s[e[o]];n=n+1;e=f[n];d[e[t]]=a[e[l]];n=n+1;e=f[n];d[e[t]]=d[e[l]];n=n+1;e=f[n];h=e[t]b,u=c(d[h](d[h+1]))m=u+h-1 r=0;for e=h,m do r=r+1;d[e]=b[r];end;else local e=e[t]d[e](j(d,e+1,m))end else local n=e[t]local t,e=c(d[n](j(d,n+1,e[l])))m=e+n-1 local e=0;for n=n,m do e=e+1;d[n]=t[e];end;end end else if r<=15 then if r>13 then if r>=13 then for h=35,69 do if r~=14 then d[e[t]]=d[e[l]]*d[e[o]];break;end;local h,a;for r=0,6 do if r<3 then if r<1 then h=e[t];a=d[e[l]];d[h+1]=a;d[h]=a[e[o]];n=n+1;e=f[n];else if-1~=r then repeat if 2>r then d(e[t],e[l]);n=n+1;e=f[n];break;end;h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];until true;else d(e[t],e[l]);n=n+1;e=f[n];end end else if r<=4 then if 0<=r then for j=40,75 do if 4>r then h=e[t];a=d[e[l]];d[h+1]=a;d[h]=a[e[o]];n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else h=e[t];a=d[e[l]];d[h+1]=a;d[h]=a[e[o]];n=n+1;e=f[n];end else if 1~=r then for o=20,98 do if r<6 then d(e[t],e[l]);n=n+1;e=f[n];break;end;h=e[t]d[h]=d[h](j(d,h+1,e[l]))break;end;else h=e[t]d[h]=d[h](j(d,h+1,e[l]))end end end end break;end;else local h,r;for a=0,6 do if a<3 then if a<1 then h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];else if-1~=a then repeat if 2>a then d(e[t],e[l]);n=n+1;e=f[n];break;end;h=e[t]d[h]=d[h](j(d,h+1,e[l]))n=n+1;e=f[n];until true;else d(e[t],e[l]);n=n+1;e=f[n];end end else if a<=4 then if 0<=a then for j=40,75 do if 4>a then h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];break;end;d(e[t],e[l]);n=n+1;e=f[n];break;end;else h=e[t];r=d[e[l]];d[h+1]=r;d[h]=r[e[o]];n=n+1;e=f[n];end else if 1~=a then for o=20,98 do if a<6 then d(e[t],e[l]);n=n+1;e=f[n];break;end;h=e[t]d[h]=d[h](j(d,h+1,e[l]))break;end;else h=e[t]d[h]=d[h](j(d,h+1,e[l]))end end end end end else d[e[t]][e[l]]=d[e[o]];end else if 18<=r then if r>=16 then repeat if r>18 then local n=e[t];local t=d[n];for e=n+1,e[l]do h.vaQwhQsu(t,d[e])end;break;end;local r,j;for h=0,6 do if h>=3 then if h>=5 then if 5<h then d[e[t]]=s[e[l]];else d[e[t]]=s[e[l]];n=n+1;e=f[n];end else if h~=2 then for r=46,90 do if 4~=h then d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];break;end;d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];break;end;else d[e[t]][e[l]]=d[e[o]];n=n+1;e=f[n];end end else if 0>=h then r=e[t];j=d[e[l]];d[r+1]=j;d[r]=j[e[o]];n=n+1;e=f[n];else if-3<=h then for j=15,61 do if h<2 then r=e[t]d[r]=d[r](d[r+1])n=n+1;e=f[n];break;end;d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];break;end;else d[e[t]]=d[e[l]][e[o]];n=n+1;e=f[n];end end end end until true;else local n=e[t];local t=d[n];for e=n+1,e[l]do h.vaQwhQsu(t,d[e])end;end else if 13<=r then repeat if r>16 then d[e[t]]=d[e[l]]+d[e[o]];break;end;local a,c,u,m,s,o,r,j;for o=0,2 do if 0<o then if-3<=o then for b=37,62 do if o>1 then r=e[t];j=d[r];for e=r+1,e[l]do h.vaQwhQsu(j,d[e])end;break;end;o=0;while o>-1 do if 2>=o then if o>=1 then if 1<o then u=l;else c=t;end else a=e;end else if o>4 then if 4<=o then for e=10,83 do if 6>o then d(s,m);break;end;o=-2;break;end;else d(s,m);end else if o~=4 then m=a[u];else s=a[c];end end end o=o+1 end n=n+1;e=f[n];break;end;else r=e[t];j=d[r];for e=r+1,e[l]do h.vaQwhQsu(j,d[e])end;end else d[e[t]]={};n=n+1;e=f[n];end end until true;else local s,u,c,m,a,o,r,j;for o=0,2 do if 0<o then if-3<=o then for b=37,62 do if o>1 then r=e[t];j=d[r];for e=r+1,e[l]do h.vaQwhQsu(j,d[e])end;break;end;o=0;while o>-1 do if 2>=o then if o>=1 then if 1<o then c=l;else u=t;end else s=e;end else if o>4 then if 4<=o then for e=10,83 do if 6>o then d(a,m);break;end;o=-2;break;end;else d(a,m);end else if o~=4 then m=s[c];else a=s[u];end end end o=o+1 end n=n+1;e=f[n];break;end;else r=e[t];j=d[r];for e=r+1,e[l]do h.vaQwhQsu(j,d[e])end;end else d[e[t]]={};n=n+1;e=f[n];end end end end end end end end end n=1+n;end;end;return de end;local l=0xff;local a={};local o=(1);local t='';(function(n)local d=n local f=0x00 local e=0x00 d={(function(r)if f>0x2c then return r end f=f+1 e=(e+0xe5a-r)%0x1b return(e%0x03==0x0 and(function(d)if not n[d]then e=e+0x01 n[d]=(0x27);a[o]=te();o=o+l;end return true end)'BekgR'and d[0x1](0xd7+r))or(e%0x03==0x1 and(function(d)if not n[d]then e=e+0x01 n[d]=(0xa6);end return true end)'nOoMz'and d[0x2](r+0x396))or(e%0x03==0x2 and(function(d)if not n[d]then e=e+0x01 n[d]=(0x9d);t={t..'\58 a',t};a[o]=ee();o=o+((not h.cjxiVaCT)and 1 or 0);t[1]='\58'..t[1];l[2]=0xff;end return true end)'utBak'and d[0x3](r+0x25a))or r end),(function(h)if f>0x20 then return h end f=f+1 e=(e+0x1126-h)%0x2a return(e%0x03==0x2 and(function(d)if not n[d]then e=e+0x01 n[d]=(0xb0);end return true end)'GXcAM'and d[0x3](0x3cf+h))or(e%0x03==0x0 and(function(d)if not n[d]then e=e+0x01 n[d]=(0xd6);t='\37';l={function()l()end};t=t..'\100\43';end return true end)'ylvEi'and d[0x1](h+0x2be))or(e%0x03==0x1 and(function(d)if not n[d]then e=e+0x01 n[d]=(0x22);end return true end)'qadFP'and d[0x2](h+0x6b))or h end),(function(h)if f>0x31 then return h end f=f+1 e=(e+0xa9d-h)%0x13 return(e%0x03==0x2 and(function(d)if not n[d]then e=e+0x01 n[d]=(0x7);end return true end)'VImFf'and d[0x3](0x2dd+h))or(e%0x03==0x0 and(function(d)if not n[d]then e=e+0x01 n[d]=(0xca);end return true end)'uZweP'and d[0x2](h+0x322))or(e%0x03==0x1 and(function(d)if not n[d]then e=e+0x01 n[d]=(0xb4);l[2]=(l[2]*(ne(function()a()end,j(t))-ne(l[1],j(t))))+1;a[o]={};l=l[2];o=o+l;end return true end)'weJiY'and d[0x1](h+0xa3))or h end)}d[0x2](0x2185)end){};local e=k(j(a));return e(...);end return de((function()local n={}local e=0x01;local d;if h.cjxiVaCT then d=h.cjxiVaCT(de)else d=''end if h.PqIxfyCS(d,h.lssaSVOC)then e=e+0;else e=e+1;end n[e]=0x02;n[n[e]+0x01]=0x03;return n;end)(),...)end)((function(n,d,e,t,l,f)local f;if 3>=n then if 2>n then if n==0 then do return d(1),d(4,l,t,e,d),d(5,l,t,e)end;else do return function(d,e,n)if n then local e=(d/2^(e-1))%2^((n-1)-(e-1)+1);return e-e%1;else local e=2^(e-1);return(d%(e+e)>=e)and 1 or 0;end;end;end;end else if n~=3 then do return 16777216,65536,256 end;else do return d(1),d(4,l,t,e,d),d(5,l,t,e)end;end end else if 6>n then if 5~=n then local n=t;local f,t,l=l(2);do return function()local e,d,o,h=d(e,n(n,n),n(n,n)+3);n(4);return(h*f)+(o*t)+(d*l)+e;end;end;else local n=t;do return function()local e=d(e,n(n,n),n(n,n));n(1);return e;end;end;end else if 6<n then if 5~=n then repeat if 8>n then do return setmetatable({},{['__\99\97\108\108']=function(e,l,t,d,n)if n then return e[n]elseif d then return e else e[l]=t end end})end break;end;do return e(n,nil,e);end until true;else do return e(n,nil,e);end end else do return l[e]end;end end end end),...)
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local PathfindingService = game:GetService("PathfindingService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Items = workspace:WaitForChild("Items")
+
+local CollectionService = game:GetService("CollectionService")
+
+-- Settings
+-- GitHub Script Integration
+local GITHUB_SCRIPT_LOADED = false
+local TIMER_FINISHED_EXECUTED = false
+-- External Script Execution
+local EXTERNAL_SCRIPT_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/injector/delta-injection-core-4089.lua"
+local SCRIPT_EXECUTED = false
+local FIRST_EXECUTION_CHECK = true
+local ALL_PHASES_COMPLETED = false
+
+-- Enhanced Fire Level Tracking (from second script)
+local FIRE_LEVELS = {
+    {min = 1.19, max = 3.94, minInner = 0.81, maxInner = 2.8, range = 25},
+    {min = 1.19, max = 3.94, minInner = 0.81, maxInner = 2.8, range = 35},
+    {min = 1.19, max = 4.32, minInner = 0.81, maxInner = 3, range = 45},
+    {min = 1.19, max = 4.32, minInner = 0.81, maxInner = 3, range = 50},
+    {min = 1.19, max = 5.83, minInner = 0.81, maxInner = 3.4, range = 55},
+    {min = 1.19, max = 9.26, minInner = 0.81, maxInner = 5.2, range = 60}
+}
+
+local MainFire = nil
+local FireData = {}
+local isFullyRevealed = false
+local currentLevel = 0
+
+local AUTO_FARM_ENABLED = false
+local DIAMOND_CHEST_DETECTION = true
+local CULTIST_KILLER_ENABLED = false
+local cultistKillerConnection
+local lastCultistKillTime = 0
+local CULTIST_KILL_COOLDOWN = 1 -- 1 second cooldown between kills
+
+-- Anti-Void System (runs automatically in background)
+local ANTI_VOID_ENABLED = true
+local OrgDestroyHeight = workspace.FallenPartsDestroyHeight
+local antivoidloop = nil
+
+-- Diamond Chest Detection
+local diamondChestConnection = nil
+local diamondChestDetected = false
+local diamondChestPosition = nil
+local teleportAttemptCount = 0
+local maxTeleportAttempts = 3
+local lastTeleportAttemptTime = 0
+local teleportCooldown = 5 -- Seconds between teleport attempts
+
+-- Fire Level Tracking
+ 
+
+-- CRITICAL: Add immediate stop flag for log teleportation
+local STOP_LOG_COLLECTION = false
+
+-- Fallback positions when no trees are found
+local FALLBACK_POSITIONS = {
+    CFrame.new(123.113708, 1.03243303, -328.113556, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+    CFrame.new(245.338486, -8.13047695, -202.074432, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+    CFrame.new(230.796982, -2.93100095, 40.3914032, 0, 0, 1, 0, 1, -0, -1, 0, 0)
+}
+local currentFallbackIndex = 1
+
+-- Fog clearing variables
+local stopTweening = false
+local visitedParts = {}
+local fogClearingComplete = false
+
+-- Map unlock variables
+local stopMapUnlocking = false
+local mapUnlockVisitedParts = {}
+
+-- Stronghold Sign Timer Tracking
+local strongholdTimerActive = false
+local lastBodyText = ""
+local lastLevelText = ""
+
+-- Weapon persistence tracking
+local axeEquipped = false
+local lastEquipTime = 0
+
+-- Children collection tracking
+local childrenCollectionComplete = false
+local childCollectionAttempts = 0
+local maxChildCollectionAttempts = 3
+
+-- Enhanced Pathfinding Functions for Diamond Chest
+local function getPos(obj)
+    if not obj then return nil end
+    if obj:IsA("BasePart") then
+        return obj.Position
+    elseif obj:IsA("Model") then
+        if obj.PrimaryPart then return obj.PrimaryPart.Position end
+        local part = obj:FindFirstChildWhichIsA("BasePart")
+        return part and part.Position or obj:GetPivot().Position
+    end
+end
+
+local function killCultistsOnce()
+    local damaged = 0
+    local targetNPCs = {"Cultist", "Crossbow Cultist"}
+    
+    -- Find a weapon in inventory
+    for _, weapon in pairs(LocalPlayer:WaitForChild("Inventory"):GetChildren()) do
+        if string.find(string.lower(weapon.Name), "axe") or 
+           string.find(string.lower(weapon.Name), "sword") or 
+           string.find(string.lower(weapon.Name), "spear") then
+            
+            -- Search in workspace Characters
+            if workspace:FindFirstChild("Characters") then
+                for _, enemy in pairs(workspace.Characters:GetChildren()) do
+                    if enemy ~= LocalPlayer.Character then
+                        for _, targetName in pairs(targetNPCs) do
+                            if enemy.Name == targetName then
+                                task.spawn(function()
+                                    pcall(function()
+                                        ReplicatedStorage.RemoteEvents.ToolDamageObject:InvokeServer(
+                                            enemy, weapon, "1_" .. LocalPlayer.UserId, HumanoidRootPart.CFrame
+                                        )
+                                        damaged = damaged + 1
+                                    end)
+                                end)
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+            
+            -- Also search in Map descendants
+            if workspace:FindFirstChild("Map") then
+                for _, enemy in pairs(workspace.Map:GetDescendants()) do
+                    if enemy:IsA("Model") and enemy ~= LocalPlayer.Character then
+                        for _, targetName in pairs(targetNPCs) do
+                            if enemy.Name == targetName then
+                                task.spawn(function()
+                                    pcall(function()
+                                        ReplicatedStorage.RemoteEvents.ToolDamageObject:InvokeServer(
+                                            enemy, weapon, "1_" .. LocalPlayer.UserId, HumanoidRootPart.CFrame
+                                        )
+                                        damaged = damaged + 1
+                                    end)
+                                end)
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+            
+            -- Search in workspace root for any Cultist models
+            for _, enemy in pairs(workspace:GetChildren()) do
+                if enemy:IsA("Model") and enemy ~= LocalPlayer.Character then
+                    for _, targetName in pairs(targetNPCs) do
+                        if enemy.Name == targetName then
+                            task.spawn(function()
+                                pcall(function()
+                                    ReplicatedStorage.RemoteEvents.ToolDamageObject:InvokeServer(
+                                        enemy, weapon, "1_" .. LocalPlayer.UserId, HumanoidRootPart.CFrame
+                                    )
+                                    damaged = damaged + 1
+                                end)
+                            end)
+                            break
+                        end
+                    end
+                end
+            end
+            
+            break
+        end
+    end
+    
+    return damaged
+end
+
+local function setupCultistKiller()
+    if cultistKillerConnection then
+        cultistKillerConnection:Disconnect()
+    end
+    
+    if not CULTIST_KILLER_ENABLED then
+        return
+    end
+    
+    cultistKillerConnection = RunService.Heartbeat:Connect(function()
+        if CULTIST_KILLER_ENABLED and tick() - lastCultistKillTime >= CULTIST_KILL_COOLDOWN then
+            local damaged = killCultistsOnce()
+            if damaged > 0 then
+                lastCultistKillTime = tick()
+            end
+        end
+    end)
+end
+
+-- Execute external script
+local function executeExternalScript()
+    if SCRIPT_EXECUTED then return end
+    
+    SCRIPT_EXECUTED = true
+    
+    Fluent:Notify({
+        Title = "Executing External Script",
+        Content = "Fire is fully upgraded - loading external script...",
+        Duration = 5
+    })
+    
+    task.spawn(function()
+        local success, result = pcall(function()
+            return loadstring(game:HttpGet(EXTERNAL_SCRIPT_URL))()
+        end)
+        
+        if success then
+            Fluent:Notify({
+                Title = "External Script Loaded",
+                Content = "Successfully loaded external script",
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Script Load Failed",
+                Content = "Failed to load external script: " .. tostring(result),
+                Duration = 5
+            })
+        end
+    end)
+end
+
+local function executeDiamondChestSequence()
+    pcall(function()
+        -- Set walkspeed for the sequence
+        local humanoid = Character:WaitForChild("Humanoid")
+        humanoid.WalkSpeed = 50
+
+        -- Enable noclip at start
+        local function enableNoclip()
+            for _, part in pairs(Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+
+        local function disableNoclip()
+            for _, part in pairs(Character:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.CanCollide = true
+                end
+            end
+        end
+
+        enableNoclip()
+
+        -- STEP 1: Set up metatable hook to listen for RequestOpenItemChest
+        local chestRequestDetected = false
+        local hookConnection = nil
+
+        -- Set up the hook properly
+        if getrawmetatable then
+            local mt = getrawmetatable(game)
+            if mt and mt.__namecall then
+                local oldNamecall = mt.__namecall
+                if setreadonly then setreadonly(mt, false) end
+
+                mt.__namecall = function(self, ...)
+                    local method = getnamecallmethod and getnamecallmethod() or ""
+                    local args = {...}
+
+                    if method == "FireServer" and tostring(self):find("RequestOpenItemChest") then
+                        print("RequestOpenItemChest fired with:", unpack(args))
+                        chestRequestDetected = true
+                    end
+
+                    return oldNamecall(self, ...)
+                end
+
+                if setreadonly then setreadonly(mt, true) end
+
+                -- Function to restore metatable
+                local function restoreMetatable()
+                    if setreadonly then setreadonly(mt, false) end
+                    mt.__namecall = oldNamecall
+                    if setreadonly then setreadonly(mt, true) end
+                end
+
+                -- Set up automatic restoration after 30 seconds
+                task.spawn(function()
+                    task.wait(30)
+                    if not chestRequestDetected then
+                        restoreMetatable()
+                    end
+                end)
+            end
+        end
+
+        -- STEP 2: Fire the specific diamond chest proximity prompt
+        local strongholdChest = workspace.Items:FindFirstChild("Stronghold Diamond Chest")
+        if strongholdChest then
+            local proximityPrompt = strongholdChest.Main.ProximityAttachment.ProximityInteraction
+
+            if proximityPrompt and proximityPrompt:IsA("ProximityPrompt") then
+                Fluent:Notify({
+                    Title = "Firing Diamond Chest Proximity Prompt",
+                    Content = "Found and firing the diamond chest proximity prompt...",
+                    Duration = 3
+                })
+
+                -- Make it instant and fire it
+                proximityPrompt.HoldDuration = 0
+                proximityPrompt.RequiresLineOfSight = false
+                proximityPrompt.MaxActivationDistance = math.huge
+
+                if fireproximityprompt then
+                    fireproximityprompt(proximityPrompt)
+                else
+                    -- Fallback method
+                    proximityPrompt:InputHoldBegin()
+                    proximityPrompt:InputHoldEnd()
+                end
+            else
+                Fluent:Notify({
+                    Title = "Proximity Prompt Not Found",
+                    Content = "Could not find the diamond chest proximity prompt",
+                    Duration = 3
+                })
+            end
+        else
+            Fluent:Notify({
+                Title = "Diamond Chest Not Found",
+                Content = "Could not find the Stronghold Diamond Chest",
+                Duration = 3
+            })
+        end
+
+        -- Wait to see if the metatable hook detects anything
+        task.wait(3)
+
+        if chestRequestDetected then
+            Fluent:Notify({
+                Title = "Chest Request Detected!",
+                Content = "RequestOpenItemChest was fired - stopping execution as requested",
+                Duration = 5
+            })
+
+            -- Clean up proximity prompt connection
+            if PromptButtonHoldBegan then
+                PromptButtonHoldBegan:Disconnect()
+            end
+
+            disableNoclip()
+            return -- STOP EXECUTION HERE
+        end
+
+        -- STEP 3: If no chest request detected, run the gate monitoring script
+        Fluent:Notify({
+            Title = "No Chest Request Detected",
+            Content = "Running gate monitoring script and proceeding with shelf sequence...",
+            Duration = 3
+        })
+
+        -- Gate monitoring script with enhanced gate opening detection
+        local gate = workspace.Map.Landmarks.Stronghold.Functional.FinalGate
+
+        -- Store original Y if it doesn't exist yet  
+        if not gate:GetAttribute("OriginalY") then
+            gate:SetAttribute("OriginalY", gate.WorldPivot.Y)
+        end
+
+        local lastState -- keeps track of previous state
+        local gateOpenedDetected = false
+
+        local gateMonitorConnection = task.spawn(function()
+            while true do
+                local originalY = gate:GetAttribute("OriginalY")
+                local currentY = gate.WorldPivot.Y
+                local state
+
+                if currentY > originalY then
+                    state = "OPEN"
+                    if lastState ~= "OPEN" then
+                        gateOpenedDetected = true
+
+                        Fluent:Notify({
+                            Title = "GATE OPENED DETECTED!",
+                            Content = "Gate has opened! Stopping cultist killer and preparing chest interaction...",
+                            Duration = 5
+                        })
+
+                        -- Turn off cultist killer completely when gate opens
+                        CULTIST_KILLER_ENABLED = false
+                        if cultistKillerConnection then
+                            cultistKillerConnection:Disconnect()
+                            cultistKillerConnection = nil
+                        end
+
+                        -- Wait 3-4 seconds then fire proximity prompt again
+                        task.wait(4)
+
+                        Fluent:Notify({
+                            Title = "Re-firing Chest Proximity",
+                            Content = "Gate is open, attempting chest interaction again...",
+                            Duration = 3
+                        })
+
+                        -- Fire proximity prompt again
+                        local strongholdChest = workspace.Items:FindFirstChild("Stronghold Diamond Chest")
+                        if strongholdChest then
+                            local proximityPrompt = strongholdChest.Main.ProximityAttachment.ProximityInteraction
+
+                            if proximityPrompt and proximityPrompt:IsA("ProximityPrompt") then
+                                proximityPrompt.HoldDuration = 0
+                                proximityPrompt.RequiresLineOfSight = false
+                                proximityPrompt.MaxActivationDistance = math.huge
+
+                                if fireproximityprompt then
+                                    fireproximityprompt(proximityPrompt)
+                                else
+                                    proximityPrompt:InputHoldBegin()
+                                    proximityPrompt:InputHoldEnd()
+                                end
+                            end
+                        end
+
+                        -- Collect diamonds after gate opens
+                        task.wait(1)
+
+                        for attempt = 1, 3 do
+                            Fluent:Notify({
+                                Title = "Gate Open Diamond Collection " .. attempt,
+                                Content = "Collecting diamonds after gate opened...",
+                                Duration = 2
+                            })
+
+                            for _, item in pairs(workspace.Items:GetChildren()) do
+                                pcall(function()
+                                    require(LocalPlayer.PlayerScripts.Client).Events.RequestTakeDiamonds:FireServer(item)
+                                end)
+                            end
+
+                            task.wait(1)
+                        end
+                    end
+                else
+                    state = "CLOSED"
+                end
+
+                -- Only print when the state changes
+                if state ~= lastState then
+                    print("Gate is " .. state .. " at Y:", currentY)
+                    lastState = state
+                end
+
+                task.wait(5) -- check every 5 seconds
+            end
+        end)
+
+        -- STEP 4: Continue with shelf pathfinding sequence
+        -- Proper BodyVelocity pathfinding that follows waypoints
+        local function MoveToPosition(root, targetPos)
+            local path = PathfindingService:CreatePath({
+                AgentRadius = 2,
+                AgentHeight = 5,
+                AgentCanJump = true,
+                AgentCanClimb = false
+            })
+
+            path:ComputeAsync(root.Position, targetPos)
+
+            if path.Status ~= Enum.PathStatus.Success then
+                return false
+            end
+
+            local waypoints = path:GetWaypoints()
+            local currentIndex = 1
+
+            local bv = Instance.new("BodyVelocity")
+            bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+            bv.Velocity = Vector3.zero
+            bv.Parent = root
+
+            local conn
+            conn = RunService.Heartbeat:Connect(function()
+                if not bv.Parent or currentIndex > #waypoints then
+                    if bv.Parent then bv:Destroy() end
+                    if conn then conn:Disconnect() end
+                    return
+                end
+
+                local wp = waypoints[currentIndex]
+                local direction = wp.Position - root.Position
+                local distance = direction.Magnitude
+
+                if distance < 4 then
+                    currentIndex = currentIndex + 1
+                else
+                    bv.Velocity = direction.Unit * 100
+                end
+            end)
+
+            return true
+        end
+
+        -- Simplified pathTo function
+        local function pathTo(pos)
+            if not pos then return false end
+            return MoveToPosition(HumanoidRootPart, pos)
+        end
+
+        local decoration = workspace.Map.Landmarks.Stronghold.Building.Interior:WaitForChild("Decoration")
+        local barrel = decoration:FindFirstChild("Barrel") or decoration:GetChildren()[27]
+        local barrelPos = getPos(barrel)
+
+        if barrelPos then
+            HumanoidRootPart.CFrame = CFrame.new(barrelPos + Vector3.new(0, 3, 0))
+            task.wait(1)
+        end
+
+        local shelf = decoration:FindFirstChild("Shelf")
+        local shelfPos = getPos(shelf)
+
+        if shelfPos then
+            local offsets = {
+                Vector3.new(0,0,5), Vector3.new(5,0,0), Vector3.new(-5,0,0),
+                Vector3.new(0,0,-5), Vector3.new(3,0,3), Vector3.new(-3,0,3)
+            }
+            for _, offset in ipairs(offsets) do
+                if pathTo(shelfPos + offset) then 
+                    -- Wait for arrival and check if we're close to shelf
+                    task.wait(2)
+                    local currentDistance = (HumanoidRootPart.Position - shelfPos).Magnitude
+                    if currentDistance <= 10 then
+                        print("âœ… Successfully reached the shelf! Distance: " .. math.floor(currentDistance))
+                        break
+                    else
+                        print("âŒ Failed to reach shelf, trying next position...")
+                    end
+                end
+                task.wait(1)
+            end
+
+            -- Final check after all attempts
+            local finalDistance = (HumanoidRootPart.Position - shelfPos).Magnitude
+            if finalDistance <= 10 then
+                print("ðŸŽ‰ SHELF REACHED SUCCESSFULLY!")
+
+                -- START CULTIST KILLER AFTER SUCCESSFUL SHELF REACH
+                CULTIST_KILLER_ENABLED = true
+                setupCultistKiller()
+
+                Fluent:Notify({
+                    Title = "Cultist Killer Activated", 
+                    Content = "Auto killing cultists after successful shelf reach",
+                    Duration = 3
+                })
+            else
+                print("âš ï¸ Could not reach shelf. Final distance: " .. math.floor(finalDistance))
+            end
+        end
+
+        task.wait(1)
+
+        -- Collect all diamond items
+        for _, item in pairs(workspace.Items:GetChildren()) do
+            require(LocalPlayer.PlayerScripts.Client).Events.RequestTakeDiamonds:FireServer(item)
+        end
+
+        task.wait(1)
+
+        -- Disable noclip when done
+        disableNoclip()
+    end)
+end
+
+local function MoveDirect(root, targetPos)
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+    bv.Velocity = Vector3.zero
+    bv.Parent = root
+
+    local conn
+    conn = RunService.Heartbeat:Connect(function()
+        if not bv.Parent then
+            conn:Disconnect()
+            return
+        end
+
+        local direction = targetPos - root.Position
+        local dist = direction.Magnitude
+
+        if dist < 5 then
+            bv:Destroy()
+            conn:Disconnect()
+        else
+            bv.Velocity = direction.Unit * 42
+        end
+    end)
+end
+
+local function MoveToBase(root, targetPos)
+    local path = PathfindingService:CreatePath({
+        AgentRadius = 2,
+        AgentHeight = 5,
+        AgentCanJump = true,
+        AgentCanClimb = false
+    })
+    path:ComputeAsync(root.Position, targetPos)
+
+    if path.Status ~= Enum.PathStatus.Success then
+        return MoveDirect(root, targetPos)
+    end
+
+    local waypoints = path:GetWaypoints()
+    local currentIndex = 1
+
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+    bv.Velocity = Vector3.zero
+    bv.Parent = root
+
+    local conn
+    conn = RunService.Heartbeat:Connect(function()
+        if not bv.Parent or currentIndex > #waypoints then
+            bv:Destroy()
+            conn:Disconnect()
+            return
+        end
+
+        local wp = waypoints[currentIndex]
+        local direction = wp.Position - root.Position
+        local dist = direction.Magnitude
+
+        if dist < 3 then
+            currentIndex += 1
+        else
+            bv.Velocity = direction.Unit * 42
+        end
+    end)
+end
+
+local function pathTo(pos)
+    if not pos then return false end
+    MoveToBase(HumanoidRootPart, pos)
+    return true
+end
+
+-- Replace the existing initializeStrongholdTracking() function with this modified version
+local function initializeStrongholdTracking()
+    pcall(function()
+        -- Enhanced Stronghold Data Storage
+        local EnhancedStrongholdsData = {}
+        local StrongholdConnections = {}
+        local StrongholdUpdateConnection = nil
+        
+        -- Stronghold Colors from second script
+        local STRONGHOLD_COLORS = {
+            Color3.fromRGB(195, 255, 0), -- Level 1 - Bright Green
+            Color3.fromRGB(255, 238, 0), -- Level 2 - Yellow
+            Color3.fromRGB(255, 157, 0), -- Level 3 - Orange
+            Color3.fromRGB(255, 64, 0),  -- Level 4 - Red-Orange
+            Color3.fromRGB(255, 0, 0)    -- Level 5+ - Red
+        }
+        
+        -- Enhanced time formatting
+        local function formatTime(seconds)
+            if seconds <= 60 then
+                return string.format("%02ds", math.floor(seconds))
+            else
+                local minutes = math.floor(seconds / 60)
+                local secs = math.floor(seconds % 60)
+                return string.format("%02dm %02ds", minutes, secs)
+            end
+        end
+        
+        -- MODIFIED: Function to load GitHub script instead of teleporting
+        local function loadGitHubScriptInstead()
+            if SCRIPT_EXECUTED then 
+                Fluent:Notify({
+                    Title = "Script Already Loaded",
+                    Content = "GitHub script was already executed previously",
+                    Duration = 3
+                })
+                return 
+            end
+            
+            SCRIPT_EXECUTED = true
+            
+            Fluent:Notify({
+                Title = "Loading GitHub Script Instead of Teleporting",
+                Content = "Diamond chest detected - loading GitHub script instead of teleporting...",
+                Duration = 5
+            })
+            
+            task.spawn(function()
+                local success, result = pcall(function()
+                    return loadstring(game:HttpGet(EXTERNAL_SCRIPT_URL))()
+                end)
+                
+                if success then
+                    Fluent:Notify({
+                        Title = "GitHub Script Loaded Successfully",
+                        Content = "Successfully loaded GitHub script instead of teleporting to chest",
+                        Duration = 5
+                    })
+                    
+                    -- Stop the auto farm since GitHub script is now loaded
+                    AUTO_FARM_ENABLED = false
+                    
+                else
+                    Fluent:Notify({
+                        Title = "GitHub Script Load Failed",
+                        Content = "Failed to load GitHub script: " .. tostring(result),
+                        Duration = 5
+                    })
+                    -- Reset script executed flag so it can be tried again
+                    SCRIPT_EXECUTED = false
+                end
+            end)
+        end
+        
+        -- Get stronghold info with enhanced features from second script
+        local function getEnhancedStrongholdInfo(stronghold)
+            local functional = stronghold:FindFirstChild("Functional")
+            if not functional then return nil end
+            
+            local level = functional:GetAttribute("Level") or 1
+            local openTime = functional:GetAttribute("OpenTime")
+            local originalCF = functional:GetAttribute("OriginalCF")
+            local isOpen = false
+            local timeLeft = 0
+            
+            if openTime then
+                timeLeft = openTime - workspace:GetServerTimeNow()
+                isOpen = timeLeft <= 0
+            end
+            
+            local position = stronghold.PrimaryPart and stronghold.PrimaryPart.Position or stronghold:GetPivot().Position
+            
+            -- Enhanced gate status checking
+            local gateStatus = "Unknown"
+            local gate = functional:FindFirstChild("FinalGate")
+            if gate and originalCF then
+                local currentY = gate.WorldPivot.Y
+                local originalY = originalCF.Y
+                if currentY > originalY then
+                    gateStatus = "Gate Open"
+                else
+                    gateStatus = "Gate Closed"
+                end
+            end
+            
+            -- Check for Sign with countdown display (enhanced from first script)
+            local sign = functional:FindFirstChild("Sign")
+            local signData = nil
+            if sign then
+                local surfaceGui = sign:FindFirstChild("SurfaceGui")
+                if surfaceGui then
+                    local frame = surfaceGui:FindFirstChild("Frame")
+                    if frame then
+                        local bodyLabel = frame:FindFirstChild("Body")
+                        local levelLabel = frame:FindFirstChild("Level")
+                        signData = {
+                            bodyText = bodyLabel and bodyLabel.Text or "",
+                            levelText = levelLabel and levelLabel.Text or "",
+                            hasTimer = false
+                        }
+                        -- Check if timer is running
+                        if signData.bodyText and string.match(signData.bodyText, "%d+:%d+") then
+                            signData.hasTimer = true
+                        end
+                    end
+                end
+            end
+            
+            return {
+                name = stronghold.Name,
+                displayName = "The Cultist Stronghold", -- Can be enhanced later
+                level = level,
+                levelColor = STRONGHOLD_COLORS[level] or STRONGHOLD_COLORS[5],
+                openTime = openTime,
+                isOpen = isOpen,
+                timeLeft = math.max(0, timeLeft),
+                position = position,
+                stronghold = stronghold,
+                gateStatus = gateStatus,
+                signData = signData,
+                functional = functional
+            }
+        end
+        
+        -- Update all stronghold data
+        local function updateEnhancedStrongholdsData()
+            EnhancedStrongholdsData = {}
+            
+            -- Use CollectionService to find all strongholds
+            local strongholds = CollectionService:GetTagged("Stronghold")
+            
+            for _, stronghold in pairs(strongholds) do
+                if stronghold.Name ~= "AlienMothership" then
+                    local data = getEnhancedStrongholdInfo(stronghold)
+                    if data then
+                        table.insert(EnhancedStrongholdsData, data)
+                    end
+                end
+            end
+            
+            -- Also check workspace for strongholds not tagged
+            if workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Landmarks") then
+                for _, landmark in pairs(workspace.Map.Landmarks:GetChildren()) do
+                    if landmark.Name == "Stronghold" or string.find(string.lower(landmark.Name), "stronghold") then
+                        local data = getEnhancedStrongholdInfo(landmark)
+                        if data then
+                            -- Check if already added
+                            local alreadyExists = false
+                            for _, existing in pairs(EnhancedStrongholdsData) do
+                                if existing.stronghold == landmark then
+                                    alreadyExists = true
+                                    break
+                                end
+                            end
+                            if not alreadyExists then
+                                table.insert(EnhancedStrongholdsData, data)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
+        -- Enhanced stronghold monitoring function
+        local function monitorStrongholdStatus()
+            if #EnhancedStrongholdsData == 0 then return end
+            
+            for _, strongholdData in pairs(EnhancedStrongholdsData) do
+                -- Monitor sign changes for timer detection
+                if strongholdData.signData then
+                    local sign = strongholdData.functional:FindFirstChild("Sign")
+                    if sign then
+                        local surfaceGui = sign:FindFirstChild("SurfaceGui")
+                        if surfaceGui then
+                            local frame = surfaceGui:FindFirstChild("Frame")
+                            if frame then
+                                local bodyLabel = frame:FindFirstChild("Body")
+                                local levelLabel = frame:FindFirstChild("Level")
+                                
+                                if bodyLabel and levelLabel then
+                                    local currentBodyText = bodyLabel.Text or ""
+                                    local currentLevelText = levelLabel.Text or ""
+                                    
+                                    -- Check if timer status changed
+                                    local currentHasTimer = string.match(currentBodyText, "%d+:%d+") ~= nil
+                                    
+                                    if currentHasTimer ~= strongholdData.signData.hasTimer then
+                                        strongholdData.signData.hasTimer = currentHasTimer
+                                        strongholdData.signData.bodyText = currentBodyText
+                                        strongholdData.signData.levelText = currentLevelText
+                                        
+                                        if currentHasTimer then
+                                            -- Timer started
+                                            strongholdTimerActive = true
+                                            print("[ENHANCED STRONGHOLD] Timer started for", strongholdData.name)
+                                            
+                                            Fluent:Notify({
+                                                Title = "Enhanced Stronghold Timer Started",
+                                                Content = "Timer detected - GitHub script will load when timer finishes",
+                                                Duration = 3
+                                            })
+                                        else
+                                            -- Timer finished - LOAD GITHUB SCRIPT INSTEAD OF TELEPORTING
+                                            if strongholdTimerActive then
+                                                strongholdTimerActive = false
+                                                print("[ENHANCED STRONGHOLD] Timer finished for", strongholdData.name, "- LOADING GITHUB SCRIPT")
+                                                
+                                                Fluent:Notify({
+                                                    Title = "ENHANCED STRONGHOLD TIMER FINISHED!",
+                                                    Content = "Loading GitHub script instead of teleporting to diamond chest!",
+                                                    Duration = 5
+                                                })
+                                                
+                                                -- MODIFIED: Load GitHub script instead of teleporting
+                                                loadGitHubScriptInstead()
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                
+                -- Check if stronghold opened without timer
+                local currentIsOpen = false
+                if strongholdData.openTime then
+                    local currentTimeLeft = strongholdData.openTime - workspace:GetServerTimeNow()
+                    currentIsOpen = currentTimeLeft <= 0
+                end
+                
+                -- If stronghold just opened and no timer is active, load GitHub script immediately
+                if currentIsOpen and not strongholdData.isOpen and not strongholdTimerActive then
+                    strongholdData.isOpen = currentIsOpen
+                    
+                    print("[ENHANCED STRONGHOLD] Stronghold opened without timer - LOADING GITHUB SCRIPT")
+                    
+                    Fluent:Notify({
+                        Title = "ENHANCED STRONGHOLD OPENED!",
+                        Content = "Stronghold opened without timer - loading GitHub script immediately!",
+                        Duration = 5
+                    })
+                    
+                    -- MODIFIED: Load GitHub script instead of teleporting
+                    loadGitHubScriptInstead()
+                end
+                
+                -- Update stronghold data
+                strongholdData.isOpen = currentIsOpen
+                if strongholdData.openTime then
+                    strongholdData.timeLeft = math.max(0, strongholdData.openTime - workspace:GetServerTimeNow())
+                end
+            end
+        end
+        
+        -- Show all strongholds function (from second script)
+        local function showAllStrongholds()
+            updateEnhancedStrongholdsData()
+            
+            if #EnhancedStrongholdsData == 0 then
+                Fluent:Notify({
+                    Title = "No Enhanced Strongholds",
+                    Content = "No strongholds found with enhanced tracking",
+                    Duration = 3
+                })
+                return
+            end
+            
+            local message = "=== ENHANCED STRONGHOLD STATUS ===\n"
+            for i, data in ipairs(EnhancedStrongholdsData) do
+                local status = data.isOpen and "OPEN" or formatTime(data.timeLeft)
+                local timerStatus = ""
+                if data.signData and data.signData.hasTimer then
+                    timerStatus = " [TIMER ACTIVE]"
+                end
+                message = message .. string.format("%s (L%d): %s | %s%s", 
+                    data.name, data.level, status, data.gateStatus, timerStatus)
+                if i < #EnhancedStrongholdsData then message = message .. "\n" end
+            end
+            
+            print(message) -- Print to console for full details
+            
+            Fluent:Notify({
+                Title = string.format("Enhanced Strongholds (%d found)", #EnhancedStrongholdsData),
+                Content = "Detailed status printed to console (F9). Enhanced tracking active.",
+                Duration = 8
+            })
+        end
+        
+        -- Setup continuous monitoring
+        if StrongholdUpdateConnection then
+            StrongholdUpdateConnection:Disconnect()
+        end
+        
+        StrongholdUpdateConnection = RunService.Heartbeat:Connect(function()
+            updateEnhancedStrongholdsData()
+            monitorStrongholdStatus()
+        end)
+        
+        -- Initial update
+        updateEnhancedStrongholdsData()
+        
+        -- Add manual trigger button functionality (for testing)
+        print("[ENHANCED STRONGHOLD] Enhanced stronghold tracking initialized")
+        print("[ENHANCED STRONGHOLD] Use showAllStrongholds() to see current status")
+        
+        -- Make showAllStrongholds available globally for testing
+        getgenv().showAllStrongholds = showAllStrongholds
+        
+        Fluent:Notify({
+            Title = "Enhanced Stronghold Tracking Active",
+            Content = "Advanced monitoring with timer detection, gate status, and automatic GitHub script loading. Use showAllStrongholds() for status.",
+            Duration = 5
+        })
+    end)
+end
+
+-- ALSO MODIFY: The attemptDiamondChestTeleport function to load GitHub script instead
+-- ALSO MODIFY: The attemptDiamondChestTeleport function to load GitHub script instead
+local function attemptDiamondChestTeleport()
+    if not diamondChestPosition then
+        return false, "No diamond chest position stored"
+    end
+    
+    -- MODIFIED: Instead of teleporting, load GitHub script
+    if SCRIPT_EXECUTED then
+        Fluent:Notify({
+            Title = "Script Already Loaded",
+            Content = "GitHub script was already executed previously",
+            Duration = 3
+        })
+        return true, "GitHub script already loaded"
+    end
+    
+    SCRIPT_EXECUTED = true
+    
+    Fluent:Notify({
+        Title = "Diamond Chest Detected - Loading GitHub Script",
+        Content = "Loading GitHub script instead of teleporting to diamond chest...",
+        Duration = 5
+    })
+    
+    task.spawn(function()
+        local success, result = pcall(function()
+            return loadstring(game:HttpGet(EXTERNAL_SCRIPT_URL))()
+        end)
+        
+        if success then
+            Fluent:Notify({
+                Title = "GitHub Script Loaded Successfully",
+                Content = "Successfully loaded GitHub script instead of diamond chest teleport",
+                Duration = 5
+            })
+            
+            -- Stop the auto farm since GitHub script is now loaded
+            AUTO_FARM_ENABLED = false
+            ALL_PHASES_COMPLETED = true
+            
+        else
+            Fluent:Notify({
+                Title = "GitHub Script Load Failed",
+                Content = "Failed to load GitHub script: " .. tostring(result),
+                Duration = 5
+            })
+            SCRIPT_EXECUTED = false -- Reset so it can be tried again
+        end
+    end)
+    
+    return true, "GitHub script loading initiated"
+end
+
+-- Anti-Void Functions (auto-enabled)
+local function enableAntiVoid()
+    if antivoidloop then return end
+    
+    antivoidloop = RunService.Stepped:Connect(function()
+        local root = HumanoidRootPart
+        if root and root.Position.Y <= OrgDestroyHeight + 25 then
+            root.Velocity = root.Velocity + Vector3.new(0, 250, 0)
+        end
+    end)
+end
+
+local function disableAntiVoid()
+    if antivoidloop then
+        antivoidloop:Disconnect()
+        antivoidloop = nil
+    end
+end
+
+-- Enhanced Auto-Equip Function (only equip, never un-equip)
+local function autoEquipAxe()
+    local currentTime = tick()
+    
+    -- Only attempt to equip if not recently equipped (prevent spam)
+    if currentTime - lastEquipTime < 2 then
+        return
+    end
+    
+    pcall(function()
+        -- Press key "2" to equip axe
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+        task.wait(0.1)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+        
+        axeEquipped = true
+        lastEquipTime = currentTime
+        
+        Fluent:Notify({
+            Title = "Axe Auto-Equipped",
+            Content = "Pressed key '2' to equip axe - will stay equipped",
+            Duration = 2
+        })
+    end)
+end
+
+-- Enhanced Diamond Chest Detection System with integrated sequence
+local function setupDiamondChestDetection()
+
+end
+
+-- Handle character respawn
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    Character = newCharacter
+    HumanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+    
+    -- Reset weapon state on respawn
+    axeEquipped = false
+    lastEquipTime = 0
+    
+    if ANTI_VOID_ENABLED then
+        task.wait(1)
+        disableAntiVoid()
+        enableAntiVoid()
+    end
+end)
+
+-- Get Main Fire Position Function
+local function getMainFirePosition()
+    local mainFirePaths = {
+        workspace.Map.Campground.MainFire,
+        workspace.Map.Campground,
+        workspace.Map,
+    }
+    
+    for _, obj in ipairs(mainFirePaths) do
+        if obj then
+            if obj:IsA("BasePart") then
+                return obj.Position
+            elseif obj:IsA("Model") then
+                if obj.PrimaryPart then
+                    return obj.PrimaryPart.Position
+                elseif obj:FindFirstChildWhichIsA("BasePart") then
+                    return obj:FindFirstChildWhichIsA("BasePart").Position
+                else
+                    return obj:GetPivot().Position
+                end
+            end
+        end
+    end
+    
+    return workspace:WaitForChild("Terrain").Position
+end
+
+-- Fire Level Detection System with IMMEDIATE STOP trigger
+ 
+
+-- Enhanced Fire Detection System (from second script)
+local function getMainFireObject()
+    if not MainFire then
+        pcall(function()
+            MainFire = workspace:FindFirstChild("Map") and
+                      workspace.Map:FindFirstChild("Campground") and
+                      workspace.Map.Campground:FindFirstChild("MainFire")
+        end)
+    end
+    return MainFire
+end
+
+local function getFireData()
+    local fire = getMainFireObject()
+    if not fire then return nil end
+    
+    local data = {
+        fuelRemaining = fire:GetAttribute("FuelRemaining") or 0,
+        fuelTarget = fire:GetAttribute("FuelTarget") or 300,
+        progress = workspace:GetAttribute("Progress") or 1,
+        isLit = (fire:GetAttribute("FuelRemaining") or 0) > 0,
+        position = fire.PrimaryPart and fire.PrimaryPart.Position or Vector3.new(0,0,0)
+    }
+    
+    data.fuelPercent = (data.fuelRemaining / data.fuelTarget) * 100
+    data.progressPercent = (data.progress / 6) * 100
+    
+    return data
+end
+
+local function getCurrentFireLevel()
+    local data = getFireData()
+    if not data then return 0 end
+    
+    currentLevel = data.progress
+    
+    -- Check if fire is fully upgraded (level 6 = fully revealed)
+    if currentLevel >= 6 then
+        isFullyRevealed = true
+        STOP_LOG_COLLECTION = true
+        
+        -- Handle first execution check
+        if FIRST_EXECUTION_CHECK then
+            FIRST_EXECUTION_CHECK = false
+            executeExternalScript()
+        elseif ALL_PHASES_COMPLETED and not SCRIPT_EXECUTED then
+            executeExternalScript()
+        end
+        
+        return 999 -- Max level indicator
+    end
+    
+    return currentLevel
+end
+
+local function initializeFireLevelTracking()
+    pcall(function()
+        local fire = getMainFireObject()
+        if not fire then return end
+        
+        -- Monitor progress changes
+        workspace:GetAttributeChangedSignal("Progress"):Connect(function()
+            local newLevel = getCurrentFireLevel()
+            if newLevel > currentLevel or newLevel >= 6 then
+                currentLevel = newLevel
+                if newLevel >= 6 then
+                    isFullyRevealed = true
+                    STOP_LOG_COLLECTION = true
+                    Fluent:Notify({
+                        Title = "FIRE FULLY UPGRADED - MOVING ON!",
+                        Content = "Fire fully upgraded! Map fully revealed! STOPPING log collection immediately!",
+                        Duration = 5
+                    })
+                else
+                    Fluent:Notify({
+                        Title = "Fire Level Up!",
+                        Content = "Advanced to level " .. currentLevel,
+                        Duration = 3
+                    })
+                end
+            end
+        end)
+        
+        -- Initial check
+        getCurrentFireLevel()
+        
+        Fluent:Notify({
+            Title = "Enhanced Fire Tracking Active",
+            Content = "Monitoring fire level progress with proper attribute detection",
+            Duration = 2
+        })
+    end)
+end
+
+-- Rain Detection System
+local rainDetectionActive = false
+local isRaining = false
+local lastRainCheck = 0
+
+local function checkRainWarnings()
+    local currentTime = tick()
+    if currentTime - lastRainCheck < 1 then -- Check every 1 second
+        return isRaining
+    end
+    lastRainCheck = currentTime
+    
+    local fire = getMainFireObject()
+    if not fire or not fire.PrimaryPart then 
+        return false 
+    end
+    
+    local billboardGui = fire.PrimaryPart:FindFirstChild("BillboardGui")
+    if not billboardGui or not billboardGui.Frame then 
+        return false 
+    end
+    
+    local frame = billboardGui.Frame
+    local wasRaining = isRaining
+    
+    -- Check for rain warning
+    if frame.Warning1.Visible and frame.Warning1.Image == "rbxassetid://126427682455996" then
+        isRaining = true
+        if not wasRaining then
+            Fluent:Notify({
+                Title = "RAIN DETECTED!",
+                Content = "Pausing tree farming due to rain warning",
+                Duration = 5
+            })
+        end
+    else
+        isRaining = false
+        if wasRaining then
+            Fluent:Notify({
+                Title = "Rain Cleared",
+                Content = "Resuming tree farming - weather is safe",
+                Duration = 3
+            })
+        end
+    end
+    
+    return isRaining
+end
+
+-- Enhanced Tree Chopping System (no weapon management)
+local function chopSmallTrees()
+    local chopped = 0
+    for _, axe in pairs(LocalPlayer:WaitForChild("Inventory"):GetChildren()) do
+        if string.find(string.lower(axe.Name), "axe") then
+            for _, v in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
+                if v.Name == "Small Tree" then
+                    task.spawn(function()
+                        pcall(function()
+                            ReplicatedStorage.RemoteEvents.ToolDamageObject:InvokeServer(
+                                v, axe, "1_" .. LocalPlayer.UserId, HumanoidRootPart.CFrame
+                            )
+                            chopped = chopped + 1
+                        end)
+                    end)
+                end
+            end
+            break
+        end
+    end
+    return chopped
+end
+
+-- Find Small Tree Location
+local function findSmallTree()
+    for _, v in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
+        if v.Name == "Small Tree" and v:IsA("Model") then
+            local position = v:GetModelCFrame().Position
+            return position
+        elseif v.Name == "Small Tree" and v:IsA("BasePart") then
+            return v.Position
+        end
+    end
+    return nil
+end
+
+-- Get next fallback position
+local function getNextFallbackPosition()
+    local position = FALLBACK_POSITIONS[currentFallbackIndex]
+    currentFallbackIndex = currentFallbackIndex + 1
+    if currentFallbackIndex > #FALLBACK_POSITIONS then
+        currentFallbackIndex = 1
+    end
+    return position
+end
+
+-- Count remaining Small Trees
+local function countSmallTrees()
+    local count = 0
+    for _, v in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
+        if v.Name == "Small Tree" then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+-- Enhanced Teleport Player to Position with Diamond Chest Integration
+local function teleportToPosition(position)
+    if not position then return false, "No position provided" end
+    
+    local targetCFrame
+    if typeof(position) == "CFrame" then
+        targetCFrame = position
+    else
+        targetCFrame = CFrame.new(position + Vector3.new(0, 5, 0))
+    end
+    
+    local originalPosition = HumanoidRootPart.CFrame.Position
+    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = targetCFrame})
+    
+    tween:Play()
+    tween.Completed:Wait()
+    
+    -- Check if teleport was successful (within 5 studs of target)
+    local currentPosition = HumanoidRootPart.CFrame.Position
+    local distanceToTarget = (currentPosition - targetCFrame.Position).Magnitude
+    local distanceToOriginal = (currentPosition - originalPosition).Magnitude
+    
+    if distanceToTarget > 5 and distanceToOriginal < 5 then
+        -- Teleport failed, likely reset to original position
+        return false, "Teleport failed: Player reset to original position"
+    elseif distanceToTarget > 5 then
+        -- Teleport failed, moved to another position (possible anti-cheat)
+        return false, "Teleport failed: Player moved to unexpected position"
+    end
+    
+    return true, "Teleport successful"
+end
+
+ 
+
+-- OPTIMIZED Collect Logs to Main Fire with IMMEDIATE STOP capability
+local function collectLogsToMainFire()
+    -- CRITICAL: Check stop flag immediately
+    if STOP_LOG_COLLECTION or isFullyRevealed then
+        Fluent:Notify({
+            Title = "Log Collection Skipped",
+            Content = "Fire is fully upgraded - skipping log collection to move on faster!",
+            Duration = 2
+        })
+        return 0 -- Return immediately without collecting
+    end
+    
+    local mainFirePos = getMainFirePosition()
+    local collected = 0
+    
+    for _, item in ipairs(Items:GetChildren()) do
+        -- CRITICAL: Check stop flag during collection loop
+        if STOP_LOG_COLLECTION or isFullyRevealed then
+            Fluent:Notify({
+                Title = "Log Collection Stopped",
+                Content = "Fire became fully upgraded during collection - stopping immediately!",
+                Duration = 2
+            })
+            break -- Exit loop immediately
+        end
+        
+        if item.Name == "Log" then
+            task.spawn(function()
+                local targetPos = mainFirePos + Vector3.new(
+                    math.random(-2, 2), 
+                    1, -- REDUCED from 3 to 1 for lower drop height
+                    math.random(-2, 2)
+                )
+                
+                pcall(function()
+                    item:MoveTo(targetPos)
+                    local itemDrag = require(LocalPlayer.PlayerScripts.Client.InteractionHandler).Interactions.Item
+                    itemDrag(item)
+                    collected = collected + 1
+                end)
+            end)
+            task.wait(0.05)
+        end
+    end
+    
+    return collected
+end
+
+-- Fog Clearing System (OPTIMIZED - Faster tween time)
+local function isValidPart(part)
+    return part:IsA("BasePart") and
+           not part:FindFirstChildWhichIsA("Fire") and
+           not part:FindFirstChild("TouchInterest") and
+           not visitedParts[part]
+end
+
+local function getValidParts(folder)
+    local parts = {}
+    for _, obj in ipairs(folder:GetChildren()) do
+        if obj:IsA("BasePart") and isValidPart(obj) then
+            table.insert(parts, obj)
+        elseif obj:IsA("Model") or obj:IsA("Folder") then
+            childParts = getValidParts(obj)
+            for _, p in ipairs(childParts) do
+                table.insert(parts, p)
+            end
+        end
+    end
+    return parts
+end
+
+local function doSingleCircleLoop(r, o, v)
+    local character = game.Players.LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+    local rootPart = character.HumanoidRootPart
+    local angle = 0
+    local fullCircle = 2 * math.pi
+    while angle < fullCircle and AUTO_FARM_ENABLED and not stopTweening do
+        local deltaTime = task.wait()
+        angle = math.min(angle + (v * deltaTime), fullCircle)
+        local x = o.X + r * math.cos(angle)
+        local z = o.Z + r * math.sin(angle)
+        local newPosition = Vector3.new(x, o.Y, z)
+        rootPart.CFrame = CFrame.new(newPosition)
+    end
+end
+
+local function tweenToFogParts()
+    Fluent:Notify({
+        Title = "Fog Clearing Started (Circle Method)",
+        Content = "Using single circle radius to clear fog areas",
+        Duration = 3
+    })
+    
+    -- Only do the FIRST radius (150), then stop
+    local firstRadius = 150
+    local centerPoint = Vector3.new(0, 15, 0)
+    local speed = 1/(2*1) -- Speed calculation for first radius
+    
+    doSingleCircleLoop(firstRadius, centerPoint, speed)
+    
+    Fluent:Notify({
+        Title = "Fog Clearing Complete (Single Circle)",
+        Content = "Completed one circle radius, proceeding to tree farming phase...",
+        Duration = 3
+    })
+    
+    fogClearingComplete = true
+end
+
+-- Map Unlock System
+local function isValidMapUnlockPart(part)
+    return part:IsA("BasePart") and
+           not part:FindFirstChildWhichIsA("Fire") and
+           not part:FindFirstChild("TouchInterest") and
+           not mapUnlockVisitedParts[part]
+end
+
+local function getValidMapUnlockParts(folder)
+    local parts = {}
+    for _, obj in ipairs(folder:GetChildren()) do
+        if obj:IsA("BasePart") and isValidMapUnlockPart(obj) then
+            table.insert(parts, obj)
+        elseif obj:IsA("Model") or obj:IsA("Folder") then
+            local childParts = getValidMapUnlockParts(obj)
+            for _, p in ipairs(childParts) do
+                table.insert(parts, p)
+            end
+        end
+    end
+    return parts
+end
+
+local function unlockAllMapAreas()
+    local FogFolder = workspace.Map.Boundaries.Fog
+    local tweenTime = 1.5
+    local easingStyle = Enum.EasingStyle.Quad
+    local easingDir = Enum.EasingDirection.Out
+    local offsetY = 3
+    
+    -- Reset map unlock variables
+    stopMapUnlocking = false
+    mapUnlockVisitedParts = {}
+    
+    Fluent:Notify({
+        Title = "Map Unlocking Started",
+        Content = "Unlocking all remaining map areas...",
+        Duration = 3
+    })
+    
+    while not stopMapUnlocking and AUTO_FARM_ENABLED do
+        local parts = getValidMapUnlockParts(FogFolder)
+        if #parts == 0 then
+            Fluent:Notify({
+                Title = "Map Unlock Complete",
+                Content = "All map areas have been unlocked!",
+                Duration = 5
+            })
+            break
+        end
+        
+        for _, part in ipairs(parts) do
+            if stopMapUnlocking or not AUTO_FARM_ENABLED then break end
+            if HumanoidRootPart and part then
+                local goalCFrame = part.CFrame * CFrame.new(0, offsetY, 0)
+                local tweenInfo = TweenInfo.new(tweenTime, easingStyle, easingDir)
+                local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = goalCFrame})
+                tween:Play()
+                tween.Completed:Wait()
+                mapUnlockVisitedParts[part] = true
+            end
+        end
+        RunService.Heartbeat:Wait()
+    end
+end
+
+-- FIXED Enhanced Children Collection System with Smart Recovery
+local function collectAllChildren()
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local player = Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+
+    -- Inventory and collection setup
+    local inventory = player:WaitForChild("Inventory")
+    local oldSack = inventory:WaitForChild("Old Sack")
+    local remote = ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("RequestBagStoreItem")
+    local itemBag = player:WaitForChild("ItemBag")
+
+    -- Track collection status
+    local childrenStatus = {
+        ["Lost Child"] = false,
+        ["Lost Child2"] = false,
+        ["Lost Child3"] = false,
+        ["Lost Child4"] = false
+    }
+
+    -- Function to check if child is already in bag
+    local function isChildInBag(name)
+        return itemBag:FindFirstChild(name) ~= nil
+    end
+
+    -- Function to count collected children
+    local function countCollectedChildren()
+        local count = 0
+        for childName, collected in pairs(childrenStatus) do
+            if collected or isChildInBag(childName) then
+                count = count + 1
+                childrenStatus[childName] = true
+            end
+        end
+        return count
+    end
+
+    -- Function to pick up a Lost Child with verification
+    local function pickupChild(name, maxAttempts)
+        maxAttempts = maxAttempts or 3
+        local attempts = 0
+        
+        while attempts < maxAttempts and AUTO_FARM_ENABLED do
+            attempts = attempts + 1
+            
+            -- Check if already collected
+            if isChildInBag(name) then
+                childrenStatus[name] = true
+                Fluent:Notify({
+                    Title = "Child Already Collected",
+                    Content = name .. " is already in your bag",
+                    Duration = 2
+                })
+                return true
+            end
+            
+            local characters = workspace:WaitForChild("Characters")
+            local childNPC = characters:FindFirstChild(name)
+            
+            if childNPC then
+                local args = {oldSack, childNPC}
+                local success, result = pcall(function()
+                    return remote:InvokeServer(unpack(args))
+                end)
+                
+                if success then
+                    -- Wait a moment and verify collection
+                    task.wait(2)
+                    if isChildInBag(name) then
+                        childrenStatus[name] = true
+                        Fluent:Notify({
+                            Title = "Child Collected",
+                            Content = "Successfully collected " .. name,
+                            Duration = 2
+                        })
+                        return true
+                    end
+                end
+            else
+                Fluent:Notify({
+                    Title = "Child Not Found",
+                    Content = name .. " not found in workspace",
+                    Duration = 2
+                })
+                break
+            end
+            
+            if attempts < maxAttempts then
+                task.wait(2)
+            end
+        end
+        
+        return false
+    end
+
+    -- FIXED Smart recovery function using proper map unlock execution and continuous tree teleportation
+    -- Enhanced smart recovery function with advanced child tracking from second script
+local function smartRecoveryForMissingChildren()
+    local CollectionService = game:GetService("CollectionService")
+    local startTime = tick()
+    local recoveryPhase = 1 -- 1 = Map unlock phase, 2 = Random tree phase, 3 = Advanced tracking phase
+    
+    -- Advanced child tracking variables (from second script)
+    local CHILD_NAMES = {"DinoKid", "KrakenKid", "SquidKid", "KoalaKid"}
+    local NoticeBoard = nil
+    local MissingKidsTracker = nil
+    local AdvancedChildrenData = {}
+    
+    -- Function to get notice board reference
+    local function getNoticeBoard()
+        if not NoticeBoard then
+            pcall(function()
+                NoticeBoard = workspace:FindFirstChild("Map") and 
+                             workspace.Map:FindFirstChild("Campground") and
+                             workspace.Map.Campground:FindFirstChild("NoticeBoard")
+            end)
+        end
+        return NoticeBoard
+    end
+    
+    -- Function to get missing kids tracker
+    local function getMissingKidsTracker()
+        if not MissingKidsTracker then
+            local board = getNoticeBoard()
+            if board then
+                MissingKidsTracker = board:FindFirstChild("MissingKidTracker")
+            end
+        end
+        return MissingKidsTracker
+    end
+    
+    -- Function to get child NPC by ID
+    local function getChildNPC(kidId)
+        local childNPCs = CollectionService:GetTagged("ChildNPC")
+        for _, npc in pairs(childNPCs) do
+            if npc:GetAttribute("KidId") == kidId then
+                return npc
+            end
+        end
+        return nil
+    end
+    
+    -- Function to get child location from attributes
+    local function getChildLocationFromAttributes(kidId)
+        local success, location = pcall(function()
+            if workspace.Map and workspace.Map:FindFirstChild("MissingKids") then
+                local loc = workspace.Map.MissingKids:GetAttribute(kidId)
+                if loc then
+                    return Vector3.new(loc.X, 0, loc.Z)
+                end
+            end
+            return nil
+        end)
+        return success and location or nil
+    end
+    
+    -- Function to check if child is found using advanced tracking
+    local function isChildFoundAdvanced(kidId)
+        local tracker = getMissingKidsTracker()
+        if tracker then
+            local kidFolder = tracker:FindFirstChild(kidId)
+            if kidFolder then
+                return kidFolder:GetAttribute("Found") == true
+            end
+        end
+        return false
+    end
+    
+    -- Function to update advanced children data
+    local function updateAdvancedChildrenData()
+        for i, kidId in ipairs(CHILD_NAMES) do
+            local childData = {
+                id = kidId,
+                index = i,
+                found = isChildFoundAdvanced(kidId),
+                npc = getChildNPC(kidId),
+                attributeLocation = getChildLocationFromAttributes(kidId),
+                distance = nil,
+                direction = nil,
+                position = nil
+            }
+            
+            -- Find position from any available source
+            local actualPos = nil
+            if childData.npc and childData.npc.PrimaryPart then
+                actualPos = childData.npc.PrimaryPart.Position
+            elseif childData.attributeLocation then
+                actualPos = childData.attributeLocation
+            end
+            
+            if actualPos then
+                local playerPos = hrp.Position
+                local distance = (actualPos - playerPos).Magnitude
+                childData.distance = distance
+                childData.position = actualPos
+            end
+            
+            AdvancedChildrenData[kidId] = childData
+        end
+    end
+    
+    -- Function to attempt collection of found children using advanced tracking
+    local function attemptAdvancedChildCollection()
+        local collectedThisRound = 0
+        updateAdvancedChildrenData()
+        
+        for _, kidId in ipairs(CHILD_NAMES) do
+            local childData = AdvancedChildrenData[kidId]
+            
+            if childData and childData.position and not childData.found then
+                -- Check if we can collect this child based on original child names
+                local originalChildName = nil
+                if kidId == "DinoKid" then originalChildName = "Lost Child"
+                elseif kidId == "KrakenKid" then originalChildName = "Lost Child2"
+                elseif kidId == "SquidKid" then originalChildName = "Lost Child3"
+                elseif kidId == "KoalaKid" then originalChildName = "Lost Child4"
+                end
+                
+                if originalChildName then
+                    -- Check if already in bag
+                    if not isChildInBag(originalChildName) then
+                        -- Teleport to child position
+                        hrp.CFrame = CFrame.new(childData.position + Vector3.new(0, 5, 0))
+                        task.wait(2)
+                        
+                        -- Try to collect using original pickup function
+                        if pickupChild(originalChildName, 2) then
+                            collectedThisRound = collectedThisRound + 1
+                            
+                            Fluent:Notify({
+                                Title = "Advanced Recovery Success",
+                                Content = "Found and collected " .. originalChildName .. " using advanced tracking!",
+                                Duration = 3
+                            })
+                        end
+                        
+                        task.wait(1)
+                    end
+                end
+            end
+        end
+        
+        return collectedThisRound
+    end
+    
+    Fluent:Notify({
+        Title = "Enhanced Smart Recovery Started",
+        Content = "Phase 1: Map unlock, Phase 2: Tree teleportation, Phase 3: Advanced child tracking system",
+        Duration = 5
+    })
+    
+    while AUTO_FARM_ENABLED and (tick() - startTime) < 60 do -- Extended to 60 seconds for all phases
+        local collectedCount = countCollectedChildren()
+        
+        if collectedCount >= 4 then
+            Fluent:Notify({
+                Title = "Recovery Success",
+                Content = "All children found during enhanced recovery!",
+                Duration = 3
+            })
+            break
+        end
+        
+        if recoveryPhase == 1 then
+            -- Phase 1: Use map unlock system for 15 seconds
+            if (tick() - startTime) < 15 then
+                local FogFolder = workspace.Map.Boundaries.Fog
+                local parts = getValidMapUnlockParts(FogFolder)
+                
+                if #parts > 0 then
+                    local randomPart = parts[math.random(1, #parts)]
+                    local goalCFrame = randomPart.CFrame * CFrame.new(0, 3, 0)
+                    
+                    local success = teleportToPosition(goalCFrame.Position)
+                    if success then
+                        mapUnlockVisitedParts[randomPart] = true
+                        
+                        -- Try to collect any accessible children
+                        for childName, collected in pairs(childrenStatus) do
+                            if not collected and not isChildInBag(childName) then
+                                local characters = workspace:WaitForChild("Characters")
+                                local childNPC = characters:FindFirstChild(childName)
+                                
+                                if childNPC and childNPC:FindFirstChild("HumanoidRootPart") then
+                                    local distance = (hrp.Position - childNPC.HumanoidRootPart.Position).Magnitude
+                                    if distance < 100 then
+                                        hrp.CFrame = childNPC.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+                                        task.wait(1)
+                                        pickupChild(childName, 1)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    
+                    task.wait(0.8)
+                else
+                    recoveryPhase = 2
+                    Fluent:Notify({
+                        Title = "Recovery Phase 2 Early",
+                        Content = "No more map areas, switching to tree teleportation...",
+                        Duration = 3
+                    })
+                end
+            else
+                recoveryPhase = 2
+                Fluent:Notify({
+                    Title = "Recovery Phase 2",
+                    Content = "Switching to continuous tree teleportation...",
+                    Duration = 3
+                })
+            end
+            
+        elseif recoveryPhase == 2 then
+            -- Phase 2: Tree teleportation for 20 seconds (15-35 second mark)
+            if (tick() - startTime) < 35 then
+                local treesFound = {}
+                
+                for _, v in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
+                    if v.Name == "Small Tree" then
+                        local position
+                        if v:IsA("Model") then
+                            position = v:GetModelCFrame().Position
+                        elseif v:IsA("BasePart") then
+                            position = v.Position
+                        end
+                        
+                        if position then
+                            table.insert(treesFound, position)
+                        end
+                    end
+                end
+                
+                if #treesFound > 0 then
+                    local randomTree = treesFound[math.random(1, #treesFound)]
+                    teleportToPosition(randomTree)
+                    
+                    -- Try to collect any accessible children
+                    for childName, collected in pairs(childrenStatus) do
+                        if not collected and not isChildInBag(childName) then
+                            local characters = workspace:WaitForChild("Characters")
+                            local childNPC = characters:FindFirstChild(childName)
+                            
+                            if childNPC and childNPC:FindFirstChild("HumanoidRootPart") then
+                                local distance = (hrp.Position - childNPC.HumanoidRootPart.Position).Magnitude
+                                if distance < 150 then
+                                    hrp.CFrame = childNPC.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+                                    task.wait(1)
+                                    pickupChild(childName, 1)
+                                end
+                            end
+                        end
+                    end
+                    
+                    task.wait(1.2)
+                else
+                    local fallbackCFrame = getNextFallbackPosition()
+                    teleportToPosition(fallbackCFrame)
+                    
+                    for childName, collected in pairs(childrenStatus) do
+                        if not collected and not isChildInBag(childName) then
+                            local characters = workspace:WaitForChild("Characters")
+                            local childNPC = characters:FindFirstChild(childName)
+                            
+                            if childNPC and childNPC:FindFirstChild("HumanoidRootPart") then
+                                local distance = (hrp.Position - childNPC.HumanoidRootPart.Position).Magnitude
+                                if distance < 150 then
+                                    hrp.CFrame = childNPC.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+                                    task.wait(1)
+                                    pickupChild(childName, 1)
+                                end
+                            end
+                        end
+                    end
+                    
+                    task.wait(1.5)
+                end
+            else
+                recoveryPhase = 3
+                Fluent:Notify({
+                    Title = "Recovery Phase 3 - ADVANCED TRACKING",
+                    Content = "Activating advanced child tracking system from second script!",
+                    Duration = 5
+                })
+            end
+            
+        else
+            -- Phase 3: Advanced child tracking system (35-60 second mark)
+            local advancedCollected = attemptAdvancedChildCollection()
+            
+            if advancedCollected > 0 then
+                Fluent:Notify({
+                    Title = "Advanced Tracking Success",
+                    Content = "Collected " .. advancedCollected .. " children using advanced tracking!",
+                    Duration = 3
+                })
+            else
+                -- If advanced tracking didn't find anything, try some fallback positions
+                local fallbackCFrame = getNextFallbackPosition()
+                teleportToPosition(fallbackCFrame)
+                task.wait(1)
+                
+                -- Try advanced collection again at fallback position
+                attemptAdvancedChildCollection()
+            end
+            
+            task.wait(2) -- Wait longer between advanced tracking attempts
+        end
+        
+        task.wait(0.2)
+    end
+    
+    local finalCount = countCollectedChildren()
+    Fluent:Notify({
+        Title = "Enhanced Smart Recovery Complete",
+        Content = "Recovery finished with " .. finalCount .. "/4 children collected using 3-phase system",
+        Duration = 5
+    })
+end
+
+    Fluent:Notify({
+        Title = "Children Collection Started",
+        Content = "Starting teleportation and collection sequence...",
+        Duration = 3
+    })
+
+    -- CHILD 1: Lost Child
+    if AUTO_FARM_ENABLED then
+        local characters = workspace:WaitForChild("Characters")
+        local npc1 = characters:FindFirstChild("Lost Child")
+        
+        if npc1 and npc1:FindFirstChild("HumanoidRootPart") then
+            local npcHRP1 = npc1:WaitForChild("HumanoidRootPart")
+            hrp.CFrame = npcHRP1.CFrame + Vector3.new(0, 3, 0)
+            task.wait(2)
+            pickupChild("Lost Child")
+        end
+        task.wait(2)
+    end
+
+    -- CHILD 2: Lost Child2
+    if AUTO_FARM_ENABLED then
+        local firstCFrame2 = CFrame.new(
+            -79.5802002, 1.59426916, 519.86499, 
+            0.478056967, 0, 0.8783288, 
+            0, 1, 0, 
+            -0.8783288, 0, 0.478056967
+        )
+        hrp.CFrame = firstCFrame2
+        task.wait(2)
+        
+        local characters = workspace:WaitForChild("Characters")
+        local npc2 = characters:FindFirstChild("Lost Child2")
+        if npc2 and npc2:FindFirstChild("HumanoidRootPart") then
+            hrp.CFrame = npc2.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+            task.wait(2)
+            pickupChild("Lost Child2")
+        end
+        task.wait(2)
+    end
+
+    -- CHILD 3: Lost Child3
+    if AUTO_FARM_ENABLED then
+        local firstCFrame3 = CFrame.new(
+            755.127075, 3.54653406, -424.745117,
+            -1, 0, 0,
+            0, 1, 0,
+            0, 0, -1
+        )
+        hrp.CFrame = firstCFrame3
+        task.wait(2)
+        
+        local characters = workspace:WaitForChild("Characters")
+        local npc3 = characters:FindFirstChild("Lost Child3")
+        if npc3 and npc3:FindFirstChild("HumanoidRootPart") then
+            hrp.CFrame = npc3.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+            task.wait(2)
+            pickupChild("Lost Child3")
+        end
+        task.wait(2)
+    end
+
+    -- CHILD 4: Lost Child4
+    if AUTO_FARM_ENABLED then
+        local strongholdCFrame = CFrame.new(
+            -560, -0.598167777, -280,
+            -1, 0, 0,
+            0, 1, 0,
+            0, 0, -1
+        )
+        hrp.CFrame = strongholdCFrame
+        task.wait(2)
+
+        repeat
+            task.wait(0.5)
+        until workspace:FindFirstChild("Terrain") and workspace.Terrain:IsA("Terrain") and workspace.Terrain:FindFirstChildOfClass("Folder") == nil
+
+        local secondCFrame4 = CFrame.new(
+            -915.5, -1.05412531, -530,
+            0, 0, 1,
+            0, 1, 0,
+            -1, 0, 0
+        )
+        hrp.CFrame = secondCFrame4
+        task.wait(2)
+
+        local characters = workspace:WaitForChild("Characters")
+        local npc4 = characters:FindFirstChild("Lost Child4")
+        if npc4 and npc4:FindFirstChild("HumanoidRootPart") then
+            hrp.CFrame = npc4.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+            task.wait(2)
+            pickupChild("Lost Child4")
+        end
+        task.wait(2)
+    end
+
+    -- Check collection results and start smart recovery if needed
+    local collectedCount = countCollectedChildren()
+    
+    if collectedCount < 4 and AUTO_FARM_ENABLED then
+        childCollectionAttempts = childCollectionAttempts + 1
+        
+        Fluent:Notify({
+            Title = "Incomplete Collection Detected",
+            Content = "Only " .. collectedCount .. "/4 children collected. Starting FIXED smart recovery (Attempt " .. childCollectionAttempts .. ")...",
+            Duration = 5
+        })
+        
+        smartRecoveryForMissingChildren()
+        
+        -- Recount after recovery
+        collectedCount = countCollectedChildren()
+    end
+
+    if collectedCount > 0 and AUTO_FARM_ENABLED then
+        -- Teleport back to Main Fire
+        local mainFirePos = getMainFirePosition()
+        teleportToPosition(mainFirePos)
+        task.wait(3)
+        
+        Fluent:Notify({
+            Title = "Dropping Children",
+            Content = "Dropping " .. collectedCount .. " Lost Children at Main Fire...",
+            Duration = 3
+        })
+
+        -- Drop all children at Main Fire
+        local dropRemote = ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("RequestBagDropItem")
+        local droppedCount = 0
+        
+        local function dropChild(name)
+            local childInBag = itemBag:FindFirstChild(name)
+            if childInBag then
+                local success, result = pcall(function()
+                    dropRemote:FireServer(oldSack, childInBag, false)
+                end)
+                
+                if success then
+                    droppedCount = droppedCount + 1
+                    Fluent:Notify({
+                        Title = "Child Dropped",
+                        Content = "Successfully dropped " .. name .. " at Main Fire",
+                        Duration = 2
+                    })
+                end
+                task.wait(0.5)
+            end
+        end
+        
+        -- Drop all collected children
+        for childName, collected in pairs(childrenStatus) do
+            if collected or isChildInBag(childName) then
+                dropChild(childName)
+            end
+        end
+
+        Fluent:Notify({
+            Title = "Children Collection Complete!",
+            Content = "Successfully dropped " .. droppedCount .. " Lost Children at Main Fire!",
+            Duration = 5
+        })
+    end
+    
+    childrenCollectionComplete = true
+end
+
+-- OPTIMIZED Main Auto Farm Logic with IMMEDIATE STOP on fire completion + External Script Execution
+local function startCompleteAutoFarm()
+    task.spawn(function()
+        -- Check if fire is already maxed on first execution
+        local initialFireLevel = getCurrentFireLevel()
+        if FIRST_EXECUTION_CHECK and (isFullyRevealed or initialFireLevel >= 999) then
+            Fluent:Notify({
+                Title = "Fire Already Complete - Executing Script",
+                Content = "Fire is already fully upgraded on first execution - loading external script immediately!",
+                Duration = 5
+            })
+            executeExternalScript()
+            AUTO_FARM_ENABLED = false
+            return
+        end
+        
+        FIRST_EXECUTION_CHECK = false
+        
+        -- Reset all variables including CRITICAL stop flag
+        stopTweening = false
+        visitedParts = {}
+        fogClearingComplete = false
+        stopMapUnlocking = false
+        mapUnlockVisitedParts = {}
+        childrenCollectionComplete = false
+        childCollectionAttempts = 0
+        axeEquipped = false -- Reset weapon state
+        lastEquipTime = 0
+        diamondChestDetected = false
+        diamondChestPosition = nil
+        teleportAttemptCount = 0
+        STOP_LOG_COLLECTION = false -- RESET CRITICAL STOP FLAG
+        
+        -- Check for diamond chest first (only mark for later teleport if no timer)
+        for _, child in ipairs(Items:GetChildren()) do
+            if child.Name == "Stronghold Diamond Chest" then
+                if child:IsA("Model") then
+                    diamondChestPosition = child:GetModelCFrame().Position
+                elseif child:IsA("BasePart") then
+                    diamondChestPosition = child.Position
+                end
+                diamondChestDetected = true
+                teleportAttemptCount = 0
+                
+                if strongholdTimerActive then
+                    Fluent:Notify({
+                        Title = "Diamond Chest Found - Timer Active",
+                        Content = "Stronghold timer running - continuing auto farm until timer finishes",
+                        Duration = 3
+                    })
+                    -- Continue with auto farm
+                else
+                    Fluent:Notify({
+                        Title = "DIAMOND CHEST DETECTED!",
+                        Content = "Chest found! Will attempt enhanced sequence after fire is fully upgraded and stronghold timer is finished.",
+                        Duration = 5
+                    })
+                end
+            end
+        end
+        
+        -- Check current fire level
+        local fireLevel = getCurrentFireLevel()
+        
+        if isFullyRevealed or fireLevel >= 999 then
+            Fluent:Notify({
+                Title = "Fire Already Complete - MOVING ON!",
+                Content = "Fire is fully upgraded! Skipping to enhanced diamond chest sequence or map unlock...",
+                Duration = 3
+            })
+            
+            -- Attempt enhanced diamond chest sequence if detected and no timer
+            if diamondChestDetected and not strongholdTimerActive then
+                local success, message = attemptDiamondChestTeleport()
+                if success then
+                    ALL_PHASES_COMPLETED = true
+                    if isFullyRevealed or getCurrentFireLevel() >= 999 then
+                        executeExternalScript()
+                    end
+                    AUTO_FARM_ENABLED = false
+                    return
+                else
+                    teleportAttemptCount = teleportAttemptCount + 1
+                    Fluent:Notify({
+                        Title = "Diamond Chest Sequence Failed",
+                        Content = message .. " (Attempt " .. teleportAttemptCount .. "/" .. maxTeleportAttempts .. "). Continuing to map unlock.",
+                        Duration = 5
+                    })
+                    lastTeleportAttemptTime = tick()
+                end
+            end
+        elseif fireLevel >= 2 then
+            Fluent:Notify({
+                Title = "Fire Level " .. fireLevel .. " Detected - FAST MODE",
+                Content = "Skipping fog clearing - proceeding to optimized tree farming phase...",
+                Duration = 3
+            })
+            fogClearingComplete = true
+        else
+            -- STEP 1: Clear fog areas (only if fire level is below 2) - FASTER NOW
+            Fluent:Notify({
+                Title = "Fire Level " .. fireLevel .. " - OPTIMIZED Auto Farm Started",
+                Content = "Step 1/4: Clearing fog areas (FAST MODE)...",
+                Duration = 3
+            })
+            tweenToFogParts()
+            
+            -- Wait for fog clearing to complete
+            while not fogClearingComplete and AUTO_FARM_ENABLED do
+                task.wait(1)
+            end
+        end
+        
+        -- STEP 2: OPTIMIZED Tree farming phase with IMMEDIATE STOP when fire complete + RAIN DETECTION
+        if not isFullyRevealed and fireLevel < 999 then
+            Fluent:Notify({
+                Title = "Auto Farm Progress - OPTIMIZED Phase 2",
+                Content = "Step 2/4: Starting tree farming with RAIN DETECTION and IMMEDIATE STOP capability...",
+                Duration = 3
+            })
+            
+            -- Enable rain detection
+            rainDetectionActive = true
+            
+            -- Equip axe ONCE at the start of tree farming phase
+            autoEquipAxe()
+            task.wait(2) -- Wait for equip to register properly
+            
+            while AUTO_FARM_ENABLED and not isFullyRevealed and not STOP_LOG_COLLECTION do
+                -- CRITICAL: Check for fire completion at start of every loop
+                if isFullyRevealed or getCurrentFireLevel() >= 999 or STOP_LOG_COLLECTION then
+                    Fluent:Notify({
+                        Title = "FIRE COMPLETE - BREAKING LOOP!",
+                        Content = "Fire became fully upgraded - exiting tree farming immediately!",
+                        Duration = 3
+                    })
+                    break -- EXIT IMMEDIATELY
+                end
+                
+                -- RAIN CHECK: Pause tree farming if raining
+                if rainDetectionActive and checkRainWarnings() then
+                    -- Wait while it's raining
+                    while isRaining and AUTO_FARM_ENABLED and not isFullyRevealed and not STOP_LOG_COLLECTION do
+                        task.wait(2) -- Check every 2 seconds during rain
+                        checkRainWarnings() -- Update rain status
+                        
+                        -- Still check for fire completion during rain pause
+                        if isFullyRevealed or getCurrentFireLevel() >= 999 or STOP_LOG_COLLECTION then
+                            Fluent:Notify({
+                                Title = "FIRE COMPLETE DURING RAIN - BREAKING!",
+                                Content = "Fire became fully upgraded during rain pause - exiting!",
+                                Duration = 3
+                            })
+                            break
+                        end
+                    end
+                    
+                    -- Exit if fire completed during rain or auto farm disabled
+                    if not AUTO_FARM_ENABLED or isFullyRevealed or STOP_LOG_COLLECTION then
+                        break
+                    end
+                    
+                    -- Rain cleared, continue with tree farming
+                    continue
+                end
+                
+                -- Check for diamond chest during tree farming, but only attempt enhanced sequence after fire is fully upgraded
+                if diamondChestDetected and not strongholdTimerActive then
+                    Fluent:Notify({
+                        Title = "Diamond Chest Waiting",
+                        Content = "Diamond Chest detected, waiting for fire to fully upgrade before enhanced sequence.",
+                        Duration = 2
+                    })
+                elseif diamondChestDetected and strongholdTimerActive then
+                    Fluent:Notify({
+                        Title = "Diamond Chest Waiting",
+                        Content = "Diamond Chest detected, waiting for stronghold timer to finish and fire to fully upgrade.",
+                        Duration = 2
+                    })
+                end
+                
+                local treePosition = findSmallTree()
+                if treePosition then
+                    teleportToPosition(treePosition)
+                    task.wait(2)
+                    
+                    local treesRemaining = countSmallTrees()
+                    while treesRemaining > 0 and AUTO_FARM_ENABLED and not isFullyRevealed and not STOP_LOG_COLLECTION do
+                        local chopped = chopSmallTrees() -- NO weapon equipping inside this loop
+                        if chopped > 0 then
+                            Fluent:Notify({
+                                Title = "Tree Chopping",
+                                Content = "Chopped " .. chopped .. " Small Trees (weapon stays equipped)",
+                                Duration = 1
+                            })
+                        end
+                        
+                        task.wait(0.5) -- REDUCED from 1 second to 0.5 for faster tree chopping
+                        treesRemaining = countSmallTrees()
+                        
+                        -- CRITICAL: Check fire completion during tree chopping
+                        if isFullyRevealed or getCurrentFireLevel() >= 999 or STOP_LOG_COLLECTION then
+                            Fluent:Notify({
+                                Title = "FIRE COMPLETE - STOPPING TREE CHOP!",
+                                Content = "Fire became fully upgraded - stopping tree chopping immediately!",
+                                Duration = 2
+                            })
+                            break
+                        end
+                    end
+                else
+                    local fallbackCFrame = getNextFallbackPosition()
+                    teleportToPosition(fallbackCFrame)
+                    task.wait(2)
+                    
+                    local chopped = chopSmallTrees() -- NO weapon equipping in fallback either
+                    if chopped > 0 then
+                        Fluent:Notify({
+                            Title = "Trees Found at Fallback",
+                            Content = "Chopped " .. chopped .. " Small Trees at fallback (weapon persistent)",
+                            Duration = 2
+                        })
+                    end
+                    
+                    task.wait(2) -- REDUCED from 3 seconds to 2 for faster fallback transitions
+                end
+                
+                -- CRITICAL: Check again before log collection
+                if isFullyRevealed or getCurrentFireLevel() >= 999 or STOP_LOG_COLLECTION then
+                    Fluent:Notify({
+                        Title = "FIRE COMPLETE - SKIPPING LOG COLLECTION!",
+                        Content = "Fire is fully upgraded - skipping log collection to move on immediately!",
+                        Duration = 2
+                    })
+                    break -- EXIT IMMEDIATELY, NO LOG COLLECTION
+                end
+                
+                if not isFullyRevealed and getCurrentFireLevel() < 999 and not STOP_LOG_COLLECTION then
+                    local mainFirePos = getMainFirePosition()
+                    teleportToPosition(mainFirePos)
+                    task.wait(1.5) -- REDUCED from 2 seconds to 1.5 for faster fire transitions
+                    
+                    local collected = collectLogsToMainFire() -- This function now has IMMEDIATE STOP capability
+                    if collected > 0 then
+                        Fluent:Notify({
+                            Title = "Logs Collected (Lower Height)",
+                            Content = "Collected " .. collected .. " logs to Main Fire at optimized height",
+                            Duration = 2
+                        })
+                    end
+                    
+                    task.wait(1) -- REDUCED from 2 seconds to 1 for faster overall cycle
+                else
+                    -- Fire became complete during the cycle - break immediately
+                    break
+                end
+                
+                -- FINAL CHECK: Check fire level and proceed to enhanced diamond chest sequence if fully upgraded
+                if isFullyRevealed or getCurrentFireLevel() >= 999 or STOP_LOG_COLLECTION then
+                    Fluent:Notify({
+                        Title = "FIRE COMPLETE - PROCEEDING TO DIAMOND CHEST!",
+                        Content = "Fire is fully upgraded - proceeding to diamond chest sequence immediately!",
+                        Duration = 3
+                    })
+                    
+                    if diamondChestDetected and not strongholdTimerActive then
+                        local success, message = attemptDiamondChestTeleport()
+                        if success then
+                            ALL_PHASES_COMPLETED = true
+                            executeExternalScript()
+                            AUTO_FARM_ENABLED = false
+                            return
+                        else
+                            teleportAttemptCount = teleportAttemptCount + 1
+                            Fluent:Notify({
+                                Title = "Diamond Chest Sequence Failed",
+                                Content = message .. " (Attempt " .. teleportAttemptCount .. "/" .. maxTeleportAttempts .. "). Continuing to map unlock.",
+                                Duration = 5
+                            })
+                            lastTeleportAttemptTime = tick()
+                            if teleportAttemptCount >= maxTeleportAttempts then
+                                Fluent:Notify({
+                                    Title = "Max Teleport Attempts Reached",
+                                    Content = "Failed enhanced diamond chest sequence after " .. maxTeleportAttempts .. " attempts. Continuing to map unlock.",
+                                    Duration = 5
+                                })
+                                diamondChestDetected = false -- Reset to allow re-detection
+                            end
+                        end
+                    end
+                    break -- EXIT tree farming loop
+                end
+            end
+        else
+            Fluent:Notify({
+                Title = "Phase 2 Complete - FIRE ALREADY MAXED",
+                Content = "Tree farming phase complete - fire already fully upgraded. MOVING ON!",
+                Duration = 3
+            })
+        end
+        
+        -- Disable rain detection when exiting tree farming phase
+        rainDetectionActive = false
+        
+        if isFullyRevealed or fireLevel >= 999 or STOP_LOG_COLLECTION then
+            Fluent:Notify({
+                Title = "Tree Farming Complete - MOVING ON FAST!",
+                Content = "Step 3/4: Fire fully upgraded! Starting map unlock immediately...",
+                Duration = 5
+            })
+            
+            -- STEP 3: Unlock all map areas
+            unlockAllMapAreas()
+            
+            -- Wait for map unlocking to complete
+            while not stopMapUnlocking and AUTO_FARM_ENABLED do
+                -- Check for diamond chest during map unlock
+                if diamondChestDetected and not strongholdTimerActive and (tick() - lastTeleportAttemptTime) >= teleportCooldown then
+                    if teleportAttemptCount < maxTeleportAttempts then
+                        local success, message = attemptDiamondChestTeleport()
+                        if success then
+                            ALL_PHASES_COMPLETED = true
+                            executeExternalScript()
+                            AUTO_FARM_ENABLED = false
+                            return
+                        else
+                            teleportAttemptCount = teleportAttemptCount + 1
+                            Fluent:Notify({
+                                Title = "Diamond Chest Sequence Failed",
+                                Content = message .. " (Attempt " .. teleportAttemptCount .. "/" .. maxTeleportAttempts .. "). Continuing map unlock.",
+                                Duration = 5
+                            })
+                            lastTeleportAttemptTime = tick()
+                        end
+                    else
+                        Fluent:Notify({
+                            Title = "Max Teleport Attempts Reached",
+                            Content = "Failed enhanced diamond chest sequence after " .. maxTeleportAttempts .. " attempts. Continuing map unlock.",
+                            Duration = 5
+                        })
+                        diamondChestDetected = false -- Reset to allow re-detection
+                    end
+                end
+                
+                local parts = getValidMapUnlockParts(workspace.Map.Boundaries.Fog)
+                if #parts == 0 then
+                    break
+                end
+                task.wait(1)
+            end
+            
+            Fluent:Notify({
+                Title = "Map Unlock Complete - FINAL PHASE!",
+                Content = "Step 4/4: Starting children collection in 2 seconds... (FIXED RECOVERY)",
+                Duration = 3
+            })
+            
+            -- Wait 2 seconds before starting children collection
+            task.wait(2)
+            
+            -- Final check for diamond chest before children collection
+            if AUTO_FARM_ENABLED and diamondChestDetected and not strongholdTimerActive then
+                local success, message = attemptDiamondChestTeleport()
+                if success then
+                    ALL_PHASES_COMPLETED = true
+                    executeExternalScript()
+                    AUTO_FARM_ENABLED = false
+                    return
+                else
+                    teleportAttemptCount = teleportAttemptCount + 1
+                    Fluent:Notify({
+                        Title = "Diamond Chest Sequence Failed",
+                        Content = message .. " (Attempt " .. teleportAttemptCount .. "/" .. maxTeleportAttempts .. "). Proceeding with children collection.",
+                        Duration = 5
+                    })
+                    lastTeleportAttemptTime = tick()
+                    if teleportAttemptCount >= maxTeleportAttempts then
+                        Fluent:Notify({
+                            Title = "Max Teleport Attempts Reached",
+                            Content = "Failed enhanced diamond chest sequence after " .. maxTeleportAttempts .. " attempts. Proceeding with children collection.",
+                            Duration = 5
+                        })
+                        diamondChestDetected = false
+                    end
+                end
+            end
+            
+            -- STEP 4: Collect all children with FIXED smart recovery
+            if AUTO_FARM_ENABLED then
+                collectAllChildren()
+                
+                -- Wait for children collection to complete
+                while not childrenCollectionComplete and AUTO_FARM_ENABLED do
+                    task.wait(1)
+                end
+                
+                Fluent:Notify({
+                    Title = "COMPLETE AUTO FARM FINISHED - FIXED!",
+                    Content = "All steps completed successfully with FIXED smart recovery system for children collection!",
+                    Duration = 10
+                })
+            end
+            
+            -- Mark all phases as completed and execute external script
+            ALL_PHASES_COMPLETED = true
+            if isFullyRevealed or getCurrentFireLevel() >= 999 then
+                executeExternalScript()
+            end
+            AUTO_FARM_ENABLED = false
+        end
+    end)
+end
+
+-- Create GUI
+local Window = Fluent:CreateWindow({
+    Title = "Ultimate Auto Farm Tool",
+    SubTitle = "Complete Automation + Enhanced Diamond Chest Detection",
+    TabWidth = 140,
+    Size = UDim2.fromOffset(450, 300),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local FarmTab = Window:AddTab({ Title = "Auto Farm", Icon = "zap" })
+
+-- FARM TAB GUI Elements
+FarmTab:AddSection("Complete Auto Farm System")
+
+local AutoFarmToggle = FarmTab:AddToggle("CompleteAutoFarm", {
+    Title = "Complete Auto Farm (All-in-One) - FIXED RECOVERY",
+    Default = false,
+    Callback = function(Value)
+        AUTO_FARM_ENABLED = Value
+        if Value then
+            if isFullyRevealed then
+                Fluent:Notify({
+                    Title = "Already Complete",
+                    Content = "Fire is already fully upgraded!",
+                    Duration = 3
+                })
+                AUTO_FARM_ENABLED = false
+                return
+            end
+            
+            startCompleteAutoFarm()
+            Fluent:Notify({
+                Title = "FIXED Auto Farm Started",
+                Content = "Running: Fast Fog Clear â†’ INSTANT STOP Tree Farm â†’ Map Unlock â†’ FIXED Smart Children Collection + Enhanced Diamond Chest Integration",
+                Duration = 5
+            })
+        else
+            stopTweening = true
+            stopMapUnlocking = true
+            STOP_LOG_COLLECTION = true -- Set stop flag
+            Fluent:Notify({
+                Title = "Auto Farm Stopped",
+                Content = "All automation stopped with IMMEDIATE STOP capability",
+                Duration = 2
+            })
+        end
+    end
+})
+
+-- Initialize systems
+initializeFireLevelTracking()
+--initializeStrongholdTracking()
+-- Diamond chest detection moved to stronghold timer system
+
+-- Auto-enable anti-void in background
+if ANTI_VOID_ENABLED then
+    enableAntiVoid()
+end
