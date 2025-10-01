@@ -1076,14 +1076,25 @@ local function attemptDiamondChestTeleport()
     return true, "GitHub script loading initiated"
 end
 
--- Anti-Void Functions (auto-enabled)
+
 local function enableAntiVoid()
     if antivoidloop then return end
     
     antivoidloop = RunService.Stepped:Connect(function()
-        local root = HumanoidRootPart
-        if root and root.Position.Y <= OrgDestroyHeight + 25 then
-            root.Velocity = root.Velocity + Vector3.new(0, 250, 0)
+        -- Always get fresh reference to current character
+        local char = LocalPlayer.Character
+        if not char then return end
+        
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root or not root.Parent then return end
+        
+        -- Check if below void threshold
+        if root.Position.Y <= OrgDestroyHeight + 25 then
+            -- Set velocity directly instead of adding to existing velocity
+            root.Velocity = Vector3.new(root.Velocity.X, 250, root.Velocity.Z)
+            
+            -- Optional: Also boost position slightly to prevent repeated triggers
+            root.CFrame = root.CFrame + Vector3.new(0, 5, 0)
         end
     end)
 end
@@ -1513,12 +1524,35 @@ local function tweenToFogParts()
     doSingleCircleLoop(firstRadius, centerPoint, speed)
     
     Fluent:Notify({
-        Title = "Fog Clearing Complete (Single Circle)",
-        Content = "Completed one circle radius, proceeding to tree farming phase...",
+        Title = "Fog ",
+        Content = "",
         Duration = 3
     })
     
     fogClearingComplete = true
+end
+
+-- Map Unlock System
+local function isValidMapUnlockPart(part)
+    return part:IsA("BasePart") and
+           not part:FindFirstChildWhichIsA("Fire") and
+           not part:FindFirstChild("TouchInterest") and
+           not mapUnlockVisitedParts[part]
+end
+
+local function getValidMapUnlockParts(folder)
+    local parts = {}
+    for _, obj in ipairs(folder:GetChildren()) do
+        if obj:IsA("BasePart") and isValidMapUnlockPart(obj) then
+            table.insert(parts, obj)
+        elseif obj:IsA("Model") or obj:IsA("Folder") then
+            local childParts = getValidMapUnlockParts(obj)
+            for _, p in ipairs(childParts) do
+                table.insert(parts, p)
+            end
+        end
+    end
+    return parts
 end
 
 -- Map Unlock System
@@ -1557,10 +1591,44 @@ local function unlockAllMapAreas()
     
     Fluent:Notify({
         Title = "Map Unlocking Started",
-        Content = "Unlocking all remaining map areas...",
+        Content = "Starting with large circle sweep, then wall teleportation...",
         Duration = 3
     })
     
+    -- PHASE 3A: Do ONE large circle sweep first (radius 1150)
+    local radius = 1150
+    local centerPoint = Vector3.new(0, 15, 0)
+    local speed = 1/(2*1)
+    local angle = 0
+    local fullCircle = 2 * math.pi
+    
+    Fluent:Notify({
+        Title = "Circle Sweep Phase",
+        Content = "Performing large radius circle to unlock outer areas...",
+        Duration = 3
+    })
+    
+    while angle < fullCircle and not stopMapUnlocking and AUTO_FARM_ENABLED do
+        local deltaTime = task.wait()
+        angle = math.min(angle + (speed * deltaTime), fullCircle)
+        local x = centerPoint.X + radius * math.cos(angle)
+        local z = centerPoint.Z + radius * math.sin(angle)
+        local newPosition = Vector3.new(x, centerPoint.Y, z)
+        
+        -- Get fresh HumanoidRootPart reference
+        local char = LocalPlayer.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.CFrame = CFrame.new(newPosition)
+        end
+    end
+    
+    Fluent:Notify({
+        Title = "Circle Sweep Complete",
+        Content = "Now teleporting to remaining wall sections...",
+        Duration = 3
+    })
+    
+    -- PHASE 3B: Continue with wall teleportation for any remaining areas
     while not stopMapUnlocking and AUTO_FARM_ENABLED do
         local parts = getValidMapUnlockParts(FogFolder)
         if #parts == 0 then
@@ -1574,10 +1642,14 @@ local function unlockAllMapAreas()
         
         for _, part in ipairs(parts) do
             if stopMapUnlocking or not AUTO_FARM_ENABLED then break end
-            if HumanoidRootPart and part then
+            
+            -- Get fresh HumanoidRootPart reference
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") and part then
+                local hrp = char.HumanoidRootPart
                 local goalCFrame = part.CFrame * CFrame.new(0, offsetY, 0)
                 local tweenInfo = TweenInfo.new(tweenTime, easingStyle, easingDir)
-                local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = goalCFrame})
+                local tween = TweenService:Create(hrp, tweenInfo, {CFrame = goalCFrame})
                 tween:Play()
                 tween.Completed:Wait()
                 mapUnlockVisitedParts[part] = true
