@@ -1,1 +1,1460 @@
-([[This file was protected with MoonSec V3]]):gsub('.+', (function(a) _XJOtaDuqmzeE = a; end)); return(function(t,...)local u;local d;local c;local r;local f;local o;local e=24915;local n=0;local l={};while n<806 do n=n+1;while n<0xd4 and e%0x1012<0x809 do n=n+1 e=(e+741)%28807 local a=n+e if(e%0x1f10)<0xf88 then e=(e+0x179)%0x5b9a while n<0x75 and e%0x4278<0x213c do n=n+1 e=(e*459)%18322 local a=n+e if(e%0x47b4)>0x23da then e=(e+0x2cc)%0x9f6f local e=58714 if not l[e]then l[e]=0x1 r={};end elseif e%2~=0 then e=(e+0x122)%0x5d81 local e=99774 if not l[e]then l[e]=0x1 d=function(d)local e=0x01 local function l(n)e=e+n return d:sub(e-n,e-0x01)end while true do local n=l(0x01)if(n=="\5")then break end local e=c.byte(l(0x01))local e=l(e)if n=="\2"then e=r.KIGxvbkS(e)elseif n=="\3"then e=e~="\0"elseif n=="\6"then f[e]=function(n,e)return t(8,nil,t,e,n)end elseif n=="\4"then e=f[e]elseif n=="\0"then e=f[e][l(c.byte(l(0x01)))];end local n=l(0x08)r[n]=e end end end else e=(e-0x51)%0x4870 n=n+1 local e=34533 if not l[e]then l[e]=0x1 o="\4\8\116\111\110\117\109\98\101\114\75\73\71\120\118\98\107\83\0\6\115\116\114\105\110\103\4\99\104\97\114\73\75\107\74\97\101\68\102\0\6\115\116\114\105\110\103\3\115\117\98\100\104\100\87\75\122\109\104\0\6\115\116\114\105\110\103\4\98\121\116\101\122\121\97\83\113\86\77\105\0\5\116\97\98\108\101\6\99\111\110\99\97\116\65\106\98\66\66\77\120\100\0\5\116\97\98\108\101\6\105\110\115\101\114\116\107\115\121\66\80\69\121\85\5";end end end elseif e%2~=0 then e=(e-0x3d9)%0x289 while n<0x216 and e%0x3560<0x1ab0 do n=n+1 e=(e-422)%29338 local d=n+e if(e%0x9d0)<0x4e8 then e=(e*0x20c)%0xbe64 local e=71001 if not l[e]then l[e]=0x1 f=getfenv and getfenv();end elseif e%2~=0 then e=(e-0x289)%0xbf98 local e=37929 if not l[e]then l[e]=0x1 end else e=(e+0x32a)%0xb774 n=n+1 local e=99421 if not l[e]then l[e]=0x1 c=string;end end end else e=(e-0x2a2)%0x1f68 n=n+1 while n<0x22c and e%0x802<0x401 do n=n+1 e=(e-820)%45891 local d=n+e if(e%0x3bb8)<0x1ddc then e=(e*0x36b)%0xa4b2 local e=13938 if not l[e]then l[e]=0x1 f=(not f)and _ENV or f;end elseif e%2~=0 then e=(e+0x16e)%0x6ee8 local e=87287 if not l[e]then l[e]=0x1 end else e=(e+0x261)%0x8ba3 n=n+1 local e=28599 if not l[e]then l[e]=0x1 u=tonumber;end end end end end e=(e+366)%41041 end d(o);local n={};for e=0x0,0xff do local l=r.IKkJaeDf(e);n[e]=l;n[l]=e;end local function a(e)return n[e];end local c=(function(o,t)local c,l=0x01,0x10 local n={{},{},{}}local f=-0x01 local e=0x01 local d=o while true do n[0x03][r.dhdWKzmh(t,e,(function()e=c+e return e-0x01 end)())]=(function()f=f+0x01 return f end)()if f==(0x0f)then f=""l=0x000 break end end local f=#t while e<f+0x01 do n[0x02][l]=r.dhdWKzmh(t,e,(function()e=c+e return e-0x01 end)())l=l+0x01 if l%0x02==0x00 then l=0x00 r.ksyBPEyU(n[0x01],(a((((n[0x03][n[0x02][0x00]]or 0x00)*0x10)+(n[0x03][n[0x02][0x01]]or 0x00)+d)%0x100)));d=o+d;end end return r.AjbBBMxd(n[0x01])end);d(c(196,"7yXYMmTR3vZ0%Gc)My"));d(c(126,"!*bH?p^KM_CGO>ThMb:Ch_KOhOKphOKK_^KM5GMpkC^?h^Mp*CMCv>Kbh(HeGHCY*p_pbbC?H?_G**C*gp_>*pG>OGp*HTObHGOb?COOp?_hH^>MpC>>?G^Mh(>h^bTbpGTbp>K>^K>>KbTH^Ch2p^hGp^hp^b/*^G_?*C1pKG*mM^CpMT{MMGb=_CR^Kbh>KM*KMOb?CbO,?CHHCKHMGHb>GTb>ObH*G??{GG?KC_?TO_?hCM?OCMTOK*?b>HpHT^^HTMbGTh?Th*K*>_KTTG^(MT*<tpK*hGMM7?MOT?K*T*Mb;hK_CMb_THKTjbKOh_MpU_CHhO?dO^G?H*GKHCGCHHGCHp_p?__G?pO*HHOc?>^ TK>M?KOCp^>*h?Tp^)T?pK>G^pGTKMT?^MhH?TTG^O_g*?wpMnX?KKhGMp,T^hhKKOa>Kp*hMbG8HHbYC?*>C?bOK>*TG^*bMT*^CvVC?T>bO*HpGTH_G_?OCTpL>*pEC^?^GG?(^Chy>Gp*T^pOKGpTT^^GT>KbOKp*TpKZhCp^hhpC_K"));local e=(-7346+(function()local l,n=0,1;(function(n,e,l)n(l(n,e,e),e(n,e,l),e(n,e,n))end)(function(e,d,f)if l>173 then return f end l=l+1 n=(n*708)%17232 if(n%1164)>=582 then n=(n*982)%13705 return e(f(e,f and e,f and d),f(d and e,e,e),e(f,e,d and d))else return f end return e end,function(f,d,e)if l>329 then return e end l=l+1 n=(n+406)%39339 if(n%1368)>=684 then n=(n-55)%43109 return e else return e(e(e,e,e),d(d and f,e,d),e(d,f and e,f))end return d(f(e,e,e and f),f(f,e,e),d(e and e,e,f))end,function(f,d,e)if l>414 then return e end l=l+1 n=(n+619)%41114 if(n%384)<192 then return f(e(f,e,e)and d(f,f,e),e(e,f,e),f(d,f,e)and d(e,e,f))else return e end return d end)return n;end)())local a=r.rQWZiOwX or r.BzdfoHcb;local de=(getfenv)or(function()return _ENV end);local g=1;local o=4;local f=2;local d=3;local function fe(k,...)local s=c(e,"6J^UiqNf!:#>7cD)Jfr#n)JiJ#^U^U^!^c#^#:#q#)>#i7ffqqq#q)>!cJcfDN:!DUD>)U)J>JKc)7JU7qJ#^J^U^c^U^NU7U^UN)fqUi#q#qUJoi^N:NDf^q7fUfNU!fUqq^!UfUJUNU>!!>:>D>)#f>Dcnc:cJc(cff!fD!J!N!>D)c7:>#N#i#:#DFU^iJDU>^7UDiicfc)DnDqD#qNqqNNNU3iJ!LcJ^Jff^N^f>ff!i:iN>:Dff#!!J>^::>^>N#)NcfNfNf>!yD#)7MJbUp>:)#c#!#c>^)D^JUqJ:UCi^i>iUi^i:D#qU)U)!)cqqN#fDf#!N!)iw!D:!:!#!#^:)#)>J7f>U7>7qc+ci!>cNcNDUD>D:Dc7!>UDc.>jUy:J!JNcN^)^)DqiWUiiNi^iiq7n!Uiq>N>iifNN!^>!U!i!):J!f!Dq7qU!!#:#f#!>)>NfN7ccqcU!#DUc7cD:D)KD:)Nzm>f)^G^J>Jf^icq^c^^UNU^UDif)!iUi>q:q)Nq^i)7JJXqB#r)N#f#:U!):7!U:f#:#)##>q>:#i7i7q7ic^N#f>fUf!fcDJc)cND <#)7DiJ#J>J7^DJDLU7iDJ7cc^cf^:q3qqq:iUq#qcqDqffc!-f7!N!i:qN):q:q:##y#D!N>D7U7Nq#NDNUN!Nc7!c!)JDc)#ci)D)D0DA!AqJqJf^cJc^J7Uc^77cJcN^fi)i!i>q>iiNqq)f7Ncf)JUU^J7^J^Nf>#^:D#c#D>^N::#>7>D7^!^c#7)DUc)D>)i#q)7(iM^sfyfJJ/)7D>U U>77J7NJ)U!UDic))qfi7N0q7N!fJ^^f:fJ!^!>!i:^!#:ci)!#:#>U#)>7Nc7!!!!#:i:i:D: DiD7:)D7)^)q)>)c8)cX7f)7JcJ>J7UU^#D#iiiiUcU)qfictcN>NNfJfU^Nf!fJfD!!U):f!7#d:7#!>JfSi!ffqJqNq>>:cic)!)cqD>DU#UD#):)U)#?fWcx)JD^iJ#JDc)^#U>UciO)!q^qqq_q#q!JNN)N!NDfc^)!ff7:(!7:!#JNlNDU7iJiNi>NDqqq#q)NqN:NDfU!#!^!^!f!7:D:N:>#%>f>)#)>i>:7#7U7!7c)!D^c7DJDN)J)%)N)#tJ*ijciJJUJ!Jc^!^f^cUJU#NDi3iqi#qNqiq#qDNU#iNcf^fffc!J!N!>#^#f:#:)#i#)#D>U>!cccc7f77cJcNc>D:Dq)7Fi)i)>)DG!X!YcJ^Jf^^^J^N^>U^UqU7U)NiN3iDqiq!qcN^fNN7!U!cf>!^!q:C!):i::>D>c#!#)>^>:>77#7Nccc!cqcDc)DfD:DD)U)!J7R^w:97JqJNJc^I^fqU^)UfU:U)iUi!icNif7q7NqNNN)f=fqf#:)!q!::^:U:7:c>j#f>^>f>N>)7Hc>7#cKcic:cDDfJ>Dc)^)fJ^aJmfY>Jii!J#J)^iif^DUiU!UcfNifq0qJq:q>NPNqN##JfifcfD!i!!!):^:c>q#J###>7>>q>>>)7i7:c^=Nc!ccD^x^D7)^)N))UUtq9#C)U^J:J)^UU#U)U^U>U7i:iNi>qaNffUq)N:N:f!fUf!fc!^:i!7:q:N:c#Q#N##7J7N>:7^7U777cc^cf)7D>DND))y):)#m#_i3)^^JUJ7Jci:^f^cUJUNU>iif!i#i)qi!KqDNiN!f)!iff!Q!J!#!>:{:q>#7q#i#c#D>f>!7!7^DcD!cJc#c>?fDqD>D))>):v^UNn!dcJ^UDJ7^^^N^)NUUqU#U)NDi:i)qUN#N)N^N>N7f:fNf>!H:f#U!)::::#)#U#!#c>^cJ>77q7N7ccFcNc#DqRDD:)^)U)!)c/UYfAcJJJNJ)^<^q^#UIUiU:UDiUfqicqfqfNhNJNNN>ft!ff#!i!i!#!D:q:!#U>J#f>J>JD:>>7J7q7#7)c!k7cDDUD!^*)^)!)7JUJ!x>JqJq^^J)^i^:ihi7U!iUi^q:i7qJqNq>ffNqN)N)fNf:f)!U:#:):^:7:7#^#N#>>t7fcU>)7#7:cDcUc!ccD^)JD7)N)N)cznXNW#T)q J:JD^U^:^cU^UfUDiJiNi>q:qqq#q)NqNDNDfUf!DcDqD!)!)c:f#J#t#q##Fi^fJDUY47^77Dc#cfc7DJq#q#qDN#NfNJN:f>j)J!J!Jc^^!^!#U>:UNNiJi>i#i)qi747>7ic7c.c#f!!n!J!N!>af)N/7oc#q#D#D>U>!^#^UU>^)U:cfJfD<DqD#UqqqN^N#N!N7^c!N!NU7!f!>:):U:cq##J>9##>J>D7i7Ncqc>:#:J>fDD)U)#)f)!{^v4>DJJJf^Jc^J:^!^^^:UNU7UDicqUi:ic2Dq:NfN)^^fqf>!!iiJ7^c^q^#^):^qD>JNcf_f^>N!^!q!Nc::q:i:#f#f)!i:>#I:U:!:c#U#f#7>J>!Di7y7N7#7)cic:cDDU^7Dc)^)f)DyJ4fj>JNUqJ#J)^ii!^DUiU!Uci^i>f)qJqNq>f)NqN>N)f#::fD!i!!#7:^:!:7#J#N#)DU>q>#>)DU7:7)cU)!c)D^D:D7)^)N{IT?JfJJm)J!J:^^^U^!^cU^fJU7iUiNi)q8q:q#NU:fN:NDfU:^fc!U!f:D#U:N#J#I#!###)>ic:cq7U7)7ccfcfDUDJ)!)J)8)D)#{!}is:mDJUUiJc^:^fUqUJUNU>i0i7i#qqqiq:qDNqN!fUf)ff!^!J::!>:J:q:>:)#!c7#D>U>!c,7^7!77cq_:c>DkDqHiD))q):)DUU !JiJ^JfJ7^J^Ni>U!UqiJU)i>i:q9qUqD:iN^NcN7!:fNf7!<!7!#:U7f:::D#U7a#c>U>f72)i7N7>c.D)c#DkDiD:)c)U)))czU+fh7JJJNqN^v^7^#UJUiU:UDi:N>icqiqfNfNJNfN>fJfqfD>^!i!:!D:D:!:D#^#f>>>J>!>>7/7q7#7)ciJicDDqD!D))^)f)7<qU:d>J/JqUDJ)^q^:i9iqU!U)i^ici7qJqNNcf:NqNcN)f7f:fD!U!!:J:^:::7#U#N#7>z>q7:>)7N7:7DcUc!ccD^^^D7)U)N)cKO?qg#I)qsJ:JD^U^:^cU^UfUciJiNi>qUqqq#q)Nqf/NDfUf!7q)N)>)7c!)>M)#J#:###)>i^gJ)U1^c7D)Ucfc7DJiDq)NiNqNcU:UUU!fDfi!>:J!f!::q:)Ni:D#)>^f:7J>qc%!c:NcY:)#qD>ci>Uc):J:v:q:#>J>7#:#D>U>#>c7^7fD7DqcNc>D8DqD#)h)iF>J!{Uu#5cJqJfJ7^J^NUNUwUqU#iJiii:iDqUq:qcN^NfN7fJfNf>!<:N!#!):i:#:D#U#!#c>^>f>77J7N7cc*cqc#D^DqDDDD)U)!NcNqN!f!fc^JJ>^K^qU7iJUiU:UDiqi!icq^q:!qNJNfN>fkfqf#f)!i7c!D:U:!:)#^#!#7>f7i>>7^7qcU7)cqc:cDDUD7^n)^)f)7S#&Ne7JjU>i:J)^q^:UNUUU:UciUifq;!iqNq>NHNcN#fTfif:!U!U!#!c:^:f:7#J#N>#>d>f>#7A7i7:7DcUJUccDiDfDD)J)N)>boiJR#g)JiJ#JD^U^!^DU^UfU7iiiNi>qEqNNJq)NiN:>NDfD7Dc7:D7+w:^DN:>#G#qJ^^U^!^:UJ)c)f)7iiU!qU_)icqiNiqcN)NJf:f7fU!qf>!7:<:>:J:)##N:#U>i>ffD!q!>:J:f:c#U#:#)DfD^)i)U)J)D7:J^WcJqJU^JJ>^^)JU:UJUfi:=#i!i#i>qUNf^!N>NifJf>iJNUNqNiN>f:!Uf#U>iUiii:iD>#>:7#7fNcN7fJfN!c:!!q!#!):f:::D#U7!>i>^>f>77J7N77cnDf)ic)DND:)y)U)!)c8^o>07JJJNJc^w^q^#^)i_U:UDiUi!icq^qfq7NNNNN>f fNf#f)!i!:!D:U:!:c#^#f");local n=0;r.z_SaCYOu(function()r.ntJUCbmU()n=n+1 end)local function e(l,e)if e then return n end;n=l+n;end local l,n,h=t(0,t,e,s,r.zyaSqVMi);local function c()local l,n=r.zyaSqVMi(s,e(1,3),e(5,6)+2);e(2);return(n*256)+l;end;local b=true;local b=0 local function y()local e=n();local n=n();local d=1;local f=(l(n,1,20)*(2^32))+e;local e=l(n,21,31);local n=((-1)^l(n,32));if(e==0)then if(f==b)then return n*0;else e=1;d=0;end;elseif(e==2047)then return(f==0)and(n*(1/0))or(n*(0/0));end;return r.ZDMFcVlh(n,e-1023)*(d+(f/(2^52)));end;local p=n;local function _(n)local l;if(not n)then n=p();if(n==0)then return'';end;end;l=r.dhdWKzmh(s,e(1,3),e(5,6)+n-1);e(n)local e=""for n=(1+b),#l do e=e..r.dhdWKzmh(l,n,n)end return e;end;local p=#r.EwGoiYdo(u('\49.\48'))~=1 local e=n;local function ee(...)return{...},r.TtspDbUX('#',...)end local function ne()local u={};local b={};local e={};local s={u,b,nil,e};local e=n()local a={}for f=1,e do local l=h();local e;if(l==2)then e=(h()~=#{});elseif(l==0)then local n=y();if p and r.lPsLiTqY(r.EwGoiYdo(n),'.(\48+)$')then n=r.EM_hpJqJ(n);end e=n;elseif(l==1)then e=_();end;a[f]=e;end;for s=1,n()do local e=h();if(l(e,1,1)==0)then local t=l(e,2,3);local r=l(e,4,6);local e={c(),c(),nil,nil};if(t==0)then e[d]=c();e[o]=c();elseif(t==#{1})then e[d]=n();elseif(t==k[2])then e[d]=n()-(2^16)elseif(t==k[3])then e[d]=n()-(2^16)e[o]=c();end;if(l(r,1,1)==1)then e[f]=a[e[f]]end if(l(r,2,2)==1)then e[d]=a[e[d]]end if(l(r,3,3)==1)then e[o]=a[e[o]]end u[s]=e;end end;for e=1,n()do b[e-(#{1})]=ne();end;s[3]=h();return s;end;local function le(l,e,n)local f=e;local f=n;return u(r.lPsLiTqY(r.lPsLiTqY(({r.z_SaCYOu(l)})[2],e),n))end local function b(m,k,h)local function fe(...)local c,p,y,ne,_,n,u,le,j,z,s,l;local e=0;while-1<e do if e>2 then if 4<e then if e>=4 then for n=28,79 do if 6~=e then l=t(7);break;end;e=-2;break;end;else e=-2;end else if e~=2 then for n=10,76 do if e>3 then z=r.TtspDbUX('#',...)-1;s={};break;end;le={};j={...};break;end;else z=r.TtspDbUX('#',...)-1;s={};end end else if e<1 then c=t(6,29,1,30,m);p=t(6,56,2,23,m);else if e~=-3 then for l=39,52 do if e~=1 then n=-41;u=-1;break;end;y=t(6,85,3,10,m);_=ee ne=0;break;end;else y=t(6,85,3,10,m);_=ee ne=0;end end end e=e+1;end;for e=0,z do if(e>=y)then le[e-y]=j[e+1];else l[e]=j[e+1];end;end;local e=z-y+1 local e;local t;local function y(...)while true do end end while true do if n<-40 then n=n+42 end e=c[n];t=e[g];if t>35 then if t>=54 then if t<=62 then if 57>=t then if 55>=t then if 50~=t then for c=45,73 do if t>54 then local r,c,b,k,a,h,u,s,p;local t=0;while t>-1 do if t<=2 then if t<=0 then r=l;else if t>1 then k=c[f];a=c[o];h=d;else c=e;b=n;end end else if 4<t then if 5==t then n=p;else t=-2;end else if 3==t then u=r[k];s=r[a];else p=u==s and c[h]or 1+b;end end end t=t+1 end break;end;if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;break;end;else local r,c,k,a,b,u,h,p,s;local t=0;while t>-1 do if t<=2 then if t<=0 then r=l;else if t>1 then a=c[f];b=c[o];u=d;else c=e;k=n;end end else if 4<t then if 5==t then n=s;else t=-2;end else if 3==t then h=r[a];p=r[b];else s=h==p and c[u]or 1+k;end end end t=t+1 end end else if t~=55 then repeat if 57>t then l[e[f]]=(e[d]~=0);n=n+1;break;end;local t,r,a,o,c;local n=0;while n>-1 do if 3>n then if 0<n then if n<2 then r=f;else a=d;end else t=e;end else if 4<n then if n>2 then repeat if 6~=n then l(c,o);break;end;n=-2;until true;else l(c,o);end else if-1<=n then for e=29,58 do if 3~=n then c=t[r];break;end;o=t[a];break;end;else c=t[r];end end end n=n+1 end until true;else l[e[f]]=(e[d]~=0);n=n+1;end end else if t>59 then if t<61 then do return end;else if t~=62 then local f=e[f]local d={l[f](a(l,f+1,e[d]))};local n=0;for e=f,e[o]do n=n+1;l[e]=d[n];end else if l[e[f]]then n=n+1;else n=e[d];end;end end else if 55<t then repeat if t<59 then local n=e[f]local d={l[n](a(l,n+1,e[d]))};local f=0;for e=n,e[o]do f=f+1;l[e]=d[f];end break;end;do return l[e[f]]end until true;else do return l[e[f]]end end end end else if t<67 then if 65<=t then if t>=62 then repeat if t~=65 then local u=p[e[d]];local a;local t={};a=r.oOrkoFhB({},{__index=function(n,e)local e=t[e];return e[1][e[2]];end,__newindex=function(l,e,n)local e=t[e]e[1][e[2]]=n;end;});for f=1,e[o]do n=n+1;local e=c[n];if e[g]==4 then t[f-1]={l,e[d]};else t[f-1]={k,e[d]};end;s[#s+1]=t;end;l[e[f]]=b(u,a,h);break;end;local e=e[f]l[e](l[e+1])until true;else local u=p[e[d]];local a;local t={};a=r.oOrkoFhB({},{__index=function(n,e)local e=t[e];return e[1][e[2]];end,__newindex=function(l,e,n)local e=t[e]e[1][e[2]]=n;end;});for f=1,e[o]do n=n+1;local e=c[n];if e[g]==4 then t[f-1]={l,e[d]};else t[f-1]={k,e[d]};end;s[#s+1]=t;end;l[e[f]]=b(u,a,h);end else if t~=61 then for n=44,75 do if t~=63 then h[e[d]]=l[e[f]];break;end;local f=e[f]local d={l[f](l[f+1])};local n=0;for e=f,e[o]do n=n+1;l[e]=d[n];end break;end;else local f=e[f]local d={l[f](l[f+1])};local n=0;for e=f,e[o]do n=n+1;l[e]=d[n];end end end else if 69>t then if 68~=t then l[e[f]]=h[e[d]];else local n=e[f]local d={l[n](l[n+1])};local f=0;for e=n,e[o]do f=f+1;l[e]=d[f];end end else if t>69 then if 66<=t then repeat if t~=71 then local n=e[f];do return l[n](a(l,n+1,e[d]))end;break;end;l[e[f]]=k[e[d]];until true;else l[e[f]]=k[e[d]];end else l[e[f]]=(e[d]~=0);end end end end else if 45>t then if 39<t then if 41>=t then if t>=37 then repeat if t<41 then local e=e[f]l[e](l[e+1])break;end;l[e[f]]=b(p[e[d]],nil,h);until true;else local e=e[f]l[e](l[e+1])end else if t>=43 then if 41<t then repeat if 43~=t then local n=e[f]local f,e=_(l[n](a(l,n+1,e[d])))u=e+n-1 local e=0;for n=n,u do e=e+1;l[n]=f[e];end;break;end;local t;l(e[f],e[d]);n=n+1;e=c[n];t=e[f]l[t](l[t+1])n=n+1;e=c[n];do return end;until true;else local t;l(e[f],e[d]);n=n+1;e=c[n];t=e[f]l[t](l[t+1])n=n+1;e=c[n];do return end;end else local u=p[e[d]];local a;local t={};a=r.oOrkoFhB({},{__index=function(n,e)local e=t[e];return e[1][e[2]];end,__newindex=function(l,e,n)local e=t[e]e[1][e[2]]=n;end;});for f=1,e[o]do n=n+1;local e=c[n];if e[g]==4 then t[f-1]={l,e[d]};else t[f-1]={k,e[d]};end;s[#s+1]=t;end;l[e[f]]=b(u,a,h);end end else if 38<=t then if t~=37 then for r=27,91 do if 39~=t then for t=0,1 do if t==0 then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];else if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;end end break;end;do return end;break;end;else for t=0,1 do if t==0 then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];else if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;end end end else if t<37 then local n=e[f]l[n]=l[n](a(l,n+1,e[d]))else for t=0,2 do if t>0 then if 0~=t then for r=17,68 do if 1~=t then if l[e[f]]then n=n+1;else n=e[d];end;break;end;l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];break;end;else l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];end else l[e[f]]=h[e[d]];n=n+1;e=c[n];end end end end end else if t>=49 then if t<=50 then if 50~=t then local n=e[f]local f,e=_(l[n](a(l,n+1,e[d])))u=e+n-1 local e=0;for n=n,u do e=e+1;l[n]=f[e];end;else local t;for o=0,1 do if o>=-1 then for r=46,62 do if 1>o then t=e[f]l[t]=l[t]()n=n+1;e=c[n];break;end;if l[e[f]]then n=n+1;else n=e[d];end;break;end;else if l[e[f]]then n=n+1;else n=e[d];end;end end end else if 52<=t then if 52~=t then local e=e[f];do return a(l,e,u)end;else l[e[f]]=l[e[d]];end else n=e[d];end end else if 47>t then if t>41 then repeat if t>45 then local e=e[f]l[e]=l[e](a(l,e+1,u))break;end;local o,s,a,r,h,b,t,u;for t=0,2 do if t<1 then t=0;while t>-1 do if t>3 then if t<6 then if 2<=t then repeat if t>4 then b=o[s];break;end;h=r[o[a]];until true;else h=r[o[a]];end else if t>6 then t=-2;else l[b]=h;end end else if t<2 then if t>=-1 then for n=12,53 do if 0<t then s=f;break;end;o=e;break;end;else o=e;end else if t>=-2 then for e=47,73 do if t<3 then a=d;break;end;r=l;break;end;else r=l;end end end t=t+1 end n=n+1;e=c[n];else if-2<=t then repeat if 2~=t then u=e[f]l[u]=l[u]()n=n+1;e=c[n];break;end;if l[e[f]]then n=n+1;else n=e[d];end;until true;else if l[e[f]]then n=n+1;else n=e[d];end;end end end until true;else local o,s,h,r,u,b,t,a;for t=0,2 do if t<1 then t=0;while t>-1 do if t>3 then if t<6 then if 2<=t then repeat if t>4 then b=o[s];break;end;u=r[o[h]];until true;else u=r[o[h]];end else if t>6 then t=-2;else l[b]=u;end end else if t<2 then if t>=-1 then for n=12,53 do if 0<t then s=f;break;end;o=e;break;end;else o=e;end else if t>=-2 then for e=47,73 do if t<3 then h=d;break;end;r=l;break;end;else r=l;end end end t=t+1 end n=n+1;e=c[n];else if-2<=t then repeat if 2~=t then a=e[f]l[a]=l[a]()n=n+1;e=c[n];break;end;if l[e[f]]then n=n+1;else n=e[d];end;until true;else if l[e[f]]then n=n+1;else n=e[d];end;end end end end else if t<48 then if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;else l[e[f]]=k[e[d]];end end end end end else if 17<t then if 27<=t then if t<=30 then if t>28 then if 25<=t then repeat if t>29 then for t=0,3 do if 2<=t then if t>=-1 then repeat if 2~=t then if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;break;end;l[e[f]]=h[e[d]];n=n+1;e=c[n];until true;else l[e[f]]=h[e[d]];n=n+1;e=c[n];end else if-4<t then for o=25,70 do if t~=1 then l[e[f]]=(e[d]~=0);n=n+1;e=c[n];break;end;h[e[d]]=l[e[f]];n=n+1;e=c[n];break;end;else h[e[d]]=l[e[f]];n=n+1;e=c[n];end end end break;end;local e=e[f]l[e]=l[e]()until true;else for t=0,3 do if 2<=t then if t>=-1 then repeat if 2~=t then if(l[e[f]]==e[o])then n=n+1;else n=e[d];end;break;end;l[e[f]]=h[e[d]];n=n+1;e=c[n];until true;else l[e[f]]=h[e[d]];n=n+1;e=c[n];end else if-4<t then for o=25,70 do if t~=1 then l[e[f]]=(e[d]~=0);n=n+1;e=c[n];break;end;h[e[d]]=l[e[f]];n=n+1;e=c[n];break;end;else h[e[d]]=l[e[f]];n=n+1;e=c[n];end end end end else if 25<=t then for r=23,98 do if 27<t then local e=e[f]l[e]=l[e](a(l,e+1,u))break;end;local t,u;for r=0,6 do if 2<r then if 5<=r then if 2<=r then repeat if 6>r then t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];break;end;l(e[f],e[d]);until true;else t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];end else if r>2 then repeat if r~=4 then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];break;end;l[e[f]]=h[e[d]];n=n+1;e=c[n];until true;else l[e[f]]=h[e[d]];n=n+1;e=c[n];end end else if r<1 then t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];else if r>=-1 then repeat if 2~=r then l(e[f],e[d]);n=n+1;e=c[n];break;end;t=e[f]l[t]=l[t](a(l,t+1,e[d]))n=n+1;e=c[n];until true;else t=e[f]l[t]=l[t](a(l,t+1,e[d]))n=n+1;e=c[n];end end end end break;end;else local t,u;for r=0,6 do if 2<r then if 5<=r then if 2<=r then repeat if 6>r then t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];break;end;l(e[f],e[d]);until true;else t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];end else if r>2 then repeat if r~=4 then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];break;end;l[e[f]]=h[e[d]];n=n+1;e=c[n];until true;else l[e[f]]=h[e[d]];n=n+1;e=c[n];end end else if r<1 then t=e[f];u=l[e[d]];l[t+1]=u;l[t]=u[e[o]];n=n+1;e=c[n];else if r>=-1 then repeat if 2~=r then l(e[f],e[d]);n=n+1;e=c[n];break;end;t=e[f]l[t]=l[t](a(l,t+1,e[d]))n=n+1;e=c[n];until true;else t=e[f]l[t]=l[t](a(l,t+1,e[d]))n=n+1;e=c[n];end end end end end end else if 32>=t then if 29<t then repeat if 32~=t then local n=e[f]l[n]=l[n](a(l,n+1,e[d]))break;end;if l[e[f]]then n=n+1;else n=e[d];end;until true;else local n=e[f]l[n]=l[n](a(l,n+1,e[d]))end else if 33>=t then local n=e[f];do return l[n](a(l,n+1,e[d]))end;else if 30<=t then repeat if 35>t then local e=e[f];do return a(l,e,u)end;break;end;local f=e[f];local c=e[o];local t=f+2 local f={l[f](l[f+1],l[t])};for e=1,c do l[t+e]=f[e];end;local f=f[1]if f then l[t]=f n=e[d];else n=n+1;end;until true;else local e=e[f];do return a(l,e,u)end;end end end end else if 21>=t then if 20>t then if 19==t then local n=e[f];local f=l[e[d]];l[n+1]=f;l[n]=f[e[o]];else l[e[f]]=h[e[d]];end else if t>17 then for c=47,65 do if 20<t then if not l[e[f]]then n=n+1;else n=e[d];end;break;end;do return l[e[f]]end break;end;else if not l[e[f]]then n=n+1;else n=e[d];end;end end else if 24>t then if 18<=t then repeat if 23>t then h[e[d]]=l[e[f]];break;end;local t,r,b,k,s;for h=0,4 do if 1<h then if h>2 then if 2<h then repeat if h~=3 then if not l[e[f]]then n=n+1;else n=e[d];end;break;end;t=e[f]l[t]=l[t](a(l,t+1,u))n=n+1;e=c[n];until true;else if not l[e[f]]then n=n+1;else n=e[d];end;end else t=e[f]b,k=_(l[t](a(l,t+1,e[d])))u=k+t-1 s=0;for e=t,u do s=s+1;l[e]=b[s];end;n=n+1;e=c[n];end else if h>=-2 then repeat if 1~=h then t=e[f];r=l[e[d]];l[t+1]=r;l[t]=r[e[o]];n=n+1;e=c[n];break;end;l(e[f],e[d]);n=n+1;e=c[n];until true;else t=e[f];r=l[e[d]];l[t+1]=r;l[t]=r[e[o]];n=n+1;e=c[n];end end end until true;else h[e[d]]=l[e[f]];end else if 24>=t then local t,r;l[e[f]]=h[e[d]];n=n+1;e=c[n];t=e[f];r=l[e[d]];l[t+1]=r;l[t]=r[e[o]];n=n+1;e=c[n];l(e[f],e[d]);n=n+1;e=c[n];t=e[f];do return l[t](a(l,t+1,e[d]))end;n=n+1;e=c[n];t=e[f];do return a(l,t,u)end;n=n+1;e=c[n];do return end;else if t<26 then local o,h,r,u,s,t,a;for t=0,1 do if 0<t then a=e[f]l[a](l[a+1])else t=0;while t>-1 do if 2>=t then if 0<t then if t~=-1 then repeat if 2~=t then h=f;break;end;r=d;until true;else h=f;end else o=e;end else if 5>t then if t>=2 then for e=31,69 do if 4>t then u=o[r];break;end;s=o[h];break;end;else u=o[r];end else if t>1 then for e=33,94 do if t<6 then l(s,u);break;end;t=-2;break;end;else t=-2;end end end t=t+1 end n=n+1;e=c[n];end end else local e=e[f]l[e]=l[e]()end end end end end else if 9>t then if 3>=t then if t<=1 then if t~=1 then n=e[d];else l[e[f]]=b(p[e[d]],nil,h);end else if-1<=t then repeat if t<3 then local f=e[f];local n=l[e[d]];l[f+1]=n;l[f]=n[e[o]];break;end;l[e[f]]=l[e[d]][e[o]];until true;else l[e[f]]=l[e[d]][e[o]];end end else if t>=6 then if 7>t then local r,c,a,b,u,p,h,s,k;local t=0;while t>-1 do if t>2 then if 4<t then if 2~=t then for e=29,95 do if 5<t then t=-2;break;end;n=k;break;end;else t=-2;end else if t>-1 then repeat if 3~=t then k=h==s and c[p]or 1+a;break;end;h=r[b];s=r[u];until true;else h=r[b];s=r[u];end end else if 0<t then if t~=-3 then for l=35,75 do if t~=2 then c=e;a=n;break;end;b=c[f];u=c[o];p=d;break;end;else c=e;a=n;end else r=l;end end t=t+1 end else if t>=6 then repeat if 7<t then l[e[f]]=l[e[d]][e[o]];break;end;l(e[f],e[d]);until true;else l(e[f],e[d]);end end else if t>1 then repeat if t<5 then local c,r,a,t,o,h;local n=0;while n>-1 do if n<4 then if n>=2 then if 0~=n then repeat if 3>n then a=d;break;end;t=l;until true;else t=l;end else if n>-1 then repeat if n~=0 then r=f;break;end;c=e;until true;else r=f;end end else if 5<n then if n==7 then n=-2;else l[h]=o;end else if 3<n then repeat if n~=4 then h=c[r];break;end;o=t[c[a]];until true;else o=t[c[a]];end end end n=n+1 end break;end;l[e[f]]=(e[d]~=0);n=n+1;until true;else l[e[f]]=(e[d]~=0);n=n+1;end end end else if t>12 then if t<15 then if t>9 then repeat if 13<t then local t=l[e[o]];if t then n=n+1;else l[e[f]]=t;n=e[d];end;break;end;local t=l[e[o]];if t then n=n+1;else l[e[f]]=t;n=e[d];end;until true;else local t=l[e[o]];if t then n=n+1;else l[e[f]]=t;n=e[d];end;end else if 15>=t then l[e[f]]=(e[d]~=0);else if 14<=t then repeat if t~=16 then local f=e[f];local c=e[o];local t=f+2 local f={l[f](l[f+1],l[t])};for e=1,c do l[t+e]=f[e];end;local f=f[1]if f then l[t]=f n=e[d];else n=n+1;end;break;end;if not l[e[f]]then n=n+1;else n=e[d];end;until true;else local t=e[f];local c=e[o];local f=t+2 local t={l[t](l[t+1],l[f])};for e=1,c do l[f+e]=t[e];end;local t=t[1]if t then l[f]=t n=e[d];else n=n+1;end;end end end else if t>10 then if 9<t then for o=20,87 do if t>11 then local t;for o=0,1 do if 1==o then t=e[f]l[t](l[t+1])else l(e[f],e[d]);n=n+1;e=c[n];end end break;end;local t;for o=0,1 do if o~=-1 then repeat if 0<o then t=e[f]l[t](l[t+1])break;end;l(e[f],e[d]);n=n+1;e=c[n];until true;else t=e[f]l[t](l[t+1])end end break;end;else local t;for o=0,1 do if o~=-1 then repeat if 0<o then t=e[f]l[t](l[t+1])break;end;l(e[f],e[d]);n=n+1;e=c[n];until true;else t=e[f]l[t](l[t+1])end end end else if t>=6 then repeat if t~=10 then local t,r;l[e[f]]=h[e[d]];n=n+1;e=c[n];t=e[f];r=l[e[d]];l[t+1]=r;l[t]=r[e[o]];n=n+1;e=c[n];l(e[f],e[d]);n=n+1;e=c[n];t=e[f];do return l[t](a(l,t+1,e[d]))end;n=n+1;e=c[n];t=e[f];do return a(l,t,u)end;n=n+1;e=c[n];do return end;break;end;for t=0,1 do if 0==t then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];else if l[e[f]]then n=n+1;else n=e[d];end;end end until true;else for t=0,1 do if 0==t then l[e[f]]=l[e[d]][e[o]];n=n+1;e=c[n];else if l[e[f]]then n=n+1;else n=e[d];end;end end end end end end end end n=1+n;end;end;return fe end;local f=0xff;local h={};local c=(1);local d='';(function(n)local l=n local t=0x00 local e=0x00 l={(function(c)if t>0x1f then return c end t=t+1 e=(e+0x79d-c)%0x4e return(e%0x03==0x1 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x39);end return true end)'nRDUv'and l[0x1](0x365+c))or(e%0x03==0x2 and(function(l)if not n[l]then e=e+0x01 n[l]=(0xd7);end return true end)'AKWHr'and l[0x3](c+0x316))or(e%0x03==0x0 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x85);d='\37';f={function()f()end};d=d..'\100\43';end return true end)'YeD_k'and l[0x2](c+0x1a5))or c end),(function(o)if t>0x30 then return o end t=t+1 e=(e+0xb9e-o)%0x40 return(e%0x03==0x0 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x63);f[2]=(f[2]*(le(function()h()end,a(d))-le(f[1],a(d))))+1;h[c]={};f=f[2];c=c+f;end return true end)'mOCGy'and l[0x1](0x1ae+o))or(e%0x03==0x1 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x8);d={d..'\58 a',d};h[c]=ne();c=c+((not r.HXexfgJF)and 1 or 0);d[1]='\58'..d[1];f[2]=0xff;end return true end)'uBiAX'and l[0x2](o+0x1b8))or(e%0x03==0x2 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x78);h[c]=de();c=c+f;end return true end)'jufmH'and l[0x3](o+0x2d7))or o end),(function(f)if t>0x23 then return f end t=t+1 e=(e+0x44b-f)%0x39 return(e%0x03==0x1 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x9f);end return true end)'jFyfr'and l[0x2](0x31c+f))or(e%0x03==0x0 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x40);end return true end)'PnYCd'and l[0x1](f+0x7d))or(e%0x03==0x2 and(function(l)if not n[l]then e=e+0x01 n[l]=(0x39);end return true end)'BGiYP'and l[0x3](f+0x27f))or f end)}l[0x1](0x824)end){};local e=b(a(h));return e(...);end return fe((function()local n={}local e=0x01;local l;if r.HXexfgJF then l=r.HXexfgJF(fe)else l=''end if r.lPsLiTqY(l,r.tzCXxxye)then e=e+0;else e=e+1;end n[e]=0x02;n[n[e]+0x01]=0x03;return n;end)(),...)end)((function(l,e,n,d,f,t)local t;if 4>l then if l<=1 then if-3<l then repeat if 1>l then do return e(1),e(4,f,d,n,e),e(5,f,d,n)end;break;end;do return function(n,e,l)if l then local e=(n/2^(e-1))%2^((l-1)-(e-1)+1);return e-e%1;else local e=2^(e-1);return(n%(e+e)>=e)and 1 or 0;end;end;end;until true;else do return function(n,e,l)if l then local e=(n/2^(e-1))%2^((l-1)-(e-1)+1);return e-e%1;else local e=2^(e-1);return(n%(e+e)>=e)and 1 or 0;end;end;end;end else if-1<l then for t=16,80 do if 3>l then do return 16777216,65536,256 end;break;end;do return e(1),e(4,f,d,n,e),e(5,f,d,n)end;break;end;else do return e(1),e(4,f,d,n,e),e(5,f,d,n)end;end end else if l>=6 then if 6>=l then do return f[n]end;else if l<8 then do return setmetatable({},{['__\99\97\108\108']=function(e,l,f,d,n)if n then return e[n]elseif d then return e else e[l]=f end end})end else do return n(l,nil,n);end end end else if l==4 then local l=d;local c,o,t=f(2);do return function()local e,f,d,n=e(n,l(l,l),l(l,l)+3);l(4);return(n*c)+(d*o)+(f*t)+e;end;end;else local l=d;do return function()local e=e(n,l(l,l),l(l,l));l(1);return e;end;end;end end end end),...)
+-- StrongholdModule.lua - Upload this to your GitHub repository
+local Module = {}
+
+-- Services
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local PathfindingService = game:GetService("PathfindingService")
+local CollectionService = game:GetService("CollectionService")
+local TeleportService = game:GetService("TeleportService")
+local VIM = game:GetService("VirtualInputManager")
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Items = workspace:WaitForChild("Items")
+local client = require(LocalPlayer.PlayerScripts.Client)
+
+-- Variables
+Module.webhookUrl = ""
+Module.userIdToPing = ""
+Module.currentDiamonds = 0
+Module.sessionGained = 0
+Module.initialDiamonds = 0
+Module.startTime = tick()
+Module.lastDiamondNotificationTime = 0
+Module.autoTeleportEnabled = false
+Module.enableMentions = true
+Module.enableUserPing = false
+
+Module.circleLoopActive = false
+Module.circleLoopConnection = nil
+Module.noStrongholdFallbackEnabled = false
+Module.manuallyStoppedLoop = false
+
+Module.CULTIST_KILLER_ENABLED = false
+Module.cultistKillerConnection = nil
+Module.lastCultistKillTime = 0
+Module.CULTIST_KILL_COOLDOWN = 1
+Module.diamondChestConnection = nil
+Module.diamondChestDetected = false
+Module.diamondChestPosition = nil
+Module.teleportAttemptCount = 0
+Module.maxTeleportAttempts = 3
+Module.lastTeleportAttemptTime = 0
+Module.teleportCooldown = 2
+
+Module.inventoryItems = {}
+Module.currentEquippedItem = "None"
+
+Module.hotkeys = {
+    [1] = Enum.KeyCode.One,
+    [2] = Enum.KeyCode.Two,
+    [3] = Enum.KeyCode.Three,
+    [4] = Enum.KeyCode.Four,
+    [5] = Enum.KeyCode.Five,
+    [6] = Enum.KeyCode.Six,
+    [7] = Enum.KeyCode.Seven,
+    [8] = Enum.KeyCode.Eight,
+    [9] = Enum.KeyCode.Nine,
+    [10] = Enum.KeyCode.Zero
+}
+
+Module.STRONGHOLD_COLORS = {
+    Color3.fromRGB(195, 255, 0),
+    Color3.fromRGB(255, 238, 0),
+    Color3.fromRGB(255, 157, 0),
+    Color3.fromRGB(255, 64, 0),
+    Color3.fromRGB(255, 0, 0)
+}
+
+Module.StrongholdsData = {}
+Module.Connections = {}
+Module.UpdateConnection = nil
+Module.lastOpenStrongholds = {}
+Module.lastNotificationTime = {}
+Module.NOTIFICATION_COOLDOWN = 30
+
+Module.strongholds = {}
+Module.timerConnections = {}
+Module.notifications = true
+Module.skipTimerEnabled = false
+Module.skipTimerThreshold = 0
+Module.hasSkippedThisSession = false
+
+Module.Fluent = nil
+
+-- Utility Functions
+function Module.safeNotify(title, content, duration, notificationKey)
+    if not Module.Fluent then return end
+    
+    duration = duration or 3
+    notificationKey = notificationKey or (title .. content)
+    
+    local currentTime = tick()
+    
+    if Module.lastNotificationTime[notificationKey] and (currentTime - Module.lastNotificationTime[notificationKey]) < Module.NOTIFICATION_COOLDOWN then
+        return
+    end
+    
+    Module.lastNotificationTime[notificationKey] = currentTime
+    
+    Module.Fluent:Notify({
+        Title = title,
+        Content = content,
+        Duration = duration
+    })
+end
+
+function Module.getCurrentDiamonds()
+    if LocalPlayer:GetAttribute("Diamonds") then
+        return LocalPlayer:GetAttribute("Diamonds")
+    end
+    return 0
+end
+
+function Module.formatTime(seconds)
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local secs = math.floor(seconds % 60)
+    return string.format("%02d:%02d:%02d", hours, minutes, secs)
+end
+
+function Module.createDiscordEmbed(diamondsGained)
+    local embed = {
+        title = "Diamond Alert!",
+        description = string.format("**%s** just gained diamonds!", LocalPlayer.Name),
+        color = 3447003,
+        fields = {
+            {
+                name = "Current Diamonds",
+                value = string.format("```%s```", tostring(Module.currentDiamonds)),
+                inline = true
+            },
+            {
+                name = "Diamonds Gained",
+                value = string.format("```+%s```", tostring(diamondsGained)),
+                inline = true
+            },
+            {
+                name = "Session Total",
+                value = string.format("```+%s```", tostring(Module.sessionGained)),
+                inline = true
+            },
+            {
+                name = "Session Time",
+                value = string.format("```%s```", Module.formatTime(tick() - Module.startTime)),
+                inline = true
+            },
+            {
+                name = "Player",
+                value = string.format("```%s```", LocalPlayer.Name),
+                inline = false
+            }
+        },
+        thumbnail = {
+            url = "https://media.discordapp.net/attachments/1400825424535224511/1420864823675060275/2Q.png"
+        },
+        footer = {
+            text = "Diamond Tracker • " .. os.date("%X")
+        },
+        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+    }
+    
+    return embed
+end
+
+function Module.sendWebhook(diamondsGained)
+    if Module.webhookUrl == "" then return end
+    
+    local embed = Module.createDiscordEmbed(diamondsGained)
+    local content = ""
+    
+    if Module.enableMentions then
+        content = "@everyone"
+    elseif Module.enableUserPing and Module.userIdToPing ~= "" then
+        content = "<@" .. Module.userIdToPing .. ">"
+    end
+    
+    local data = {
+        content = content,
+        username = "Diamond Tracker",
+        avatar_url = "https://media.discordapp.net/attachments/1400825424535224511/1420864823675060275/2Q.png",
+        embeds = {embed}
+    }
+    
+    local success, response = pcall(function()
+        return http_request({
+            Url = Module.webhookUrl,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HttpService:JSONEncode(data)
+        })
+    end)
+    
+    if success and response.StatusCode == 204 then
+        Module.safeNotify("Webhook Sent", string.format("Notified about +%d diamonds!", diamondsGained), 3, "webhook_sent")
+    else
+        Module.safeNotify("Webhook Failed", "Failed to send webhook message", 3, "webhook_failed")
+    end
+end
+
+function Module.sendTestWebhook()
+    local embed = {
+        title = "Test Message",
+        description = "This is a test message from Diamond Tracker!",
+        color = 65280,
+        fields = {
+            {
+                name = "Status",
+                value = "Webhook is working correctly!",
+                inline = false
+            },
+            {
+                name = "Player",
+                value = LocalPlayer.Name,
+                inline = false
+            }
+        },
+        thumbnail = {
+            url = "https://media.discordapp.net/attachments/1400825424535224511/1420864823675060275/2Q.png"
+        },
+        footer = {
+            text = "Diamond Tracker Test • " .. os.date("%X")
+        },
+        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+    }
+    
+    local data = {
+        username = "Diamond Tracker",
+        avatar_url = "https://media.discordapp.net/attachments/1400825424535224511/1420864823675060275/2Q.png",
+        embeds = {embed}
+    }
+    
+    local success, response = pcall(function()
+        return http_request({
+            Url = Module.webhookUrl,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HttpService:JSONEncode(data)
+        })
+    end)
+    
+    if success and response.StatusCode == 204 then
+        Module.safeNotify("Test Successful", "Webhook is configured correctly!", 3, "test_success")
+    else
+        Module.safeNotify("Test Failed", "Webhook configuration error", 3, "test_failed")
+    end
+end
+
+function Module.onDiamondsChanged()
+    local newDiamonds = Module.getCurrentDiamonds()
+    local currentTime = tick()
+    
+    if currentTime - Module.lastDiamondNotificationTime < 1 then
+        return
+    end
+    
+    if newDiamonds > Module.currentDiamonds then
+        local diamondsGained = newDiamonds - Module.currentDiamonds
+        Module.lastDiamondNotificationTime = currentTime
+        
+        Module.sessionGained = newDiamonds - Module.initialDiamonds
+        
+        Module.sendWebhook(diamondsGained)
+        
+        Module.safeNotify("Diamonds Gained!", string.format("You gained %d diamonds!", diamondsGained), 2, "diamonds_gained")
+        
+        if Module.autoTeleportEnabled then
+            task.spawn(function()
+                task.wait(3)
+                TeleportService:Teleport(126509999114328)
+            end)
+        end
+    end
+    
+    Module.currentDiamonds = newDiamonds
+end
+
+function Module.updateInventory()
+    Module.inventoryItems = {}
+    
+    local inventory = LocalPlayer:FindFirstChild("Inventory")
+    if inventory then
+        for i, item in pairs(inventory:GetChildren()) do
+            if item:IsA("Model") or item:IsA("Tool") then
+                table.insert(Module.inventoryItems, {
+                    name = item.Name,
+                    slot = i,
+                    object = item
+                })
+            end
+        end
+    end
+end
+
+function Module.getCurrentEquipped()
+    local character = LocalPlayer.Character
+    if character then
+        local toolHandle = character:FindFirstChild("ToolHandle")
+        if toolHandle then
+            local originalItem = toolHandle:FindFirstChild("OriginalItem")
+            if originalItem and originalItem.Value then
+                Module.currentEquippedItem = originalItem.Value.Name
+                return
+            end
+        end
+        
+        local tool = character:FindFirstChildOfClass("Tool")
+        if tool then
+            Module.currentEquippedItem = tool.Name
+            return
+        end
+    end
+    
+    Module.currentEquippedItem = "None"
+end
+
+local function isAllowedWeapon(weaponName)
+    local name = string.lower(weaponName)
+    return string.find(name, "axe") or 
+           string.find(name, "sword") or 
+           string.find(name, "spear") or
+           string.find(name, "morning star")
+end
+
+function Module.ensureProperWeaponEquipped()
+    Module.updateInventory()
+    
+    local slotsToTry = {2, 1, 3, 4, 5}
+    
+    for _, slotNum in pairs(slotsToTry) do
+        local keyCode = Module.hotkeys[slotNum]
+        if keyCode then
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, keyCode, false, game)
+            task.wait(0.1)
+            game:GetService("VirtualInputManager"):SendKeyEvent(false, keyCode, false, game)
+            task.wait(0.5)
+            
+            Module.getCurrentEquipped()
+            
+            if Module.currentEquippedItem ~= "None" and isAllowedWeapon(Module.currentEquippedItem) then
+                Module.safeNotify("Fallback Equipped", "Equipped " .. Module.currentEquippedItem .. " from slot " .. slotNum, 3, "auto_equip_fallback")
+                return true
+            end
+        end
+    end
+    
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+    task.wait(0.1)
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+    task.wait(0.5)
+    
+    Module.getCurrentEquipped()
+    if Module.currentEquippedItem ~= "None" then
+        Module.safeNotify("Fallback Equipped", "Equipped " .. Module.currentEquippedItem .. " from slot 2", 3, "auto_equip_final")
+    else
+        Module.safeNotify("No Weapon Equipped", "Could not find suitable weapon - proceeding anyway", 3, "no_weapon_warning")
+    end
+    
+    return true
+end
+
+local function doSingleCircleLoop(r, o, v)
+    local character = game.Players.LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then
+        return false
+    end
+    local rootPart = character.HumanoidRootPart
+    local angle = 0
+    local fullCircle = 2 * math.pi
+    local startTime = tick()
+    
+    while angle < fullCircle and Module.circleLoopActive do
+        local deltaTime = task.wait()
+        if tick() - startTime > 300 then
+            break
+        end
+        
+        if not Module.circleLoopActive then
+            break
+        end
+        
+        angle = math.min(angle + (v * deltaTime), fullCircle)
+        local x = o.X + r * math.cos(angle)
+        local z = o.Z + r * math.sin(angle)
+        local newPosition = Vector3.new(x, o.Y, z)
+        rootPart.CFrame = CFrame.new(newPosition)
+    end
+    
+    return Module.circleLoopActive
+end
+
+function Module.startCircleLoopFallback()
+    if Module.circleLoopActive or Module.manuallyStoppedLoop then
+        return
+    end
+    
+    Module.circleLoopActive = true
+    Module.safeNotify("Circle Loop Started", "Searching for strongholds/diamond chest - will continue until found", 5, "circle_start")
+    
+    task.spawn(function()
+        local radius_list = {
+            [1] = 150,
+            [2] = 400,
+            [3] = 600,
+            [4] = 825,
+            [5] = 1150,
+            [6] = 1400
+        }
+        
+        local cycleCount = 0
+        
+        while Module.circleLoopActive do
+            cycleCount = cycleCount + 1
+            
+            for i, v in ipairs(radius_list) do
+                if not Module.circleLoopActive then
+                    break
+                end
+                
+                local success = doSingleCircleLoop(v, Vector3.new(0, 15, 0), 1/(2*i))
+                if not success then
+                    break
+                end
+                
+                local strongholdCount = #CollectionService:GetTagged("Stronghold")
+                local diamondChestExists = workspace.Items:FindFirstChild("Stronghold Diamond Chest") ~= nil
+                
+                if strongholdCount > 0 or diamondChestExists then
+                    local reason = strongholdCount > 0 and string.format("Found %d strongholds", strongholdCount) or "Diamond chest detected"
+                    Module.safeNotify("Target Found!", reason .. " - stopping circle loop after " .. cycleCount .. " cycles", 5, "target_found")
+                    Module.circleLoopActive = false
+                    Module.noStrongholdFallbackEnabled = false
+                    break
+                end
+                
+                task.wait(1)
+            end
+            
+            if Module.circleLoopActive then
+                Module.safeNotify("Search Cycle Complete", string.format("Cycle %d complete - continuing search...", cycleCount), 3, "cycle_complete_" .. cycleCount)
+                task.wait(3)
+            end
+        end
+        
+        Module.circleLoopActive = false
+    end)
+end
+
+function Module.stopCircleLoop()
+    Module.circleLoopActive = false
+    Module.manuallyStoppedLoop = true
+    
+    if Module.circleLoopConnection then
+        Module.circleLoopConnection:Disconnect()
+        Module.circleLoopConnection = nil
+    end
+    
+    Module.safeNotify("Circle Loop Stopped", "Search pattern has been stopped and won't auto-restart", 3, "circle_stop")
+end
+
+function Module.checkForAutoCircleLoop()
+    if Module.manuallyStoppedLoop then
+        return
+    end
+    
+    local strongholdCount = #CollectionService:GetTagged("Stronghold")
+    local diamondChestExists = workspace.Items:FindFirstChild("Stronghold Diamond Chest") ~= nil
+    
+    if strongholdCount == 0 and not diamondChestExists and not Module.circleLoopActive then
+        Module.safeNotify("No Strongholds or Diamond Chest", "Auto-starting circle loop search pattern", 5, "auto_circle_start")
+        Module.noStrongholdFallbackEnabled = true
+        Module.startCircleLoopFallback()
+    elseif (strongholdCount > 0 or diamondChestExists) and Module.circleLoopActive then
+        local reason = strongholdCount > 0 and string.format("Found %d strongholds", strongholdCount) or "Diamond chest detected"
+        Module.safeNotify("Targets Found", reason .. " - stopping circle loop", 5, "targets_found")
+        Module.circleLoopActive = false
+        Module.manuallyStoppedLoop = false
+    end
+end
+
+local function getPos(obj)
+    if not obj then return nil end
+    if obj:IsA("BasePart") then
+        return obj.Position
+    elseif obj:IsA("Model") then
+        if obj.PrimaryPart then return obj.PrimaryPart.Position end
+        local part = obj:FindFirstChildWhichIsA("BasePart")
+        return part and part.Position or obj:GetPivot().Position
+    end
+end
+
+local function findValidWeapon()
+    for _, weapon in pairs(LocalPlayer:WaitForChild("Inventory"):GetChildren()) do
+        if isAllowedWeapon(weapon.Name) then
+            return weapon
+        end
+    end
+    return nil
+end
+
+local function isCultist(name)
+    return string.find(string.lower(name), "cultist") ~= nil
+end
+
+local function attackWithWeapon(weapon)
+    if not weapon or not weapon.Parent then
+        return 0
+    end
+    
+    local attackCount = 0
+    local successfulAttacks = 0
+    
+    if workspace:FindFirstChild("Characters") then
+        for _, target in pairs(workspace.Characters:GetChildren()) do
+            if target ~= LocalPlayer.Character and target:FindFirstChild("NPC") and target:HasTag("NPC") then
+                if isCultist(target.Name) then
+                    attackCount = attackCount + 1
+                    task.spawn(function()
+                        local success = pcall(function()
+                            local hitId = tostring(tick()) .. "_" .. LocalPlayer.UserId
+                            ReplicatedStorage.RemoteEvents.ToolDamageObject:InvokeServer(
+                                target, 
+                                weapon, 
+                                hitId,
+                                HumanoidRootPart.CFrame
+                            )
+                            successfulAttacks = successfulAttacks + 1
+                        end)
+                        if not success then
+                            warn("Failed to attack target:", target.Name)
+                        end
+                    end)
+                end
+            end
+        end
+    end
+    
+    if workspace:FindFirstChild("Map") then
+        for _, enemy in pairs(workspace.Map:GetDescendants()) do
+            if enemy:IsA("Model") and enemy ~= LocalPlayer.Character then
+                if isCultist(enemy.Name) then
+                    attackCount = attackCount + 1
+                    task.spawn(function()
+                        local success = pcall(function()
+                            local hitId = tostring(tick()) .. "_" .. LocalPlayer.UserId
+                            ReplicatedStorage.RemoteEvents.ToolDamageObject:InvokeServer(
+                                enemy, 
+                                weapon, 
+                                hitId,
+                                HumanoidRootPart.CFrame
+                            )
+                            successfulAttacks = successfulAttacks + 1
+                        end)
+                        if not success then
+                            warn("Failed to attack target:", enemy.Name)
+                        end
+                    end)
+                end
+            end
+        end
+    end
+    
+    for _, enemy in pairs(workspace:GetChildren()) do
+        if enemy:IsA("Model") and enemy ~= LocalPlayer.Character then
+            if isCultist(enemy.Name) then
+                attackCount = attackCount + 1
+                task.spawn(function()
+                    local success = pcall(function()
+                        local hitId = tostring(tick()) .. "_" .. LocalPlayer.UserId
+                        ReplicatedStorage.RemoteEvents.ToolDamageObject:InvokeServer(
+                            enemy, 
+                            weapon, 
+                            hitId,
+                            HumanoidRootPart.CFrame
+                        )
+                        successfulAttacks = successfulAttacks + 1
+                    end)
+                    if not success then
+                        warn("Failed to attack target:", enemy.Name)
+                    end
+                end)
+            end
+        end
+    end
+    
+    return successfulAttacks
+end
+
+local function killCultistsOnce()
+    local weapon = findValidWeapon()
+    if not weapon then
+        return 0
+    end
+    
+    return attackWithWeapon(weapon)
+end
+
+function Module.setupCultistKiller()
+    if Module.cultistKillerConnection then
+        Module.cultistKillerConnection:Disconnect()
+    end
+    
+    if not Module.CULTIST_KILLER_ENABLED then
+        return
+    end
+    
+    Module.cultistKillerConnection = RunService.Heartbeat:Connect(function()
+        if Module.CULTIST_KILLER_ENABLED and tick() - Module.lastCultistKillTime >= Module.CULTIST_KILL_COOLDOWN then
+            local damaged = killCultistsOnce()
+            if damaged > 0 then
+                Module.lastCultistKillTime = tick()
+            end
+        end
+    end)
+end
+
+local function MoveDirect(root, targetPos)
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+    bv.Velocity = Vector3.zero
+    bv.Parent = root
+
+    local conn
+    conn = RunService.Heartbeat:Connect(function()
+        if not bv.Parent then
+            conn:Disconnect()
+            return
+        end
+
+        local direction = targetPos - root.Position
+        local dist = direction.Magnitude
+
+        if dist < 5 then
+            bv:Destroy()
+            conn:Disconnect()
+        else
+            bv.Velocity = direction.Unit * 42
+        end
+    end)
+end
+
+local function MoveToBase(root, targetPos)
+    local path = PathfindingService:CreatePath({
+        AgentRadius = 2,
+        AgentHeight = 5,
+        AgentCanJump = true,
+        AgentCanClimb = false
+    })
+    path:ComputeAsync(root.Position, targetPos)
+
+    if path.Status ~= Enum.PathStatus.Success then
+        return MoveDirect(root, targetPos)
+    end
+
+    local waypoints = path:GetWaypoints()
+    local currentIndex = 1
+
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+    bv.Velocity = Vector3.zero
+    bv.Parent = root
+
+    local conn
+    conn = RunService.Heartbeat:Connect(function()
+        if not bv.Parent or currentIndex > #waypoints then
+            bv:Destroy()
+            conn:Disconnect()
+            return
+        end
+
+        local wp = waypoints[currentIndex]
+        local direction = wp.Position - root.Position
+        local dist = direction.Magnitude
+
+        if dist < 3 then
+            currentIndex += 1
+        else
+            bv.Velocity = direction.Unit * 42
+        end
+    end)
+end
+
+function Module.executeDiamondChestSequence()
+    pcall(function()
+        Module.ensureProperWeaponEquipped()
+        task.wait(1)
+        
+        local humanoid = Character:WaitForChild("Humanoid")
+        humanoid.WalkSpeed = 50
+
+        local function enableNoclip()
+            for _, part in pairs(Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+
+        local function disableNoclip()
+            for _, part in pairs(Character:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.CanCollide = true
+                end
+            end
+        end
+
+        local function checkForNearbyCultists()
+            local cultistsFound = {}
+            local playerPosition = HumanoidRootPart.Position
+            local searchRadius = 100
+            
+            if workspace:FindFirstChild("Characters") then
+                for _, target in pairs(workspace.Characters:GetChildren()) do
+                    if target ~= LocalPlayer.Character and target:FindFirstChild("NPC") and target:HasTag("NPC") then
+                        if isCultist(target.Name) then
+                            local targetPosition = getPos(target)
+                            if targetPosition and (targetPosition - playerPosition).Magnitude <= searchRadius then
+                                table.insert(cultistsFound, target)
+                            end
+                        end
+                    end
+                end
+            end
+            
+            if workspace:FindFirstChild("Map") then
+                for _, enemy in pairs(workspace.Map:GetDescendants()) do
+                    if enemy:IsA("Model") and enemy ~= LocalPlayer.Character then
+                        if isCultist(enemy.Name) then
+                            local targetPosition = getPos(enemy)
+                            if targetPosition and (targetPosition - playerPosition).Magnitude <= searchRadius then
+                                table.insert(cultistsFound, enemy)
+                            end
+                        end
+                    end
+                end
+            end
+            
+            for _, enemy in pairs(workspace:GetChildren()) do
+                if enemy:IsA("Model") and enemy ~= LocalPlayer.Character then
+                    if isCultist(enemy.Name) then
+                        local targetPosition = getPos(enemy)
+                        if targetPosition and (targetPosition - playerPosition).Magnitude <= searchRadius then
+                            table.insert(cultistsFound, enemy)
+                        end
+                    end
+                end
+            end
+            
+            return cultistsFound
+        end
+
+        enableNoclip()
+
+        local chestRequestDetected = false
+        
+        if getrawmetatable then
+            local mt = getrawmetatable(game)
+            if mt and mt.__namecall then
+                local oldNamecall = mt.__namecall
+                if setreadonly then setreadonly(mt, false) end
+                
+                mt.__namecall = function(self, ...)
+                    local method = getnamecallmethod and getnamecallmethod() or ""
+                    local args = {...}
+
+                    if method == "FireServer" and tostring(self):find("RequestOpenItemChest") then
+                        chestRequestDetected = true
+                    end
+
+                    return oldNamecall(self, ...)
+                end
+                
+                if setreadonly then setreadonly(mt, true) end
+                
+                local function restoreMetatable()
+                    if setreadonly then setreadonly(mt, false) end
+                    mt.__namecall = oldNamecall
+                    if setreadonly then setreadonly(mt, true) end
+                end
+                
+                task.spawn(function()
+                    task.wait(30)
+                    if not chestRequestDetected then
+                        restoreMetatable()
+                    end
+                end)
+            end
+        end
+
+        local strongholdChest = workspace.Items:FindFirstChild("Stronghold Diamond Chest")
+        if strongholdChest then
+            local proximityPrompt = strongholdChest.Main.ProximityAttachment.ProximityInteraction
+            
+            if proximityPrompt and proximityPrompt:IsA("ProximityPrompt") then
+                proximityPrompt.HoldDuration = 0
+                proximityPrompt.RequiresLineOfSight = false
+                proximityPrompt.MaxActivationDistance = math.huge
+                
+                if fireproximityprompt then
+                    fireproximityprompt(proximityPrompt)
+                else
+                    proximityPrompt:InputHoldBegin()
+                    proximityPrompt:InputHoldEnd()
+                end
+            end
+        end
+        
+        task.wait(3)
+        
+        local nearbyCultists = checkForNearbyCultists()
+        if #nearbyCultists > 0 then
+            Module.safeNotify("CULTISTS DETECTED!", 
+                      string.format("Found %d cultists nearby! Skipping pathfinding, starting auto-kill!", #nearbyCultists), 
+                      5, 
+                      "cultists_detected_skip")
+            
+            Module.CULTIST_KILLER_ENABLED = true
+            Module.setupCultistKiller()
+            
+            for attempt = 1, 3 do
+                for _, item in pairs(workspace.Items:GetChildren()) do
+                    pcall(function()
+                        require(LocalPlayer.PlayerScripts.Client).Events.RequestTakeDiamonds:FireServer(item)
+                    end)
+                end
+                task.wait(1)
+            end
+            
+            disableNoclip()
+            return
+        end
+        
+        if chestRequestDetected then
+            for attempt = 1, 3 do
+                for _, item in pairs(workspace.Items:GetChildren()) do
+                    pcall(function()
+                        require(LocalPlayer.PlayerScripts.Client).Events.RequestTakeDiamonds:FireServer(item)
+                    end)
+                end
+                task.wait(1)
+            end
+            
+            disableNoclip()
+            return
+        end
+
+        local gate = workspace.Map.Landmarks.Stronghold.Functional.FinalGate
+
+        if not gate:GetAttribute("OriginalY") then
+            gate:SetAttribute("OriginalY", gate.WorldPivot.Y)
+        end
+
+        local lastState
+        local gateOpenedDetected = false
+
+        local gateMonitorConnection = task.spawn(function()
+            while true do
+                local originalY = gate:GetAttribute("OriginalY")
+                local currentY = gate.WorldPivot.Y
+                local state
+
+                if currentY > originalY then
+                    state = "OPEN"
+                    if lastState ~= "OPEN" then
+                        gateOpenedDetected = true
+                        
+                        Module.CULTIST_KILLER_ENABLED = false
+                        if Module.cultistKillerConnection then
+                            Module.cultistKillerConnection:Disconnect()
+                            Module.cultistKillerConnection = nil
+                        end
+                        
+                        task.wait(4)
+                        
+                        local strongholdChest = workspace.Items:FindFirstChild("Stronghold Diamond Chest")
+                        if strongholdChest then
+                            local proximityPrompt = strongholdChest.Main.ProximityAttachment.ProximityInteraction
+                            
+                            if proximityPrompt and proximityPrompt:IsA("ProximityPrompt") then
+                                proximityPrompt.HoldDuration = 0
+                                proximityPrompt.RequiresLineOfSight = false
+                                proximityPrompt.MaxActivationDistance = math.huge
+                                
+                                if fireproximityprompt then
+                                    fireproximityprompt(proximityPrompt)
+                                else
+                                    proximityPrompt:InputHoldBegin()
+                                    proximityPrompt:InputHoldEnd()
+                                end
+                            end
+                        end
+                        
+                        task.wait(1)
+                        
+                        for attempt = 1, 3 do
+                            for _, item in pairs(workspace.Items:GetChildren()) do
+                                pcall(function()
+                                    require(LocalPlayer.PlayerScripts.Client).Events.RequestTakeDiamonds:FireServer(item)
+                                end)
+                            end
+                            task.wait(1)
+                        end
+                    end
+                else
+                    state = "CLOSED"
+                end
+
+                if state ~= lastState then
+                    lastState = state
+                end
+
+                task.wait(5)
+            end
+        end)
+
+        local function MoveToPosition(root, targetPos)
+            local path = PathfindingService:CreatePath({
+                AgentRadius = 2,
+                AgentHeight = 5,
+                AgentCanJump = true,
+                AgentCanClimb = false
+            })
+            
+            path:ComputeAsync(root.Position, targetPos)
+            
+            if path.Status ~= Enum.PathStatus.Success then
+                return false
+            end
+
+            local waypoints = path:GetWaypoints()
+            local currentIndex = 1
+            
+            local function tweenToNextWaypoint()
+                if currentIndex > #waypoints then
+                    return
+                end
+                
+                local wp = waypoints[currentIndex]
+                local direction = wp.Position - root.Position
+                local distance = direction.Magnitude
+                
+                local distanceToFinalTarget = (root.Position - targetPos).Magnitude
+                
+                if distanceToFinalTarget <= 8 then
+                    local finalTweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                    local finalTween = TweenService:Create(root, finalTweenInfo, {CFrame = CFrame.new(targetPos)})
+                    
+                    finalTween:Play()
+                    finalTween.Completed:Wait()
+                    return
+                end
+                
+                if distance < 4 then
+                    currentIndex = currentIndex + 1
+                    tweenToNextWaypoint()
+                else
+                    local tweenTime = distance / 100
+                    local tweenInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+                    local tween = TweenService:Create(root, tweenInfo, {CFrame = CFrame.new(wp.Position)})
+                    
+                    tween:Play()
+                    tween.Completed:Wait()
+                    
+                    currentIndex = currentIndex + 1
+                    tweenToNextWaypoint()
+                end
+            end
+            
+            tweenToNextWaypoint()
+            
+            return true
+        end
+
+        local decoration = workspace.Map.Landmarks.Stronghold.Building.Interior:WaitForChild("Decoration")
+        local barrel = decoration:FindFirstChild("Barrel") or decoration:GetChildren()[27]
+        local barrelPos = getPos(barrel)
+
+        if barrelPos then
+            HumanoidRootPart.CFrame = CFrame.new(barrelPos + Vector3.new(0, 3, 0))
+            task.wait(1)
+        end
+
+        local shelf = decoration:FindFirstChild("Shelf")
+        local shelfPos = getPos(shelf)
+
+        if shelfPos then
+            local offsets = {
+                Vector3.new(0,0,5), Vector3.new(5,0,0), Vector3.new(-5,0,0),
+                Vector3.new(0,0,-5), Vector3.new(3,0,3), Vector3.new(-3,0,3)
+            }
+            
+            for _, offset in ipairs(offsets) do
+                if MoveToPosition(HumanoidRootPart, shelfPos + offset) then 
+                    task.wait(2)
+                    local currentDistance = (HumanoidRootPart.Position - shelfPos).Magnitude
+                    if currentDistance <= 15 then
+                        print("✅ Close enough to shelf! Distance: " .. math.floor(currentDistance) .. " - stopping attempts")
+                        break
+                    end
+                end
+                task.wait(1)
+            end
+            
+            local finalDistance = (HumanoidRootPart.Position - shelfPos).Magnitude
+            if finalDistance <= 15 then
+                Module.CULTIST_KILLER_ENABLED = true
+                Module.setupCultistKiller()
+                
+                local strongholdChest = workspace.Items:FindFirstChild("Stronghold Diamond Chest")
+                if strongholdChest then
+                    local chestPosition
+                    if strongholdChest:IsA("Model") then
+                        chestPosition = strongholdChest:GetModelCFrame().Position
+                    elseif strongholdChest:IsA("BasePart") then
+                        chestPosition = strongholdChest.Position
+                    end
+                    
+                    if chestPosition then
+                        HumanoidRootPart.CFrame = CFrame.new(chestPosition + Vector3.new(0, 5, 0))
+                    end
+                end
+            end
+        end
+
+        for _, item in pairs(workspace.Items:GetChildren()) do
+            pcall(function()
+                require(LocalPlayer.PlayerScripts.Client).Events.RequestTakeDiamonds:FireServer(item)
+            end)
+        end
+        disableNoclip()
+    end)
+end
+
+local function teleportToPosition(position)
+    if not position then return false, "No position provided" end
+    
+    local targetCFrame
+    if typeof(position) == "CFrame" then
+        targetCFrame = position
+    else
+        targetCFrame = CFrame.new(position + Vector3.new(0, 5, 0))
+    end
+    
+    local originalPosition = HumanoidRootPart.CFrame.Position
+    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = targetCFrame})
+    
+    tween:Play()
+    tween.Completed:Wait()
+    
+    local currentPosition = HumanoidRootPart.CFrame.Position
+    local distanceToTarget = (currentPosition - targetCFrame.Position).Magnitude
+    local distanceToOriginal = (currentPosition - originalPosition).Magnitude
+    
+    if distanceToTarget > 5 and distanceToOriginal < 5 then
+        return false, "Teleport failed: Player reset to original position"
+    elseif distanceToTarget > 5 then
+        return false, "Teleport failed: Player moved to unexpected position"
+    end
+    
+    return true, "Teleport successful"
+end
+
+function Module.attemptDiamondChestTeleport()
+    if not Module.diamondChestPosition then
+        return false, "No diamond chest position stored"
+    end
+    
+    local success, message = teleportToPosition(Module.diamondChestPosition + Vector3.new(0, 5, 0))
+    if not success then
+        return false, message
+    end
+    
+    task.wait(1)
+    Module.executeDiamondChestSequence()
+    task.wait(1)
+    
+    local finalSuccess, finalMessage = teleportToPosition(Module.diamondChestPosition + Vector3.new(0, 5, 0))
+    
+    if finalSuccess then
+        return true, "Diamond chest sequence completed successfully"
+    else
+        return false, "Final teleport failed: " .. finalMessage
+    end
+end
+
+function Module.setupEnhancedDiamondChestDetection()
+    if Module.diamondChestConnection then
+        Module.diamondChestConnection:Disconnect()
+    end
+    
+    Module.diamondChestConnection = Items.ChildAdded:Connect(function(child)
+        if child.Name == "Stronghold Diamond Chest" then
+            if child:IsA("Model") then
+                Module.diamondChestPosition = child:GetModelCFrame().Position
+            elseif child:IsA("BasePart") then
+                Module.diamondChestPosition = child.Position
+            end
+            
+            Module.diamondChestDetected = true
+            Module.teleportAttemptCount = 0
+            
+            if Module.circleLoopActive then
+                Module.stopCircleLoop()
+            end
+            
+            Module.safeNotify("DIAMOND CHEST DETECTED!", "Starting enhanced teleport sequence immediately!", 5, "chest_detected")
+            
+            task.spawn(function()
+                task.wait(1)
+                local success, message = Module.attemptDiamondChestTeleport()
+                if success then
+                    Module.safeNotify("Auto Diamond Chest Complete!", "Successfully completed diamond chest sequence!", 5, "chest_complete")
+                else
+                    Module.safeNotify("Auto Diamond Chest Failed", message, 5, "chest_failed")
+                end
+            end)
+        end
+    end)
+    
+    Items.ChildRemoved:Connect(function(child)
+        if child.Name == "Stronghold Diamond Chest" then
+            Module.diamondChestDetected = false
+            Module.diamondChestPosition = nil
+            
+            task.wait(2)
+            Module.checkForAutoCircleLoop()
+        end
+    end)
+    
+    for _, child in ipairs(Items:GetChildren()) do
+        if child.Name == "Stronghold Diamond Chest" and not Module.diamondChestDetected then
+            if child:IsA("Model") then
+                Module.diamondChestPosition = child:GetModelCFrame().Position
+            elseif child:IsA("BasePart") then
+                Module.diamondChestPosition = child.Position
+            end
+            
+            Module.diamondChestDetected = true
+            Module.teleportAttemptCount = 0
+            
+            if Module.circleLoopActive then
+                Module.stopCircleLoop()
+            end
+            
+            Module.safeNotify("DIAMOND CHEST ALREADY AVAILABLE!", "Auto-starting enhanced sequence!", 5, "chest_existing")
+            
+            task.spawn(function()
+                task.wait(1)
+                local success, message = Module.attemptDiamondChestTeleport()
+                if success then
+                    Module.safeNotify("Auto Diamond Chest Complete!", "Successfully completed diamond chest sequence!", 5, "chest_complete")
+                else
+                    Module.safeNotify("Auto Diamond Chest Failed", message, 5, "chest_failed")
+                end
+            end)
+            break
+        end
+    end
+end
+
+function Module.getStrongholdInfo(stronghold)
+    local functional = stronghold:FindFirstChild("Functional")
+    if not functional then return nil end
+    
+    local level = functional:GetAttribute("Level") or 1
+    local openTime = functional:GetAttribute("OpenTime")
+    local isOpen = false
+    local timeLeft = 0
+    
+    if openTime then
+        timeLeft = openTime - workspace:GetServerTimeNow()
+        isOpen = timeLeft <= 0
+    end
+    
+    local position = stronghold.PrimaryPart and stronghold.PrimaryPart.Position or stronghold:GetModelCFrame().Position
+    
+    local displayName = "The Cultist Stronghold"
+    if stronghold.Name == "Stronghold" then
+        displayName = "The Cultist Stronghold"
+    end
+    
+    return {
+        name = stronghold.Name,
+        displayName = displayName,
+        level = level,
+        levelColor = Module.STRONGHOLD_COLORS[level] or Module.STRONGHOLD_COLORS[5],
+        openTime = openTime,
+        isOpen = isOpen,
+        timeLeft = math.max(0, timeLeft),
+        position = position,
+        stronghold = stronghold,
+        distance = nil,
+        compassDir = nil
+    }
+end
+
+function Module.calculateDistanceAndDirection(targetPos)
+    if not LocalPlayer.Character or not LocalPlayer.Character.PrimaryPart then
+        return nil, nil
+    end
+    
+    local playerPos = LocalPlayer.Character.PrimaryPart.Position
+    local distance = (targetPos - playerPos).Magnitude
+    local direction = (targetPos - playerPos).Unit
+    
+    local angle = math.atan2(direction.X, direction.Z)
+    local degrees = math.deg(angle)
+    if degrees < 0 then degrees = degrees + 360 end
+    
+    local compassDirections = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
+    local directionIndex = math.floor((degrees + 22.5) / 45) % 8 + 1
+    local compassDir = compassDirections[directionIndex]
+    
+    return distance, compassDir
+end
+
+function Module.formatStrongholdTime(seconds)
+    if seconds <= 60 then
+        return string.format("%02ds", math.floor(seconds))
+    else
+        local minutes = math.floor(seconds / 60)
+        local secs = math.floor(seconds % 60)
+        return string.format("%02dm %02ds", minutes, secs)
+    end
+end
+
+function Module.convertTime(seconds)
+    if seconds <= 0 then
+        return "OPEN NOW!"
+    elseif seconds <= 60 then
+        return string.format("%02ds", math.floor(seconds))
+    elseif seconds <= 3600 then
+        return string.format("%02dm %02ds", math.floor(seconds / 60), math.floor(seconds % 60))
+    else
+        return string.format("%02dh %02dm", math.floor(seconds / 3600), math.floor((seconds % 3600) / 60))
+    end
+end
+
+function Module.updateStrongholdsData()
+    Module.StrongholdsData = {}
+    
+    local strongholds_list = CollectionService:GetTagged("Stronghold")
+    
+    for _, stronghold in pairs(strongholds_list) do
+        if stronghold.Name ~= "AlienMothership" then
+            local data = Module.getStrongholdInfo(stronghold)
+            if data then
+                local distance, compassDir = Module.calculateDistanceAndDirection(data.position)
+                data.distance = distance
+                data.compassDir = compassDir
+                table.insert(Module.StrongholdsData, data)
+                
+                local strongholdKey = data.name .. "_" .. data.level
+                local previouslyOpen = Module.lastOpenStrongholds[strongholdKey]
+                
+                if data.isOpen and not previouslyOpen then
+                    Module.lastOpenStrongholds[strongholdKey] = true
+                    
+                    local strongholdChest = workspace.Items:FindFirstChild("Stronghold Diamond Chest")
+                    
+                    if strongholdChest then
+                        Module.safeNotify("STRONGHOLD & CHEST DETECTED!", 
+                                  string.format("%s (Level %d) opened with diamond chest! Starting sequence...", 
+                                                data.displayName, data.level), 
+                                  5, 
+                                  "stronghold_chest_" .. strongholdKey)
+                        
+                        task.spawn(function()
+                            task.wait(2)
+                            
+                            if strongholdChest:IsA("Model") then
+                                Module.diamondChestPosition = strongholdChest:GetModelCFrame().Position
+                            elseif strongholdChest:IsA("BasePart") then
+                                Module.diamondChestPosition = strongholdChest.Position
+                            end
+                            
+                            local success, message = Module.attemptDiamondChestTeleport()
+                            if success then
+                                Module.safeNotify("Stronghold Auto Complete!", 
+                                          "Successfully completed diamond chest sequence for opened stronghold!", 
+                                          5, 
+                                          "stronghold_success_" .. strongholdKey)
+                            else
+                                Module.safeNotify("Stronghold Auto Failed", message, 5, "stronghold_fail_" .. strongholdKey)
+                            end
+                        end)
+                    end
+                    
+                elseif not data.isOpen and previouslyOpen then
+                    Module.lastOpenStrongholds[strongholdKey] = false
+                end
+            end
+        end
+    end
+    
+    table.sort(Module.StrongholdsData, function(a, b)
+        if not a.distance then return false end
+        if not b.distance then return true end
+        return a.distance < b.distance
+    end)
+    
+    Module.checkForAutoCircleLoop()
+end
+
+function Module.teleportToStronghold(strongholdData)
+    if not LocalPlayer.Character or not LocalPlayer.Character.PrimaryPart then
+        return
+    end
+    
+    local targetPosition = strongholdData.position + Vector3.new(0, 10, 0)
+    LocalPlayer.Character.PrimaryPart.CFrame = CFrame.new(targetPosition)
+    
+    local statusText = strongholdData.isOpen and "OPEN" or ("Opens in " .. Module.formatStrongholdTime(strongholdData.timeLeft))
+    
+    Module.safeNotify("Teleported!", string.format("Teleported to %s (Level %d)\nStatus: %s", 
+        strongholdData.displayName, strongholdData.level, statusText), 4, "teleport_success")
+end
+
+function Module.createTimerDisplay(stronghold)
+    local name = stronghold.Name
+    local functional = stronghold:WaitForChild("Functional")
+    
+    Module.strongholds[name] = {
+        instance = stronghold,
+        functional = functional,
+        level = functional:GetAttribute("Level") or 1,
+        openTime = functional:GetAttribute("OpenTime"),
+        paragraph = nil,
+        isOpen = false
+    }
+    
+    local connection = functional:GetAttributeChangedSignal("OpenTime"):Connect(function()
+        Module.strongholds[name].openTime = functional:GetAttribute("OpenTime")
+        Module.strongholds[name].level = functional:GetAttribute("Level") or 1
+    end)
+    
+    Module.timerConnections[name] = connection
+end
+
+function Module.updateTimer(name)
+    local stronghold = Module.strongholds[name]
+    if not stronghold or not stronghold.openTime then return end
+    
+    local timeRemaining = stronghold.openTime - workspace:GetServerTimeNow()
+    local timeString = Module.convertTime(timeRemaining)
+    
+    if Module.skipTimerEnabled and not Module.hasSkippedThisSession and timeRemaining > Module.skipTimerThreshold then
+        Module.hasSkippedThisSession = true
+        local thresholdMinutes = math.floor(Module.skipTimerThreshold / 60)
+        local thresholdSeconds = Module.skipTimerThreshold % 60
+        
+        Module.safeNotify("Skipping Stronghold", string.format("Timer (%s) exceeds %02d:%02d threshold. Teleporting...", timeString, thresholdMinutes, thresholdSeconds), 3, "skip_threshold")
+        
+        task.wait(1)
+        
+        local success, error = pcall(function()
+            TeleportService:Teleport(126509999114328)
+        end)
+        
+        if not success then
+            Module.safeNotify("Teleport Failed", "Could not teleport: " .. tostring(error), 5, "teleport_error")
+        end
+        
+        return
+    end
+    
+    if timeRemaining <= 0 and not stronghold.isOpen then
+        stronghold.isOpen = true
+        Module.hasSkippedThisSession = false
+        if Module.notifications then
+            client.Sound.Play("StrongholdEnter")
+        end
+        Module.safeNotify("Stronghold Open!", string.format("%s is now available!", name), 5, "stronghold_open_" .. name)
+    elseif timeRemaining > 0 then
+        stronghold.isOpen = false
+    end
+end
+
+function Module.onStrongholdAdded(stronghold)
+    if stronghold.Name ~= "AlienMothership" then
+        task.spawn(function()
+            Module.createTimerDisplay(stronghold)
+        end)
+        
+        if Module.circleLoopActive then
+            Module.stopCircleLoop()
+        end
+        
+        task.wait(1)
+        Module.checkForAutoCircleLoop()
+    end
+end
+
+function Module.onStrongholdRemoved(stronghold)
+    local name = stronghold.Name
+    if Module.strongholds[name] then
+        if Module.timerConnections[name] then
+            Module.timerConnections[name]:Disconnect()
+            Module.timerConnections[name] = nil
+        end
+        Module.strongholds[name] = nil
+    end
+end
+
+function Module.setupUpdates()
+    if Module.UpdateConnection then
+        Module.UpdateConnection:Disconnect()
+    end
+    
+    Module.UpdateConnection = task.spawn(function()
+        while true do
+            Module.updateStrongholdsData()
+            task.wait(5)
+        end
+    end)
+end
+
+function Module.cleanup()
+    Module.stopCircleLoop()
+    
+    if Module.UpdateConnection then
+        if typeof(Module.UpdateConnection) == "RBXScriptConnection" then
+            Module.UpdateConnection:Disconnect()
+        end
+        Module.UpdateConnection = nil
+    end
+    
+    if Module.diamondChestConnection then
+        Module.diamondChestConnection:Disconnect()
+        Module.diamondChestConnection = nil
+    end
+    
+    if Module.cultistKillerConnection then
+        Module.cultistKillerConnection:Disconnect()
+        Module.cultistKillerConnection = nil
+    end
+    
+    for _, connection in pairs(Module.Connections) do
+        if connection then
+            connection:Disconnect()
+        end
+    end
+    Module.Connections = {}
+    
+    for name, connection in pairs(Module.timerConnections) do
+        connection:Disconnect()
+    end
+    Module.timerConnections = {}
+end
+
+return Module
