@@ -1,0 +1,194 @@
+local HttpService = game:GetService("HttpService")
+local RbxAnalytics = game:GetService("RbxAnalyticsService")
+
+local SECRET_KEY = "checkdeezfuckingnuts"
+local GITHUB_URL = "https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/hwisewww"
+local COPY_TO_CLIPBOARD = true
+local ALSO_CHECK_PLAINTEXT = true
+local CASE_SENSITIVE = true
+local SHOW_STATS = true
+
+local function trim(s)
+    return (s or ""):match("^%s*(.-)%s*$") or ""
+end
+
+local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+local function base64_encode(data)
+    return ((data:gsub('.', function(x) 
+        local r,bits = '', x:byte()
+        for i=8,1,-1 do r = r .. (bits % 2 ^ i - bits % 2 ^ (i-1) > 0 and '1' or '0') end
+        return r
+    end) .. '0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+        if #x < 6 then return '' end
+        local c=0
+        for i=1,6 do c = c*2 + (x:sub(i,i) == '1' and 1 or 0) end
+        return b:sub(c+1,c+1)
+    end) .. ({ '', '==', '=' })[#data % 3 + 1])
+end
+
+local function base64_decode(data)
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if x == '=' then return '' end
+        local r,f = '', (b:find(x)-1)
+        for i=6,1,-1 do r = r .. (f % 2 ^ i - f % 2 ^ (i-1) > 0 and '1' or '0') end
+        return r
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if #x ~= 8 then return '' end
+        local c=0
+        for i=1,8 do c = c*2 + (x:sub(i,i) == '1' and 1 or 0) end
+        return string.char(c)
+    end))
+end
+
+if not bit32 then
+    bit32 = {}
+    function bit32.bxor(a,b)
+        local res = 0
+        local bitval = 1
+        while a > 0 or b > 0 do
+            local abit = a % 2
+            local bbit = b % 2
+            if (abit + bbit) % 2 == 1 then res = res + bitval end
+            bitval = bitval * 2
+            a = math.floor(a/2)
+            b = math.floor(b/2)
+        end
+        return res
+    end
+end
+
+local function xor_bytes(str, key)
+    local out = {}
+    local keylen = #key
+    if keylen == 0 then return str end
+    for i = 1, #str do
+        local sbyte = str:byte(i)
+        local kbyte = key:byte(((i-1) % keylen) + 1)
+        out[i] = string.char(bit32.bxor(sbyte, kbyte))
+    end
+    return table.concat(out)
+end
+
+local function encrypt(plain, key)
+    local x = xor_bytes(plain, key)
+    return base64_encode(x)
+end
+
+local function decrypt(cipher_b64, key)
+    local decoded = base64_decode(cipher_b64)
+    return xor_bytes(decoded, key)
+end
+
+local function parseLines(content)
+    local lines = {}
+    local lineCount = 0
+    local emptyCount = 0
+    
+    for line in content:gmatch("[^\r\n]+") do
+        local trimmed = trim(line)
+        if trimmed ~= "" then
+            table.insert(lines, trimmed)
+            lineCount = lineCount + 1
+        else
+            emptyCount = emptyCount + 1
+        end
+    end
+    
+    return lines, lineCount, emptyCount
+end
+
+local function checkMatch(value, lines, caseSensitive)
+    local compareValue = caseSensitive and value or value:lower()
+    
+    for i, line in ipairs(lines) do
+        local compareLine = caseSensitive and line or line:lower()
+        if compareLine == compareValue then
+            return true, i
+        end
+    end
+    
+    return false, nil
+end
+
+local clientId = tostring(RbxAnalytics:GetClientId() or "")
+if clientId == "" then
+    warn("❌ Could not retrieve Client ID.")
+    return
+end
+
+local ciphertext = encrypt(clientId, SECRET_KEY)
+
+if COPY_TO_CLIPBOARD and setclipboard then
+    pcall(function() setclipboard(ciphertext) end)
+    print("✅ Encrypted Client ID copied to clipboard.")
+end
+
+print("🔐 Client ID (Plain): " .. clientId)
+print("🔐 Ciphertext (Base64): " .. ciphertext)
+print("📡 Fetching from: " .. GITHUB_URL)
+
+local ok, resp = pcall(function()
+    if type(game.HttpGet) == "function" then
+        return game:HttpGet(GITHUB_URL)
+    else
+        return HttpService:GetAsync(GITHUB_URL)
+    end
+end)
+
+if not ok then
+    warn("❌ Failed to fetch GitHub URL: " .. tostring(resp))
+    return
+end
+
+local content = tostring(resp or "")
+local lines, lineCount, emptyCount = parseLines(content)
+
+if SHOW_STATS then
+    print("📊 Total lines: " .. lineCount)
+    print("📊 Empty lines: " .. emptyCount)
+end
+
+local foundEncrypted, encLine = checkMatch(ciphertext, lines, CASE_SENSITIVE)
+if foundEncrypted then
+    print("✅ WHITELIST MATCH: Encrypted Client ID found on line " .. encLine)
+    return {
+        whitelisted = true,
+        matchType = "encrypted",
+        lineNumber = encLine,
+        clientId = clientId,
+        ciphertext = ciphertext,
+        totalLines = lineCount,
+    }
+end
+
+if ALSO_CHECK_PLAINTEXT then
+    local foundPlain, plainLine = checkMatch(clientId, lines, CASE_SENSITIVE)
+    if foundPlain then
+        print("⚠️ WHITELIST MATCH: Plaintext Client ID found on line " .. plainLine)
+        return {
+            whitelisted = true,
+            matchType = "plaintext",
+            lineNumber = plainLine,
+            clientId = clientId,
+            ciphertext = ciphertext,
+            totalLines = lineCount,
+        }
+    end
+end
+
+print("❌ NOT WHITELISTED: Client ID not found in remote file.")
+print("💡 Add this to your whitelist: " .. ciphertext)
+
+return {
+    whitelisted = false,
+    matchType = nil,
+    clientId = clientId,
+    ciphertext = ciphertext,
+    totalLines = lineCount,
+    encrypt = encrypt,
+    decrypt = decrypt,
+    rawContent = content,
+    githubUrl = GITHUB_URL,
+}
