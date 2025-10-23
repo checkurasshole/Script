@@ -1,0 +1,58 @@
+--// Credits: Jesse_VIP
+
+if game.CoreGui:FindFirstChild("KeylessGui") then
+    game.CoreGui.KeylessGui:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KeylessGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game.CoreGui
+
+local Frame = Instance.new("Frame")
+Frame.Parent = ScreenGui
+Frame.Size = UDim2.new(0, 160, 0, 130)
+Frame.Position = UDim2.new(0.5, -80, 0.5, -65)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BorderSizePixel = 0
+Frame.BackgroundTransparency = 0.05
+Frame.Active = true
+Frame.Draggable = true
+
+local UICorner = Instance.new("UICorner", Frame)
+UICorner.CornerRadius = UDim.new(0, 12)
+
+local UIListLayout = Instance.new("UIListLayout", Frame)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+UIListLayout.Padding = UDim.new(0, 8)
+
+local function CreateButton(name, text, callback)
+	local btn = Instance.new("TextButton")
+	btn.Name = name
+	btn.Parent = Frame
+	btn.Size = UDim2.new(0, 130, 0, 28)
+	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Text = text
+	btn.Font = Enum.Font.Gotham
+	btn.TextSize = 13
+	btn.AutoButtonColor = true
+
+	local corner = Instance.new("UICorner", btn)
+	corner.CornerRadius = UDim.new(0, 8)
+
+	btn.MouseButton1Click:Connect(callback)
+end
+
+CreateButton("Copy", "Copy Keyless Script", function()
+	setclipboard('loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/jurrasicblockyunlocker"))()')
+end)
+
+CreateButton("Load", "Load Keyless Script", function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/jurrasicblockyunlocker"))()
+end)
+
+CreateButton("Hide", "Don't Show This GUI Again", function()
+	ScreenGui:Destroy()
+end)
