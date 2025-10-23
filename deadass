@@ -1,0 +1,286 @@
+local Module = {}
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+local RunService = game:GetService("RunService")
+local Player = Players.LocalPlayer
+
+local Events = ReplicatedStorage:WaitForChild("Events", 9e9)
+local HatchEgg = Events:WaitForChild("HatchEgg", 9e9)
+local GetProfileData = Events:WaitForChild("GetProfileData", 9e9)
+local Craft = Events:WaitForChild("Craft", 9e9)
+local DeletePets = Events:WaitForChild("DeletePets", 9e9)
+local Lift = Events:WaitForChild("Lift", 9e9)
+local Punch = Events:WaitForChild("Punch", 9e9)
+local Rebirth = Events:WaitForChild("Rebirth", 9e9)
+
+Module.Toggles = {
+	AutoLift = false,
+	AutoPunch = false,
+	AutoRebirth = false,
+	InfiniteGems = false,
+	AutoHatchCraft = false,
+	AutoDelete = false,
+	DeleteByTier = false,
+	DeleteByName = false,
+	AntiAFK = false,
+}
+
+Module.Options = {
+	MaxHatches = 5,
+	DeleteTiers = "Basic,Uncommon,Rare",
+	DeleteNames = {},
+}
+
+Module.Running = true
+
+function Module:AntiAFK()
+	Player.Idled:Connect(function()
+		VirtualUser:CaptureController()
+		VirtualUser:ClickButton2(Vector2.new())
+	end)
+	
+	task.spawn(function()
+		while self.Running do
+			task.wait(300)
+			if self.Toggles.AntiAFK then
+				pcall(function()
+					VirtualUser:CaptureController()
+					VirtualUser:Button1Down(Vector2.new(0, 0))
+					task.wait(0.1)
+					VirtualUser:Button1Up(Vector2.new(0, 0))
+				end)
+			end
+		end
+	end)
+	
+	task.spawn(function()
+		while self.Running do
+			task.wait(60)
+			if self.Toggles.AntiAFK then
+				pcall(function()
+					local char = Player.Character
+					if char and char:FindFirstChild("HumanoidRootPart") then
+						local hrp = char.HumanoidRootPart
+						hrp.CFrame = hrp.CFrame * CFrame.new(0, 0.1, 0)
+					end
+				end)
+			end
+		end
+	end)
+end
+
+function Module:StartAutoLift()
+	task.spawn(function()
+		while self.Running do
+			task.wait(0.1)
+			if self.Toggles.AutoLift then
+				pcall(function()
+					Lift:FireServer()
+				end)
+			end
+		end
+	end)
+end
+
+function Module:StartAutoPunch()
+	task.spawn(function()
+		while self.Running do
+			task.wait(0.1)
+			if self.Toggles.AutoPunch then
+				pcall(function()
+					Punch:FireServer()
+				end)
+			end
+		end
+	end)
+end
+
+function Module:StartAutoRebirth()
+	task.spawn(function()
+		while self.Running do
+			task.wait(5)
+			if self.Toggles.AutoRebirth then
+				pcall(function()
+					Rebirth:InvokeServer()
+				end)
+			end
+		end
+	end)
+end
+
+function Module:StartInfiniteGems()
+	task.spawn(function()
+		while self.Running do
+			task.wait(0.1)
+			if self.Toggles.InfiniteGems then
+				pcall(function()
+					local args = {
+						[1] = "Ice Egg",
+						[2] = -10000
+					}
+					HatchEgg:InvokeServer(unpack(args))
+				end)
+			end
+		end
+	end)
+end
+
+function Module:GetPetNames()
+	local nameList = {}
+	task.spawn(function()
+		local args = { [1] = true }
+		local success, profileData = pcall(function()
+			return GetProfileData:InvokeServer(unpack(args))
+		end)
+		
+		if success and profileData and profileData.Pets then
+			local uniqueNames = {}
+			
+			for _, petData in pairs(profileData.Pets) do
+				if petData.PetName and not uniqueNames[petData.PetName] then
+					uniqueNames[petData.PetName] = true
+					table.insert(nameList, petData.PetName)
+				end
+			end
+			
+			table.sort(nameList)
+		end
+	end)
+	return nameList
+end
+
+function Module:StartAutoHatchCraft()
+	task.spawn(function()
+		while self.Running do
+			task.wait(0.5)
+			if self.Toggles.AutoHatchCraft then
+				local maxHatches = self.Options.MaxHatches
+				
+				for i = 1, maxHatches do
+					local args = {
+						[1] = "Ice Egg",
+						[2] = 1
+					}
+					
+					pcall(function()
+						HatchEgg:InvokeServer(unpack(args))
+					end)
+					
+					task.wait(0.1)
+				end
+				
+				task.wait(0.3)
+				
+				local profileArgs = { [1] = true }
+				local success, profileData = pcall(function()
+					return GetProfileData:InvokeServer(unpack(profileArgs))
+				end)
+				
+				if success and profileData and profileData.Pets then
+					local petIds = {}
+					
+					for _, petData in pairs(profileData.Pets) do
+						if petData.Id then
+							table.insert(petIds, petData.Id)
+						end
+					end
+					
+					for _, petId in ipairs(petIds) do
+						pcall(function()
+							Craft:InvokeServer(petId)
+						end)
+						task.wait(0.05)
+					end
+				end
+			end
+		end
+	end)
+end
+
+function Module:DeletePets()
+	task.spawn(function()
+		local args = { [1] = true }
+		local success, profileData = pcall(function()
+			return GetProfileData:InvokeServer(unpack(args))
+		end)
+		
+		if success and profileData and profileData.Pets then
+			local petsToDelete = {}
+			
+			local tiersToDelete = {}
+			if self.Toggles.DeleteByTier then
+				for tier in string.gmatch(self.Options.DeleteTiers, "[^,]+") do
+					tiersToDelete[tier:match("^%s*(.-)%s*$")] = true
+				end
+			end
+			
+			local namesToDelete = {}
+			if self.Toggles.DeleteByName then
+				local selectedNames = self.Options.DeleteNames
+				if type(selectedNames) == "table" then
+					for name, enabled in pairs(selectedNames) do
+						if enabled then
+							namesToDelete[name] = true
+						end
+					end
+				end
+			end
+			
+			for _, petData in pairs(profileData.Pets) do
+				if petData.Id and not petData.Locked then
+					local shouldDelete = false
+					
+					if self.Toggles.DeleteByTier and petData.CraftTier and tiersToDelete[petData.CraftTier] then
+						shouldDelete = true
+					end
+					
+					if self.Toggles.DeleteByName and petData.PetName and namesToDelete[petData.PetName] then
+						shouldDelete = true
+					end
+					
+					if shouldDelete then
+						table.insert(petsToDelete, petData.Id)
+					end
+				end
+			end
+			
+			if #petsToDelete > 0 then
+				local deleteArgs = {
+					[1] = petsToDelete
+				}
+				pcall(function()
+					DeletePets:InvokeServer(unpack(deleteArgs))
+				end)
+			end
+		end
+	end)
+end
+
+function Module:StartAutoDelete()
+	task.spawn(function()
+		while self.Running do
+			task.wait(0.5)
+			if self.Toggles.AutoDelete then
+				self:DeletePets()
+			end
+		end
+	end)
+end
+
+function Module:Initialize()
+	self:AntiAFK()
+	self:StartAutoLift()
+	self:StartAutoPunch()
+	self:StartAutoRebirth()
+	self:StartInfiniteGems()
+	self:StartAutoHatchCraft()
+	self:StartAutoDelete()
+end
+
+function Module:Destroy()
+	self.Running = false
+end
+
+return Module
