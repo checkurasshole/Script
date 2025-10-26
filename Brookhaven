@@ -1,0 +1,201 @@
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+Library.ShowToggleFrameInKeybinds = false
+
+local Window = Library:CreateWindow({
+	Title = "COMBO_WICK",
+	Footer = "v1.0",
+	Icon = 95816097006870,
+	NotifySide = "Right",
+	ShowCustomCursor = false,
+	Size = UDim2.new(0, 400, 0, 300),
+})
+
+local Tabs = {
+	Main = Window:AddTab("Farm", "egg"),
+}
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local changeDifficultyRemote = replicatedStorage:WaitForChild("Remotes"):WaitForChild("ChangeDifficulty")
+
+local farmSettings = {
+	offsetDistance = 5,
+	waitTime = 0.3,
+	waitAfterDifficultyChange = 2,
+	maxWaitForFolder = 5,
+	isRunning = false
+}
+
+local difficulties = {"Baby1", "Easy1", "Medium1", "Hard1", "Extreme1"}
+local stats = {totalCollected = 0, successfulLevels = 0, currentLevel = "None"}
+
+local function updateCharacter()
+	character = player.Character or player.CharacterAdded:Wait()
+	humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end
+
+player.CharacterAdded:Connect(updateCharacter)
+
+local function changeDifficulty(difficulty)
+	stats.currentLevel = difficulty
+	changeDifficultyRemote:FireServer(difficulty)
+	wait(farmSettings.waitAfterDifficultyChange)
+end
+
+local function collectItem(item)
+	if not item:IsA("BasePart") then return false end
+	local touchInterest = item:FindFirstChild("TouchInterest")
+	if not touchInterest then return false end
+	
+	pcall(function()
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if humanoid and humanoid.Sit then humanoid.Sit = false end
+		
+		local itemPosition = item.Position
+		humanoidRootPart.CFrame = CFrame.new(itemPosition + Vector3.new(-farmSettings.offsetDistance, 0, 0))
+		if humanoid then humanoid.Sit = false end
+		wait(farmSettings.waitTime)
+		humanoidRootPart.CFrame = CFrame.new(itemPosition + Vector3.new(farmSettings.offsetDistance, 0, 0))
+		if humanoid then humanoid.Sit = false end
+		wait(farmSettings.waitTime)
+		humanoidRootPart.CFrame = CFrame.new(itemPosition)
+		if humanoid then humanoid.Sit = false end
+		wait(farmSettings.waitTime)
+	end)
+	return true
+end
+
+local function waitForFolder(folderName)
+	local startTime = tick()
+	while tick() - startTime < farmSettings.maxWaitForFolder do
+		local folder = workspace:FindFirstChild(folderName)
+		if folder then return folder end
+		wait(0.5)
+	end
+	return nil
+end
+
+local function farmDifficulty(difficulty)
+	local folderName = "EggHunt_" .. difficulty
+	local eggHuntFolder = waitForFolder(folderName)
+	if not eggHuntFolder then return 0 end
+	local children = eggHuntFolder:GetChildren()
+	if #children == 0 then return 0 end
+	
+	local itemCount = 0
+	for _, item in pairs(children) do
+		if not farmSettings.isRunning then break end
+		if collectItem(item) then itemCount = itemCount + 1 end
+	end
+	return itemCount
+end
+
+local function startAutoFarm()
+	farmSettings.isRunning = true
+	stats.totalCollected = 0
+	stats.successfulLevels = 0
+	
+	for _, difficulty in ipairs(difficulties) do
+		if not farmSettings.isRunning then break end
+		changeDifficulty(difficulty)
+		local collected = farmDifficulty(difficulty)
+		if collected > 0 then
+			stats.successfulLevels = stats.successfulLevels + 1
+			stats.totalCollected = stats.totalCollected + collected
+		end
+	end
+	
+	farmSettings.isRunning = false
+	stats.currentLevel = "None"
+	Library:Notify({Title = "Done", Description = "Total: " .. stats.totalCollected, Time = 3})
+end
+
+local function stopAutoFarm()
+	farmSettings.isRunning = false
+	stats.currentLevel = "None"
+end
+
+local MainGroup = Tabs.Main:AddLeftGroupbox("Auto Farm")
+
+MainGroup:AddToggle("AutoFarm", {
+	Text = "Start Auto Farm",
+	Default = false,
+	Callback = function(Value)
+		if Value then task.spawn(startAutoFarm) else stopAutoFarm() end
+	end,
+})
+
+MainGroup:AddSlider("OffsetDistance", {
+	Text = "Distance",
+	Default = 5,
+	Min = 3,
+	Max = 10,
+	Rounding = 1,
+	Compact = true,
+	Callback = function(Value) farmSettings.offsetDistance = Value end,
+})
+
+MainGroup:AddSlider("WaitTime", {
+	Text = "Speed",
+	Default = 0.3,
+	Min = 0.1,
+	Max = 1,
+	Rounding = 1,
+	Compact = true,
+	Callback = function(Value) farmSettings.waitTime = Value end,
+})
+
+local StatsLabel = MainGroup:AddLabel("Level: None | Collected: 0")
+
+task.spawn(function()
+	while task.wait(0.5) do
+		StatsLabel:SetText(string.format("Level: %s | Collected: %d", stats.currentLevel, stats.totalCollected))
+		if Library.Unloaded then break end
+	end
+end)
+
+local RightGroup = Tabs.Main:AddRightGroupbox("Levels")
+
+for _, difficulty in ipairs(difficulties) do
+	RightGroup:AddButton({
+		Text = difficulty,
+		Func = function()
+			if not farmSettings.isRunning then
+				task.spawn(function()
+					farmSettings.isRunning = true
+					changeDifficulty(difficulty)
+					local collected = farmDifficulty(difficulty)
+					farmSettings.isRunning = false
+					stats.currentLevel = "None"
+					Library:Notify({Title = difficulty, Description = "Collected: " .. collected, Time = 2})
+				end)
+			end
+		end,
+	})
+end
+
+RightGroup:AddDivider()
+RightGroup:AddButton({
+	Text = "Check out my other scripts!",
+	Func = function()
+		setclipboard("https://coombo-wick.vercel.app")
+		Library:Notify({Title = "Link Copied!", Description = "Paste in browser", Time = 3})
+	end,
+})
+
+Library.ToggleKeybind = {Default = "RightShift", NoUI = true}
+
+Library:OnUnload(function()
+	stopAutoFarm()
+end)
+
+ThemeManager:SetLibrary(Library)
+ThemeManager:SetFolder("EggHuntFarm")
