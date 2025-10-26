@@ -1,0 +1,39 @@
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+
+Library.ShowToggleFrameInKeybinds = false
+
+local Window = Library:CreateWindow({
+	Title = "Keyless",
+	Footer = "v1.0",
+	Icon = 1111111,
+	NotifySide = "Right",
+	ShowCustomCursor = false,
+	Size = UDim2.new(0, 300, 0, 150),
+})
+
+local Tabs = {
+	Main = Window:AddTab("Script", "code"),
+}
+
+local scriptUrl = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Brookhaven"))()'
+
+local Group = Tabs.Main:AddLeftGroupbox("Keyless Script")
+
+Group:AddButton({
+	Text = "Copy Keyless Script",
+	Func = function()
+		setclipboard(scriptUrl)
+		Library:Notify({Title = "Copied!", Description = "Script copied to clipboard", Time = 2})
+	end,
+})
+
+Group:AddButton({
+	Text = "Load Keyless Script",
+	Func = function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/Brookhaven"))()
+		Library:Notify({Title = "Loaded!", Description = "Script executed", Time = 2})
+	end,
+})
+
+Library.ToggleKeybind = {Default = "RightShift", NoUI = true}
