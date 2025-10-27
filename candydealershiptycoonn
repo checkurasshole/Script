@@ -1,0 +1,176 @@
+-- CandyFarm Module
+-- Upload this as Module.lua to your GitHub repo
+
+local CandyFarmModule = {}
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local Halloween2025 = workspace:WaitForChild("Halloween2025")
+local Mazes = Halloween2025:WaitForChild("Mazes")
+
+CandyFarmModule.MapConfigs = {
+	{
+		Name = "VeryFast",
+		DisplayName = "Very Fast (Pumpkin)",
+		Maze = Mazes:WaitForChild("Cornfield2"),
+		FastMode = true,
+	},
+	{
+		Name = "Stronghold",
+		DisplayName = "Stronghold",
+		Maze = Mazes:WaitForChild("Castle1"),
+	},
+	{
+		Name = "ScarecrowSprint",
+		DisplayName = "Scarecrow Sprint",
+		Maze = Mazes:WaitForChild("Cornfield1"),
+	},
+	{
+		Name = "GraveyardGauntlet",
+		DisplayName = "Graveyard Gauntlet",
+		Maze = Mazes:WaitForChild("Castle2"),
+	},
+	{
+		Name = "PumpkinPathway",
+		DisplayName = "Pumpkin Pathway",
+		Maze = Mazes:WaitForChild("Cornfield2"),
+	},
+}
+
+local collectEvent = ReplicatedStorage:WaitForChild("Databases"):WaitForChild("Halloween2025"):WaitForChild("CollectCandy")
+
+local function tweenTo(hrp, targetCFrame, duration)
+	local tween = TweenService:Create(hrp, TweenInfo.new(duration or 0.5, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
+	tween:Play()
+	tween.Completed:Wait()
+end
+
+local function getAllCandies(candyFolder)
+	local candies = {}
+	for _, candy in pairs(candyFolder:GetChildren()) do
+		if candy:IsA("Model") and candy:FindFirstChild("RootPart") then
+			table.insert(candies, candy)
+		end
+	end
+	return candies
+end
+
+function CandyFarmModule.farmMapFast(mapConfig, toggleName, Toggles)
+	while Toggles[toggleName].Value do
+		local char = player.Character
+		if not char then task.wait(1) continue end
+		
+		local hrp = char:FindFirstChild("HumanoidRootPart")
+		if not hrp then task.wait(1) continue end
+		
+		local maze = mapConfig.Maze
+		local candyFolder = maze:FindFirstChild("Candy")
+		local startPoint = maze:FindFirstChild("Start")
+		local finishPoint = maze:FindFirstChild("Finish")
+		
+		if not candyFolder or not startPoint or not finishPoint then
+			task.wait(2)
+			continue
+		end
+		
+		local firstCandy = nil
+		for _, candy in pairs(candyFolder:GetChildren()) do
+			if candy:IsA("Model") and candy:FindFirstChild("RootPart") then
+				firstCandy = candy
+				break
+			end
+		end
+		
+		if firstCandy then
+			tweenTo(hrp, startPoint.CFrame + Vector3.new(0, 3, 0), 0.5)
+			task.wait(0.1)
+			
+			tweenTo(hrp, firstCandy.RootPart.CFrame + Vector3.new(0, 3, 0), 0.5)
+			task.wait(0.1)
+			
+			pcall(function()
+				collectEvent:InvokeServer(firstCandy)
+			end)
+			
+			local finishPos = finishPoint.Position
+			local finishSize = finishPoint.Size
+			
+			local leftOutside = finishPos - Vector3.new(finishSize.X/2 + 5, -3, 0)
+			local rightInside = finishPos + Vector3.new(finishSize.X/2 - 2, 3, 0)
+			
+			tweenTo(hrp, CFrame.new(leftOutside), 0.5)
+			task.wait(0.05)
+			tweenTo(hrp, CFrame.new(rightInside), 0.5)
+			task.wait(0.2)
+		else
+			tweenTo(hrp, startPoint.CFrame + Vector3.new(0, 3, 0), 0.5)
+			task.wait(2)
+		end
+		
+		task.wait(0.1)
+	end
+end
+
+function CandyFarmModule.farmMap(mapConfig, toggleName, Toggles)
+	while Toggles[toggleName].Value do
+		local char = player.Character
+		if not char then task.wait(1) continue end
+		
+		local hrp = char:FindFirstChild("HumanoidRootPart")
+		if not hrp then task.wait(1) continue end
+		
+		local maze = mapConfig.Maze
+		local candyFolder = maze:FindFirstChild("Candy")
+		local startPoint = maze:FindFirstChild("Start")
+		local finishPoint = maze:FindFirstChild("Finish")
+		
+		if not candyFolder or not startPoint or not finishPoint then
+			task.wait(2)
+			continue
+		end
+		
+		local candies = getAllCandies(candyFolder)
+		
+		if #candies == 0 then
+			tweenTo(hrp, startPoint.CFrame + Vector3.new(0, 3, 0), 0.5)
+			task.wait(3)
+			continue
+		end
+		
+		tweenTo(hrp, startPoint.CFrame + Vector3.new(0, 3, 0), 0.5)
+		task.wait(0.2)
+		
+		for i, candy in ipairs(candies) do
+			if not Toggles[toggleName].Value then break end
+			
+			tweenTo(hrp, candy.RootPart.CFrame + Vector3.new(0, 3, 0), 0.3)
+			task.wait(0.1)
+			
+			pcall(function()
+				collectEvent:InvokeServer(candy)
+			end)
+			
+			task.wait(0.1)
+		end
+		
+		if not Toggles[toggleName].Value then break end
+		
+		local finishPos = finishPoint.Position
+		local finishSize = finishPoint.Size
+		
+		local leftOutside = finishPos - Vector3.new(finishSize.X/2 + 5, -3, 0)
+		local rightInside = finishPos + Vector3.new(finishSize.X/2 - 2, 3, 0)
+		
+		tweenTo(hrp, CFrame.new(leftOutside), 0.5)
+		task.wait(0.1)
+		tweenTo(hrp, CFrame.new(rightInside), 0.5)
+		task.wait(0.3)
+		
+		task.wait(0.5)
+	end
+end
+
+return CandyFarmModule
