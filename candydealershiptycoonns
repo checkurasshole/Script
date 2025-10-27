@@ -1,6 +1,3 @@
--- CandyFarm Module
--- Upload this as Module.lua to your GitHub repo
-
 local CandyFarmModule = {}
 
 local Players = game:GetService("Players")
