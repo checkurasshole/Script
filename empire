@@ -1,1 +1,66 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/cardealserhsiptycoonn"))()
+if game.CoreGui:FindFirstChild("KeylessTinyGui") then
+    game.CoreGui.KeylessTinyGui:Destroy()
+end
+
+local keylessScript = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/cardealserhsiptycoonn"))()'
+
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "KeylessTinyGui"
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 220, 0, 120)
+frame.Position = UDim2.new(0.5, -110, 0.5, -60)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.BackgroundTransparency = 0.05
+frame.ClipsDescendants = true
+frame.Name = "MainFrame"
+
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 10)
+
+local close = Instance.new("TextButton", frame)
+close.Size = UDim2.new(0, 25, 0, 25)
+close.Position = UDim2.new(1, -30, 0, 5)
+close.Text = "X"
+close.TextColor3 = Color3.fromRGB(255, 255, 255)
+close.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+close.BorderSizePixel = 0
+local closeCorner = Instance.new("UICorner", close)
+closeCorner.CornerRadius = UDim.new(0, 6)
+
+close.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+local copyBtn = Instance.new("TextButton", frame)
+copyBtn.Size = UDim2.new(0, 190, 0, 35)
+copyBtn.Position = UDim2.new(0, 15, 0, 40)
+copyBtn.Text = "Copy Keyless Script"
+copyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+copyBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+copyBtn.BorderSizePixel = 0
+local copyCorner = Instance.new("UICorner", copyBtn)
+copyCorner.CornerRadius = UDim.new(0, 8)
+
+copyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(keylessScript)
+    end
+end)
+
+local loadBtn = Instance.new("TextButton", frame)
+loadBtn.Size = UDim2.new(0, 190, 0, 35)
+loadBtn.Position = UDim2.new(0, 15, 0, 80)
+loadBtn.Text = "Load Keyless Script"
+loadBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+loadBtn.BorderSizePixel = 0
+local loadCorner = Instance.new("UICorner", loadBtn)
+loadCorner.CornerRadius = UDim.new(0, 8)
+
+loadBtn.MouseButton1Click:Connect(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/refs/heads/main/cardealserhsiptycoonn"))()
+end)
