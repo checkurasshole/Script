@@ -8,35 +8,6 @@ local player = Players.LocalPlayer
 local Halloween2025 = workspace:WaitForChild("Halloween2025")
 local Mazes = Halloween2025:WaitForChild("Mazes")
 
-CandyFarmModule.MapConfigs = {
-	{
-		Name = "VeryFast",
-		DisplayName = "Very Fast (Pumpkin)",
-		Maze = Mazes:WaitForChild("Cornfield2"),
-		FastMode = true,
-	},
-	{
-		Name = "Stronghold",
-		DisplayName = "Stronghold",
-		Maze = Mazes:WaitForChild("Castle1"),
-	},
-	{
-		Name = "ScarecrowSprint",
-		DisplayName = "Scarecrow Sprint",
-		Maze = Mazes:WaitForChild("Cornfield1"),
-	},
-	{
-		Name = "GraveyardGauntlet",
-		DisplayName = "Graveyard Gauntlet",
-		Maze = Mazes:WaitForChild("Castle2"),
-	},
-	{
-		Name = "PumpkinPathway",
-		DisplayName = "Pumpkin Pathway",
-		Maze = Mazes:WaitForChild("Cornfield2"),
-	},
-}
-
 local collectEvent = ReplicatedStorage:WaitForChild("Databases"):WaitForChild("Halloween2025"):WaitForChild("CollectCandy")
 
 local function tweenTo(hrp, targetCFrame, duration)
