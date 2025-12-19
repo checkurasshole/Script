@@ -1,0 +1,250 @@
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "OrnamentsFarmGUI"
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(320, 140)
+frame.Position = UDim2.fromScale(0.5, 0.5)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = frame
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(1, -30, 0, 5)
+closeBtn.Text = "✖"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 14
+closeBtn.BackgroundTransparency = 0.2
+closeBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
+closeBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
+closeBtn.Parent = frame
+closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
+
+local closeBtnCorner = Instance.new("UICorner")
+closeBtnCorner.CornerRadius = UDim.new(0, 5)
+closeBtnCorner.Parent = closeBtn
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -40, 0, 25)
+title.Position = UDim2.new(0, 10, 0, 5)
+title.BackgroundTransparency = 1
+title.Text = "Ornaments Auto Farm"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = frame
+
+local autoToggle = Instance.new("TextButton")
+autoToggle.Size = UDim2.new(1, -20, 0, 28)
+autoToggle.Position = UDim2.new(0, 10, 0, 35)
+autoToggle.Text = "Auto Farm: OFF"
+autoToggle.Font = Enum.Font.GothamBold
+autoToggle.TextSize = 12
+autoToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 85)
+autoToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoToggle.BorderSizePixel = 0
+autoToggle.Parent = frame
+
+local autoCorner = Instance.new("UICorner")
+autoCorner.CornerRadius = UDim.new(0, 6)
+autoCorner.Parent = autoToggle
+
+local autoHopToggle = Instance.new("TextButton")
+autoHopToggle.Size = UDim2.new(1, -20, 0, 28)
+autoHopToggle.Position = UDim2.new(0, 10, 0, 68)
+autoHopToggle.Text = "Server Hop"
+autoHopToggle.Font = Enum.Font.GothamBold
+autoHopToggle.TextSize = 12
+autoHopToggle.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
+autoHopToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoHopToggle.BorderSizePixel = 0
+autoHopToggle.Parent = frame
+
+local autoHopCorner = Instance.new("UICorner")
+autoHopCorner.CornerRadius = UDim.new(0, 6)
+autoHopCorner.Parent = autoHopToggle
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -20, 0, 35)
+statusLabel.Position = UDim2.new(0, 10, 0, 101)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Searching for ornaments..."
+statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextSize = 11
+statusLabel.TextWrapped = true
+statusLabel.TextYAlignment = Enum.TextYAlignment.Top
+statusLabel.Parent = frame
+
+local autoFarmEnabled = false
+local autoFarmCoroutine = nil
+
+local function serverHop()
+    local success, result = pcall(function()
+        local servers = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+        
+        if servers and servers.data then
+            for _, server in ipairs(servers.data) do
+                if server.id ~= game.JobId and server.playing < server.maxPlayers then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, player)
+                    return
+                end
+            end
+        end
+    end)
+    
+    if not success then
+        warn("Server hop failed, retrying...")
+        task.wait(2)
+        TeleportService:Teleport(game.PlaceId, player)
+    end
+end
+
+local function findAllProximityPrompts(obj)
+    local prompts = {}
+    
+    local function searchRecursive(searchObj)
+        if searchObj:IsA("ProximityPrompt") then
+            table.insert(prompts, searchObj)
+        end
+        for _, child in pairs(searchObj:GetChildren()) do
+            searchRecursive(child)
+        end
+    end
+    
+    searchRecursive(obj)
+    return prompts
+end
+
+local function fireAllPromptsInFolder(folder)
+    if not fireproximityprompt then
+        return
+    end
+    
+    local prompts = findAllProximityPrompts(folder)
+    
+    if #prompts == 0 then
+        return
+    end
+    
+    for _, prompt in ipairs(prompts) do
+        if prompt.Enabled and prompt.Parent then
+            pcall(function()
+                fireproximityprompt(prompt, 0, true)
+                task.wait(0.05)
+                if prompt.Enabled and prompt.Parent then
+                    fireproximityprompt(prompt)
+                end
+                task.wait(0.05)
+                if prompt.Enabled and prompt.Parent then
+                    fireproximityprompt(prompt, prompt.HoldDuration or 0)
+                end
+            end)
+        end
+    end
+end
+
+local function getAllFoldersWithChildren()
+    local PresentSpawns = workspace.ItemSpawn:WaitForChild("PresentSpawns")
+    local folders = {}
+    
+    for _, child in ipairs(PresentSpawns:GetChildren()) do
+        if #child:GetChildren() > 0 then
+            table.insert(folders, child)
+        end
+    end
+    
+    return folders
+end
+
+local function autoFarmLoop()
+    while autoFarmEnabled do
+        local folders = getAllFoldersWithChildren()
+        
+        if #folders == 0 then
+            statusLabel.Text = "❌ No ornaments found"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            task.wait(2)
+        else
+            statusLabel.Text = "✓ Found " .. #folders .. " ornament" .. (#folders > 1 and "s" or "") .. " - Collecting..."
+            statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+            
+            for _, folder in ipairs(folders) do
+                if not autoFarmEnabled then break end
+                
+                local teleported = false
+                if folder:IsA("Model") then
+                    if folder.PrimaryPart then
+                        character:SetPrimaryPartCFrame(folder.PrimaryPart.CFrame + Vector3.new(0, 5, 0))
+                        teleported = true
+                    else
+                        local firstChild = folder:FindFirstChildWhichIsA("BasePart")
+                        if firstChild then
+                            character:SetPrimaryPartCFrame(firstChild.CFrame + Vector3.new(0,5,0))
+                            teleported = true
+                        end
+                    end
+                elseif folder:IsA("BasePart") then
+                    character:SetPrimaryPartCFrame(folder.CFrame + Vector3.new(0,5,0))
+                    teleported = true
+                end
+                
+                if teleported then
+                    task.wait(0.3)
+                    fireAllPromptsInFolder(folder)
+                    task.wait(0.2)
+                end
+            end
+            
+            task.wait(0.5)
+        end
+    end
+end
+
+autoToggle.MouseButton1Click:Connect(function()
+    autoFarmEnabled = not autoFarmEnabled
+    
+    if autoFarmEnabled then
+        autoToggle.Text = "Auto Farm: ON"
+        autoToggle.BackgroundColor3 = Color3.fromRGB(0, 150, 80)
+        statusLabel.Text = "🔍 Searching for ornaments..."
+        statusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+        
+        autoFarmCoroutine = task.spawn(function()
+            pcall(autoFarmLoop)
+        end)
+    else
+        autoToggle.Text = "Auto Farm: OFF"
+        autoToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 85)
+        statusLabel.Text = "Stopped"
+        statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+        
+        if autoFarmCoroutine then
+            task.cancel(autoFarmCoroutine)
+            autoFarmCoroutine = nil
+        end
+    end
+end)
+
+autoHopToggle.MouseButton1Click:Connect(function()
+    statusLabel.Text = "🌐 Finding new server..."
+    statusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+    task.wait(1)
+    serverHop()
+end)
+
+print("Ornaments Auto Farm GUI loaded!")
