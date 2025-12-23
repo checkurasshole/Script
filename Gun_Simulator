@@ -1,0 +1,185 @@
+if getgenv().ComboWickLoaded then
+    getgenv().ComboWickLoaded:Unload()
+end
+
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+
+local moduleUrl = "https://raw.githubusercontent.com/checkurasshole/Trt/refs/heads/main/rt"
+local ComboWick = loadstring(game:HttpGet(moduleUrl))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+Library.ShowCustomCursor = false
+
+getgenv().ComboWickLoaded = Library
+
+local Window = Library:CreateWindow({
+    Title = "COMBO_WICK",
+    Footer = "By COMBO_WICK",
+    ShowCustomCursor = false,
+    Position = UDim2.new(0.5, -200, 0.5, -150),
+    Size = UDim2.new(0, 400, 0, 300),
+})
+
+local Tabs = {
+    Main = Window:AddTab("Main", "shopping-cart"),
+}
+
+local MainBox = Tabs.Main:AddLeftGroupbox("Purchases", "package")
+
+task.spawn(function()
+    local items = ComboWick.fetchAllItems()
+    
+    if #items > 0 then
+        local petInventoryItem = nil
+        local petEquipItem = nil
+        
+        for _, item in pairs(items) do
+            if item.Name == "+100 Pet Inventory Space" then
+                petInventoryItem = item
+            elseif item.Name == "+1 Pet Equip" then
+                petEquipItem = item
+            end
+        end
+        
+        MainBox:AddButton({
+            Text = "Get Everything!",
+            Func = function()
+                ComboWick.purchaseAll(items, 0.3)
+            end
+        })
+        
+        MainBox:AddDivider()
+        
+        if petInventoryItem then
+            MainBox:AddToggle("Toggle_PetInventory", {
+                Text = "Unlimited Pet Storage",
+                Default = false,
+                Callback = function(value)
+                    if value then
+                        ComboWick.startAutoPurchase(petInventoryItem.ProductId, 0.1)
+                    else
+                        ComboWick.stopAutoPurchase(petInventoryItem.ProductId)
+                    end
+                end,
+            })
+        end
+        
+        if petEquipItem then
+            MainBox:AddToggle("Toggle_PetEquip", {
+                Text = "+1 Pet Equip",
+                Default = false,
+                Callback = function(value)
+                    if value then
+                        ComboWick.startAutoPurchase(petEquipItem.ProductId, 0.1)
+                    else
+                        ComboWick.stopAutoPurchase(petEquipItem.ProductId)
+                    end
+                end,
+            })
+        end
+    end
+end)
+
+local AutoBox = Tabs.Main:AddRightGroupbox("Auto Features", "zap")
+
+AutoBox:AddToggle("AutoCraft", {
+    Text = "Auto Craft All Pets",
+    Default = false,
+    Callback = function(value)
+        if value then
+            getgenv().AutoCraftRunning = true
+            task.spawn(function()
+                while getgenv().AutoCraftRunning do
+                    local args = {}
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 9e9):WaitForChild("CraftAllPet", 9e9):FireServer(unpack(args))
+                    task.wait(0.1)
+                end
+            end)
+        else
+            getgenv().AutoCraftRunning = false
+        end
+    end,
+})
+
+AutoBox:AddDivider()
+
+local eggAmount = 8
+local eggType = 1
+
+local eggOptions = {
+    ["First World 1"] = 1,
+    ["First World 2"] = 2,
+    ["First World 3"] = 3,
+    ["First World 4"] = 4,
+    ["Underworld 1"] = 5,
+    ["Underworld 2"] = 6,
+    ["Underworld 3"] = 7,
+    ["Underworld 4"] = 8,
+    ["Frozen World 1"] = 9,
+    ["Frozen World 2"] = 10,
+    ["Frozen World 3"] = 11,
+    ["Frozen World 4"] = 12,
+    ["Lava Pit 1"] = 13,
+    ["Lava Pit 2"] = 14,
+    ["Lava Pit 3"] = 15,
+    ["Lava Pit 4"] = 16,
+    ["The Void 1"] = 17,
+    ["The Void 2"] = 18,
+    ["The Void 3"] = 19,
+    ["The Void 4"] = 20,
+}
+
+AutoBox:AddDropdown("EggTypeDropdown", {
+    Values = {
+        "First World 1", "First World 2", "First World 3", "First World 4",
+        "Underworld 1", "Underworld 2", "Underworld 3", "Underworld 4",
+        "Frozen World 1", "Frozen World 2", "Frozen World 3", "Frozen World 4",
+        "Lava Pit 1", "Lava Pit 2", "Lava Pit 3", "Lava Pit 4",
+        "The Void 1", "The Void 2", "The Void 3", "The Void 4"
+    },
+    Default = 1,
+    Multi = false,
+    Text = "Egg Type",
+    Callback = function(value)
+        eggType = eggOptions[value]
+    end,
+})
+
+AutoBox:AddSlider("EggAmount", {
+    Text = "Egg Amount",
+    Default = 8,
+    Min = 1,
+    Max = 100,
+    Rounding = 0,
+    Compact = false,
+    Callback = function(value)
+        eggAmount = value
+    end,
+})
+
+AutoBox:AddToggle("AutoHatch", {
+    Text = "Auto Hatch Eggs",
+    Default = false,
+    Callback = function(value)
+        if value then
+            getgenv().AutoHatchRunning = true
+            task.spawn(function()
+                while getgenv().AutoHatchRunning do
+                    local args = {
+                        [1] = "Hatch",
+                        [2] = tostring(eggType),
+                        [3] = eggAmount,
+                        [4] = {},
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 9e9):WaitForChild("Egg", 9e9):FireServer(unpack(args))
+                    task.wait(0.1)
+                end
+            end)
+        else
+            getgenv().AutoHatchRunning = false
+        end
+    end,
+})
