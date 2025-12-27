@@ -587,59 +587,70 @@ function Module.teleportToItems()
     local dropItems = workspace:FindFirstChild("DropItems")
     if not dropItems then return end
     
-    local originalPosition = humanoidRootPart.CFrame
     local validItems = {}
     local items = dropItems:GetChildren()
     
     for _, item in pairs(items) do
-        local position = Module.getItemPosition(item)
-        if position and Module.isValidPosition(position) then
-            local distance = (humanoidRootPart.Position - position).Magnitude
-            if distance < 500 then
-                table.insert(validItems, {item = item, position = position, distance = distance, name = item.Name or "Unknown"})
-            end
-        end
-    end
-    
-    table.sort(validItems, function(a, b) return a.distance < b.distance end)
-    local itemCount = #validItems
-    if itemCount == 0 then return false end
-    
-    Module.Variables.isTeleporting = true
-    for i, itemData in pairs(validItems) do
-        if not Module.Variables.teleportToItemsEnabled then break end
-        if itemData.item and itemData.item.Parent then
-            local currentPosition = Module.getItemPosition(itemData.item)
-            if currentPosition and Module.isValidPosition(currentPosition) then
-                local distanceFromOriginal = (originalPosition.Position - currentPosition).Magnitude
-                if distanceFromOriginal < 1000 then
-                    pcall(function()
-                        local safeHeight = math.max(currentPosition.Y + 10, 50)
-                        local teleportPosition = Vector3.new(currentPosition.X, safeHeight, currentPosition.Z)
-                        if Module.isValidPosition(teleportPosition) then
-                            humanoidRootPart.CFrame = CFrame.new(teleportPosition)
-                            task.wait(0.05)
-                            local finalPosition = Vector3.new(currentPosition.X, currentPosition.Y + 5, currentPosition.Z)
-                            if Module.isValidPosition(finalPosition) then
-                                humanoidRootPart.CFrame = CFrame.new(finalPosition)
-                                task.wait(0.15)
-                            end
-                        end
-                    end)
-                else
-                    warn("Item too far away, skipping: " .. itemData.name)
+        if item and item.Parent then
+            local position = Module.getItemPosition(item)
+            if position and Module.isValidPosition(position) then
+                local distance = (humanoidRootPart.Position - position).Magnitude
+                if distance < 500 then
+                    table.insert(validItems, {item = item, position = position, distance = distance, name = item.Name or "Unknown"})
                 end
             end
         end
     end
     
-    pcall(function()
-        local currentPos = humanoidRootPart.Position
-        if not Module.isValidPosition(currentPos) or currentPos.Y < -500 then
-            humanoidRootPart.CFrame = originalPosition
-            warn("Teleported back to original position (failsafe)")
+    table.sort(validItems, function(a, b) return a.distance < b.distance end)
+    if #validItems == 0 then return false end
+    
+    Module.Variables.isTeleporting = true
+    
+    for i, itemData in pairs(validItems) do
+        if not Module.Variables.teleportToItemsEnabled then break end
+        
+        if not itemData.item or not itemData.item.Parent then
+            continue
         end
-    end)
+        
+        local currentPosition = Module.getItemPosition(itemData.item)
+        if not currentPosition or not Module.isValidPosition(currentPosition) then
+            continue
+        end
+        
+        local currentDistance = (humanoidRootPart.Position - currentPosition).Magnitude
+        if currentDistance > 1000 then
+            continue
+        end
+        
+        pcall(function()
+            local safeHeight = math.max(currentPosition.Y + 10, 50)
+            local teleportPosition = Vector3.new(currentPosition.X, safeHeight, currentPosition.Z)
+            
+            if Module.isValidPosition(teleportPosition) then
+                humanoidRootPart.CFrame = CFrame.new(teleportPosition)
+                task.wait(0.05)
+                
+                if not itemData.item or not itemData.item.Parent then
+                    return
+                end
+                
+                local revalidatePosition = Module.getItemPosition(itemData.item)
+                if not revalidatePosition then
+                    return
+                end
+                
+                local finalPosition = Vector3.new(revalidatePosition.X, revalidatePosition.Y + 5, revalidatePosition.Z)
+                if Module.isValidPosition(finalPosition) then
+                    humanoidRootPart.CFrame = CFrame.new(finalPosition)
+                    task.wait(0.15)
+                end
+            end
+        end)
+        
+        task.wait(0.05)
+    end
     
     Module.Variables.isTeleporting = false
     return true
