@@ -1,0 +1,445 @@
+local Module = {}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+Module.player = Players.LocalPlayer
+Module.character = nil
+Module.rootPart = nil
+Module.camera = workspace.CurrentCamera
+
+Module.farmActive = false
+Module.huntActive = false
+Module.babyDinoActive = false
+Module.flightActive = false
+Module.lockCamera = false
+Module.SAFETY_RADIUS = 150
+Module.TELEPORT_HEIGHT = 20
+Module.targetType = "All"
+Module.cameraCFrame = nil
+Module.flightSpeed = 50
+
+Module.bodyVelocity = nil
+Module.bodyGyro = nil
+
+Module.collectIndex = 1
+Module.allItems = {}
+Module.lastRefresh = 0
+Module.blacklistedPositions = {}
+Module.lastPlayerCheck = 0
+
+function Module.updateCharacter()
+	Module.character = Module.player.Character
+	if Module.character then
+		Module.rootPart = Module.character:FindFirstChild("HumanoidRootPart") or Module.character:FindFirstChildWhichIsA("BasePart")
+	end
+end
+
+Module.updateCharacter()
+
+Module.player.CharacterAdded:Connect(function(char)
+	Module.character = char
+	Module.rootPart = nil
+	
+	task.wait(0.1)
+	Module.rootPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChildWhichIsA("BasePart")
+	
+	if Module.bodyVelocity then
+		Module.bodyVelocity:Destroy()
+		Module.bodyVelocity = nil
+	end
+	if Module.bodyGyro then
+		Module.bodyGyro:Destroy()
+		Module.bodyGyro = nil
+	end
+	
+	if Module.flightActive then
+		Module.enableFlight()
+	end
+end)
+
+function Module.formatGrowth(num)
+	if num >= 1000000 then
+		return string.format("%.1fM", num / 1000000)
+	elseif num >= 1000 then
+		return string.format("%.1fK", num / 1000)
+	else
+		return tostring(math.floor(num))
+	end
+end
+
+function Module.updateStats(growthLabel, rankLabel)
+	if Module.character and Module.character:GetAttribute("Growth") then
+		local growth = Module.character:GetAttribute("Growth")
+		growthLabel:SetText("Growth : " .. Module.formatGrowth(growth))
+		
+		local allPlayers = {}
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p.Character then
+				table.insert(allPlayers, {p = p, g = p.Character:GetAttribute("Growth") or 0})
+			end
+		end
+		
+		table.sort(allPlayers, function(a, b) return a.g > b.g end)
+		
+		for rank, data in ipairs(allPlayers) do
+			if data.p == Module.player then
+				rankLabel:SetText(string.format("Rank : #%d/%d", rank, #allPlayers))
+				return
+			end
+		end
+	end
+end
+
+function Module.getAllPlayerPositions()
+	local positions = {}
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= Module.player and p.Character then
+			local r = p.Character:FindFirstChild("HumanoidRootPart") or p.Character:FindFirstChildWhichIsA("BasePart")
+			if r then
+				table.insert(positions, r.Position)
+			end
+		end
+	end
+	return positions
+end
+
+function Module.isPositionSafe(pos)
+	local playerPositions = Module.getAllPlayerPositions()
+	
+	for _, playerPos in ipairs(playerPositions) do
+		if (pos - playerPos).Magnitude < Module.SAFETY_RADIUS then
+			return false
+		end
+	end
+	
+	return true
+end
+
+function Module.isPlayerNearby(pos)
+	return not Module.isPositionSafe(pos)
+end
+
+function Module.willPathCrossPlayer(currentPos, targetPos)
+	local playerPositions = Module.getAllPlayerPositions()
+	local direction = (targetPos - currentPos).Unit
+	local distance = (targetPos - currentPos).Magnitude
+	
+	for _, playerPos in ipairs(playerPositions) do
+		local toPlayer = playerPos - currentPos
+		local projectionLength = toPlayer:Dot(direction)
+		
+		if projectionLength > 0 and projectionLength < distance then
+			local closestPoint = currentPos + direction * projectionLength
+			local distanceToPath = (playerPos - closestPoint).Magnitude
+			
+			if distanceToPath < Module.SAFETY_RADIUS then
+				return true
+			end
+		end
+		
+		if (playerPos - currentPos).Magnitude < Module.SAFETY_RADIUS then
+			return true
+		end
+		
+		if (playerPos - targetPos).Magnitude < Module.SAFETY_RADIUS then
+			return true
+		end
+	end
+	
+	return false
+end
+
+function Module.matchesTarget(name)
+	local n = name:lower()
+	
+	if Module.targetType == "Meats" then
+		return n:find("meat")
+	elseif Module.targetType == "Eggs" then
+		return n:find("egg")
+	elseif Module.targetType == "Nests" then
+		return n:find("nest")
+	elseif Module.targetType == "All" then
+		return n:find("meat") or n:find("egg") or n:find("nest")
+	end
+	
+	return false
+end
+
+function Module.getAllItems()
+	local items = {}
+	
+	for _, obj in ipairs(workspace:GetChildren()) do
+		if Module.matchesTarget(obj.Name) then
+			local pos
+			
+			if obj:IsA("Model") then
+				local isPChar = false
+				for _, p in ipairs(Players:GetPlayers()) do
+					if p.Character == obj then
+						isPChar = true
+						break
+					end
+				end
+				if isPChar then continue end
+				
+				if obj.Name:lower():find("egg") and #obj:GetChildren() == 0 then
+					continue
+				end
+				
+				if not obj.PrimaryPart then
+					local part = obj:FindFirstChildWhichIsA("BasePart")
+					if part then obj.PrimaryPart = part else continue end
+				end
+				pos = obj.PrimaryPart.Position
+			elseif obj:IsA("BasePart") then
+				pos = obj.Position
+			end
+			
+			if pos and Module.isPositionSafe(pos) then
+				local isBlacklisted = false
+				for _, blacklisted in ipairs(Module.blacklistedPositions) do
+					if (pos - blacklisted).Magnitude < 10 then
+						isBlacklisted = true
+						break
+					end
+				end
+				
+				if not isBlacklisted then
+					table.insert(items, pos)
+				end
+			end
+		end
+		
+		for _, child in ipairs(obj:GetChildren()) do
+			if Module.matchesTarget(child.Name) then
+				local pos
+				
+				if child:IsA("Model") then
+					if child.Name:lower():find("egg") and #child:GetChildren() == 0 then
+						continue
+					end
+					
+					if not child.PrimaryPart then
+						local part = child:FindFirstChildWhichIsA("BasePart")
+						if part then child.PrimaryPart = part else continue end
+					end
+					pos = child.PrimaryPart.Position
+				elseif child:IsA("BasePart") then
+					pos = child.Position
+				end
+				
+				if pos and Module.isPositionSafe(pos) then
+					local isBlacklisted = false
+					for _, blacklisted in ipairs(Module.blacklistedPositions) do
+						if (pos - blacklisted).Magnitude < 10 then
+							isBlacklisted = true
+							break
+						end
+					end
+					
+					if not isBlacklisted then
+						table.insert(items, pos)
+					end
+				end
+			end
+		end
+	end
+	
+	return items
+end
+
+function Module.farmAllItems()
+	local currentTime = tick()
+	
+	if currentTime - Module.lastRefresh > 0.3 or #Module.allItems == 0 then
+		Module.allItems = Module.getAllItems()
+		Module.lastRefresh = currentTime
+		Module.collectIndex = 1
+	end
+	
+	if #Module.allItems == 0 then
+		return nil
+	end
+	
+	if Module.collectIndex > #Module.allItems then
+		Module.collectIndex = 1
+		Module.allItems = Module.getAllItems()
+	end
+	
+	local targetPos = Module.allItems[Module.collectIndex]
+	
+	if Module.rootPart and Module.willPathCrossPlayer(Module.rootPart.Position, targetPos) then
+		table.insert(Module.blacklistedPositions, targetPos)
+		if #Module.blacklistedPositions > 50 then
+			table.remove(Module.blacklistedPositions, 1)
+		end
+		Module.collectIndex = Module.collectIndex + 1
+		return Module.farmAllItems()
+	end
+	
+	Module.collectIndex = Module.collectIndex + 1
+	
+	return targetPos
+end
+
+function Module.findWeakerPlayer()
+	if not Module.character or not Module.rootPart then return nil end
+	local myGrowth = Module.character:GetAttribute("Growth") or 0
+	local targets = {}
+	
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= Module.player and p.Character then
+			local theirGrowth = p.Character:GetAttribute("Growth") or 0
+			if theirGrowth < myGrowth then
+				local r = p.Character:FindFirstChild("HumanoidRootPart") or p.Character:FindFirstChildWhichIsA("BasePart")
+				if r then
+					table.insert(targets, {pos = r.Position, dist = (Module.rootPart.Position - r.Position).Magnitude})
+				end
+			end
+		end
+	end
+	
+	table.sort(targets, function(a, b) return a.dist < b.dist end)
+	
+	return targets[1] and targets[1].pos or nil
+end
+
+function Module.findBabyDino()
+	local baby = workspace:FindFirstChild("BabyDino")
+	if baby then
+		local part = baby:FindFirstChild("HumanoidRootPart") or baby:FindFirstChildWhichIsA("BasePart")
+		if part then
+			return part.Position
+		end
+	end
+	return nil
+end
+
+function Module.enableFlight()
+	if not Module.rootPart then return end
+	
+	if Module.bodyVelocity then
+		Module.bodyVelocity:Destroy()
+	end
+	if Module.bodyGyro then
+		Module.bodyGyro:Destroy()
+	end
+	
+	Module.bodyVelocity = Instance.new("BodyVelocity")
+	Module.bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+	Module.bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+	Module.bodyVelocity.Parent = Module.rootPart
+	
+	Module.bodyGyro = Instance.new("BodyGyro")
+	Module.bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+	Module.bodyGyro.P = 9e4
+	Module.bodyGyro.Parent = Module.rootPart
+end
+
+function Module.disableFlight()
+	if Module.bodyVelocity then
+		Module.bodyVelocity:Destroy()
+		Module.bodyVelocity = nil
+	end
+	if Module.bodyGyro then
+		Module.bodyGyro:Destroy()
+		Module.bodyGyro = nil
+	end
+end
+
+function Module.emergencyEvade()
+	if not Module.rootPart then return false end
+	
+	local playerPositions = Module.getAllPlayerPositions()
+	local currentPos = Module.rootPart.Position
+	
+	for _, playerPos in ipairs(playerPositions) do
+		if (currentPos - playerPos).Magnitude < Module.SAFETY_RADIUS then
+			local escapeDirection = (currentPos - playerPos).Unit
+			local escapePos = currentPos + escapeDirection * (Module.SAFETY_RADIUS * 1.5)
+			escapePos = Vector3.new(escapePos.X, currentPos.Y + Module.TELEPORT_HEIGHT, escapePos.Z)
+			
+			Module.rootPart.CFrame = CFrame.new(escapePos)
+			return true
+		end
+	end
+	
+	return false
+end
+
+function Module.startLoop()
+	RunService.RenderStepped:Connect(function()
+		if not Module.rootPart or not Module.rootPart.Parent then
+			Module.updateCharacter()
+			return
+		end
+		
+		local currentTime = tick()
+		if currentTime - Module.lastPlayerCheck > 0.1 then
+			if Module.farmActive or Module.babyDinoActive then
+				if Module.emergencyEvade() then
+					Module.lastPlayerCheck = currentTime
+					return
+				end
+			end
+			Module.lastPlayerCheck = currentTime
+		end
+		
+		if Module.flightActive and Module.bodyVelocity and Module.bodyGyro then
+			if not Module.bodyVelocity.Parent or not Module.bodyGyro.Parent then
+				Module.enableFlight()
+			end
+			if Module.bodyVelocity and Module.bodyGyro then
+				Module.bodyGyro.CFrame = Module.camera.CFrame
+				Module.bodyVelocity.Velocity = Module.camera.CFrame.LookVector * Module.flightSpeed
+			end
+		end
+		
+		if Module.babyDinoActive then
+			local target = Module.findBabyDino()
+			if target and Module.isPositionSafe(target) then
+				local newPos = target + Vector3.new(0, Module.TELEPORT_HEIGHT, 0)
+				Module.rootPart.CFrame = CFrame.new(newPos)
+			end
+		elseif Module.huntActive then
+			local target = Module.findWeakerPlayer()
+			if target then
+				local newPos = target + Vector3.new(0, Module.TELEPORT_HEIGHT, 0)
+				Module.rootPart.CFrame = CFrame.new(newPos)
+			end
+		elseif Module.farmActive then
+			local target = Module.farmAllItems()
+			if target then
+				if Module.lockCamera then
+					if not Module.cameraCFrame then
+						Module.cameraCFrame = Module.camera.CFrame
+						Module.camera.CameraType = Enum.CameraType.Scriptable
+					end
+					Module.camera.CFrame = Module.cameraCFrame
+				end
+				local newPos = target + Vector3.new(0, Module.TELEPORT_HEIGHT, 0)
+				Module.rootPart.CFrame = CFrame.new(newPos)
+			else
+				if Module.lockCamera and Module.cameraCFrame then
+					Module.camera.CameraType = Enum.CameraType.Custom
+					Module.cameraCFrame = nil
+				end
+			end
+		end
+	end)
+end
+
+function Module.cleanup()
+	Module.farmActive = false
+	Module.huntActive = false
+	Module.babyDinoActive = false
+	Module.flightActive = false
+	Module.lockCamera = false
+	Module.camera.CameraType = Enum.CameraType.Custom
+	Module.cameraCFrame = nil
+	if Module.bodyVelocity then Module.bodyVelocity:Destroy() end
+	if Module.bodyGyro then Module.bodyGyro:Destroy() end
+end
+
+return Module
