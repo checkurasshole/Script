@@ -1,0 +1,243 @@
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+Library.ShowCustomCursor = false
+
+local Window = Library:CreateWindow({
+	Title = "DINO WALKSPEED",
+	Footer = "",
+	NotifySide = "Right",
+	ShowCustomCursor = false,
+	Size = UDim2.new(0, 400, 0, 300),
+})
+
+local Tabs = {
+	Main = Window:AddTab("Main", "zap"),
+	UI = Window:AddTab("UI", "settings"),
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChildWhichIsA("BasePart")
+
+local speedEnabled = false
+local currentSpeed = 50
+local speedConnection = nil
+local bodyVelocity = nil
+local bodyGyro = nil
+
+-- Update character references
+local function updateCharacter()
+	character = player.Character
+	if character then
+		rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChildWhichIsA("BasePart")
+	end
+end
+
+player.CharacterAdded:Connect(function(char)
+	character = char
+	task.wait(0.1)
+	updateCharacter()
+	
+	if bodyVelocity then
+		bodyVelocity:Destroy()
+		bodyVelocity = nil
+	end
+	if bodyGyro then
+		bodyGyro:Destroy()
+		bodyGyro = nil
+	end
+	
+	if speedEnabled then
+		enableSpeed()
+	end
+end)
+
+-- Create flight objects for movement
+local function createFlightObjects()
+	if not rootPart then return end
+	
+	if bodyVelocity then
+		bodyVelocity:Destroy()
+	end
+	if bodyGyro then
+		bodyGyro:Destroy()
+	end
+	
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+	bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+	bodyVelocity.Parent = rootPart
+	
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+	bodyGyro.P = 9e4
+	bodyGyro.Parent = rootPart
+end
+
+-- Get movement direction from camera and input
+local UserInputService = game:GetService("UserInputService")
+local camera = workspace.CurrentCamera
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+
+local function getMovementDirection()
+	local moveVector = Vector3.new(0, 0, 0)
+	
+	-- PC/Keyboard controls
+	if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+		moveVector = moveVector + Vector3.new(0, 0, -1)
+	end
+	if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+		moveVector = moveVector + Vector3.new(0, 0, 1)
+	end
+	if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+		moveVector = moveVector + Vector3.new(-1, 0, 0)
+	end
+	if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+		moveVector = moveVector + Vector3.new(1, 0, 0)
+	end
+	
+	-- Mobile - move in camera direction automatically
+	if isMobile then
+		local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
+		if humanoid and humanoid.MoveDirection.Magnitude > 0 then
+			-- User is touching screen to move, move in camera look direction
+			return (camera.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
+		end
+	end
+	
+	-- Convert keyboard input to world direction
+	if moveVector.Magnitude > 0 then
+		moveVector = moveVector.Unit
+		local cameraCFrame = camera.CFrame
+		local cameraDirection = (cameraCFrame.LookVector * Vector3.new(1, 0, 1)).Unit
+		local cameraRight = cameraCFrame.RightVector
+		
+		local worldDirection = (cameraDirection * -moveVector.Z) + (cameraRight * moveVector.X)
+		return worldDirection
+	end
+	
+	return Vector3.new(0, 0, 0)
+end
+
+-- Apply speed using multiple methods
+local function applySpeed()
+	if not speedEnabled or not rootPart or not character then
+		updateCharacter()
+		return
+	end
+	
+	-- Ensure flight objects exist
+	if not bodyVelocity or not bodyGyro or not bodyVelocity.Parent or not bodyGyro.Parent then
+		createFlightObjects()
+		if not bodyVelocity or not bodyGyro then return end
+	end
+	
+	local moveDirection = getMovementDirection()
+	
+	if moveDirection.Magnitude > 0 then
+		-- Set velocity based on movement direction
+		bodyVelocity.Velocity = moveDirection * currentSpeed
+		
+		-- Orient character to face movement direction
+		local targetCFrame = CFrame.new(rootPart.Position, rootPart.Position + moveDirection)
+		bodyGyro.CFrame = targetCFrame
+	else
+		-- Stop movement when no input
+		bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+	end
+	
+	-- Additional CFrame boost for extreme speeds
+	if currentSpeed > 150 and moveDirection.Magnitude > 0 then
+		rootPart.CFrame = rootPart.CFrame + (moveDirection * (currentSpeed / 100))
+	end
+end
+
+local function enableSpeed()
+	createFlightObjects()
+	
+	if speedConnection then
+		speedConnection:Disconnect()
+		speedConnection = nil
+	end
+	
+	speedConnection = RunService.Heartbeat:Connect(function()
+		applySpeed()
+	end)
+end
+
+local function disableSpeed()
+	if speedConnection then
+		speedConnection:Disconnect()
+		speedConnection = nil
+	end
+	
+	if bodyVelocity then
+		bodyVelocity:Destroy()
+		bodyVelocity = nil
+	end
+	
+	if bodyGyro then
+		bodyGyro:Destroy()
+		bodyGyro = nil
+	end
+end
+
+-- GUI Elements
+local SpeedBox = Tabs.Main:AddLeftGroupbox("Speed Controls")
+
+SpeedBox:AddToggle("SpeedToggle", {
+	Text = "Enable Speed",
+	Default = false,
+	Callback = function(Value)
+		speedEnabled = Value
+		if Value then
+			enableSpeed()
+		else
+			disableSpeed()
+		end
+	end,
+})
+
+SpeedBox:AddSlider("SpeedSlider", {
+	Text = "Walk Speed",
+	Default = 50,
+	Min = 16,
+	Max = 500,
+	Rounding = 0,
+	Callback = function(Value)
+		currentSpeed = Value
+	end,
+})
+
+SpeedBox:AddButton("Reset Speed", function()
+	currentSpeed = 50
+	Library.Options.SpeedSlider:SetValue(50)
+end)
+
+SpeedBox:AddLabel("PC: WASD | Mobile: Touch to move")
+
+-- Cleanup
+Library:OnUnload(function()
+	disableSpeed()
+end)
+
+local MenuGroup = Tabs.UI:AddLeftGroupbox("Menu")
+MenuGroup:AddLabel("Menu"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true })
+MenuGroup:AddButton("Unload", function() Library:Unload() end)
+
+Library.ToggleKeybind = Library.Options.MenuKeybind
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+ThemeManager:SetFolder("DinoWalkspeed")
+SaveManager:SetFolder("DinoWalkspeed/config")
+SaveManager:BuildConfigSection(Tabs.UI)
+ThemeManager:ApplyToTab(Tabs.UI)
