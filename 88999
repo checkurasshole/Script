@@ -1,0 +1,200 @@
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+Library.ShowCustomCursor = false
+
+local Window = Library:CreateWindow({
+	Title = "DINO WALKSPEED",
+	Footer = "",
+	NotifySide = "Right",
+	ShowCustomCursor = false,
+	Size = UDim2.new(0, 400, 0, 300),
+})
+
+local Tabs = {
+	Main = Window:AddTab("Main", "zap"),
+	UI = Window:AddTab("UI", "settings"),
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local character = nil
+local rootPart = nil
+local humanoid = nil
+
+local speedEnabled = false
+local currentSpeed = 50
+local speedConnection = nil
+
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+
+-- Update character references
+local function updateCharacter()
+	character = player.Character
+	if character then
+		rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChildWhichIsA("BasePart")
+		humanoid = character:FindFirstChildWhichIsA("Humanoid")
+	end
+end
+
+updateCharacter()
+
+player.CharacterAdded:Connect(function(char)
+	character = char
+	task.wait(0.1)
+	updateCharacter()
+	
+	if speedEnabled then
+		enableSpeed()
+	end
+end)
+
+-- Get movement input
+local function getMovementInput()
+	if not humanoid then return Vector3.zero end
+	
+	-- Check if player is trying to move (works for both PC and mobile)
+	if humanoid.MoveVector.Magnitude > 0 or humanoid.MoveDirection.Magnitude > 0 then
+		return true
+	end
+	
+	return false
+end
+
+-- Get camera direction
+local camera = workspace.CurrentCamera
+local function getCameraDirection()
+	return (camera.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
+end
+
+-- Apply speed boost
+local function applySpeedBoost()
+	if not speedEnabled then return end
+	if not rootPart or not humanoid then
+		updateCharacter()
+		return
+	end
+	
+	-- Check if player is moving
+	local isMoving = getMovementInput()
+	
+	if isMoving then
+		local moveDirection
+		
+		-- PC: Use humanoid MoveDirection
+		-- Mobile: Use camera direction
+		if isMobile then
+			moveDirection = getCameraDirection()
+		else
+			moveDirection = humanoid.MoveDirection
+			if moveDirection.Magnitude == 0 then
+				moveDirection = humanoid.MoveVector
+			end
+		end
+		
+		if moveDirection.Magnitude > 0 then
+			-- Apply velocity boost
+			local speedMultiplier = currentSpeed / 16
+			local targetVelocity = moveDirection * currentSpeed
+			
+			-- Set velocity directly on rootPart
+			rootPart.AssemblyLinearVelocity = Vector3.new(targetVelocity.X, rootPart.AssemblyLinearVelocity.Y, targetVelocity.Z)
+			
+			-- Additional CFrame boost for high speeds
+			if currentSpeed > 100 then
+				rootPart.CFrame = rootPart.CFrame + (moveDirection * (speedMultiplier * 0.3))
+			end
+		end
+	end
+	
+	-- Try to set humanoid walkspeed too
+	if humanoid and humanoid.WalkSpeed ~= currentSpeed then
+		humanoid.WalkSpeed = currentSpeed
+	end
+end
+
+local function enableSpeed()
+	if speedConnection then
+		speedConnection:Disconnect()
+		speedConnection = nil
+	end
+	
+	speedConnection = RunService.Heartbeat:Connect(function()
+		applySpeedBoost()
+	end)
+end
+
+local function disableSpeed()
+	if speedConnection then
+		speedConnection:Disconnect()
+		speedConnection = nil
+	end
+	
+	if humanoid then
+		humanoid.WalkSpeed = 16
+	end
+	
+	if rootPart then
+		rootPart.AssemblyLinearVelocity = Vector3.new(0, rootPart.AssemblyLinearVelocity.Y, 0)
+	end
+end
+
+-- GUI Elements
+local SpeedBox = Tabs.Main:AddLeftGroupbox("Speed Controls")
+
+SpeedBox:AddToggle("SpeedToggle", {
+	Text = "Enable Speed Boost",
+	Default = false,
+	Callback = function(Value)
+		speedEnabled = Value
+		if Value then
+			enableSpeed()
+		else
+			disableSpeed()
+		end
+	end,
+})
+
+SpeedBox:AddSlider("SpeedSlider", {
+	Text = "Speed",
+	Default = 50,
+	Min = 16,
+	Max = 500,
+	Rounding = 0,
+	Callback = function(Value)
+		currentSpeed = Value
+	end,
+})
+
+SpeedBox:AddButton("Reset Speed", function()
+	currentSpeed = 50
+	Library.Options.SpeedSlider:SetValue(50)
+end)
+
+SpeedBox:AddLabel("PC: Use WASD to move")
+SpeedBox:AddLabel("Mobile: Touch screen + camera")
+
+-- Cleanup
+Library:OnUnload(function()
+	disableSpeed()
+end)
+
+local MenuGroup = Tabs.UI:AddLeftGroupbox("Menu")
+MenuGroup:AddLabel("Menu"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true })
+MenuGroup:AddButton("Unload", function() Library:Unload() end)
+
+Library.ToggleKeybind = Library.Options.MenuKeybind
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+ThemeManager:SetFolder("DinoWalkspeed")
+SaveManager:SetFolder("DinoWalkspeed/config")
+SaveManager:BuildConfigSection(Tabs.UI)
+ThemeManager:ApplyToTab(Tabs.UI)
