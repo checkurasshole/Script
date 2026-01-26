@@ -1,0 +1,125 @@
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+local Module = loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/main/Mains33"))()
+Library.ShowCustomCursor = false
+local Window = Library:CreateWindow({
+	Title = "COMBO_WICK",
+	Footer = "",
+	NotifySide = "Right",
+	ShowCustomCursor = false,
+	Size = UDim2.new(0, 400, 0, 350),
+})
+local Tabs = {
+	Main = Window:AddTab("Main ", "user"),
+	UI = Window:AddTab("UI ", "settings"),
+}
+local FarmBox = Tabs.Main:AddLeftGroupbox("Farm ")
+local HuntBox = Tabs.Main:AddLeftGroupbox("Hunt ")
+local MoveBox = Tabs.Main:AddLeftGroupbox("Movement ")
+local BabyBox = Tabs.Main:AddRightGroupbox("Baby Dino ")
+local StatsBox = Tabs.Main:AddRightGroupbox("Stats ")
+local growthLabel = StatsBox:AddLabel("Growth : 0")
+local rankLabel = StatsBox:AddLabel("Rank : #0")
+task.spawn(function()
+	while task.wait(0.5) do
+		Module.updateStats(growthLabel, rankLabel)
+		if Library.Unloaded then break end
+	end
+end)
+FarmBox:AddDropdown("TargetType", {
+	Values = {"All", "Eggs", "Meats", "Nests"},
+	Default = 1,
+	Text = "Target",
+	Callback = function(Value)
+		Module.targetType = Value
+	end,
+})
+FarmBox:AddToggle("FarmToggle", {
+	Text = "Auto Farm",
+	Default = false,
+	Callback = function(Value)
+		Module.farmActive = Value
+		if not Value then
+			if Module.lockCamera then
+				Module.camera.CameraType = Enum.CameraType.Custom
+				Module.cameraCFrame = nil
+			end
+		end
+	end,
+})
+FarmBox:AddToggle("LockCamera", {
+	Text = "Lock Camera",
+	Default = false,
+	Callback = function(Value)
+		Module.lockCamera = Value
+		if not Value then
+			Module.camera.CameraType = Enum.CameraType.Custom
+			Module.cameraCFrame = nil
+		end
+	end,
+})
+HuntBox:AddToggle("HuntToggle", {
+	Text = "Hunt Weaker Players",
+	Default = false,
+	Callback = function(Value)
+		Module.huntActive = Value
+	end,
+})
+BabyBox:AddToggle("BabyToggle", {
+	Text = "Auto Collect Baby",
+	Default = false,
+	Callback = function(Value)
+		Module.babyDinoActive = Value
+	end,
+})
+MoveBox:AddToggle("Noclip", {
+	Text = "Noclip",
+	Default = false,
+	Callback = function(Value)
+		if Value then
+			Module.enableNoclip()
+		else
+			Module.disableNoclip()
+		end
+	end,
+})
+MoveBox:AddToggle("ManualFlight", {
+	Text = "Camera Flight",
+	Default = false,
+	Callback = function(Value)
+		Module.flightActive = Value
+		if Value then
+			Module.enableFlight()
+		else
+			Module.disableFlight()
+		end
+	end,
+})
+MoveBox:AddSlider("FlightSpeed", {
+	Text = "Flight Speed",
+	Default = 150,
+	Min = 16,
+	Max = 200,
+	Rounding = 0,
+	Callback = function(Value)
+		Module.flightSpeed = Value
+	end,
+})
+Module.startLoop()
+Library:OnUnload(function()
+	Module.cleanup()
+end)
+local MenuGroup = Tabs.UI:AddLeftGroupbox("Menu")
+MenuGroup:AddLabel("Menu"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true })
+MenuGroup:AddButton("Unload", function() Library:Unload() end)
+Library.ToggleKeybind = Library.Options.MenuKeybind
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+ThemeManager:SetFolder("DinoScript")
+SaveManager:SetFolder("DinoScript/config")
+SaveManager:BuildConfigSection(Tabs.UI)
+ThemeManager:ApplyToTab(Tabs.UI)
