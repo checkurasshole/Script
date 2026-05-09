@@ -1,0 +1,287 @@
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+
+local HttpService = game:GetService("HttpService")
+local _jsonDecode_ref = HttpService.JSONDecode
+local _jsonEncode_ref = HttpService.JSONEncode
+local rawequal_original = rawequal
+local _request = request or (syn and syn.request) or http_request
+
+if not bit32 then
+    bit32 = {}
+    function bit32.bxor(a, b)
+        local res, bitval = 0, 1
+        while a > 0 or b > 0 do
+            if (a % 2 + b % 2) % 2 == 1 then res = res + bitval end
+            bitval = bitval * 2
+            a = math.floor(a / 2)
+            b = math.floor(b / 2)
+        end
+        return res
+    end
+end
+
+local MASTER_KEY = "checkdeezfuckingnuts"
+local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+local function base64Encode(data)
+    return ((data:gsub('.', function(x)
+        local r, bits = '', x:byte()
+        for i = 8, 1, -1 do r = r .. (bits % 2^i - bits % 2^(i-1) > 0 and '1' or '0') end
+        return r
+    end) .. '0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+        if #x < 6 then return '' end
+        local c = 0
+        for i = 1, 6 do c = c * 2 + (x:sub(i,i) == '1' and 1 or 0) end
+        return b64chars:sub(c+1, c+1)
+    end) .. ({ '', '==', '=' })[#data % 3 + 1])
+end
+
+local function xorEncrypt(text, key)
+    local result = {}
+    local keyLen = #key
+    for i = 1, #text do
+        table.insert(result, string.char(bit32.bxor(string.byte(text, i), string.byte(key, ((i-1) % keyLen) + 1))))
+    end
+    return table.concat(result)
+end
+
+local function encrypt(plain, key)
+    return base64Encode(xorEncrypt(plain, key))
+end
+
+local function getSupabaseUrl()
+    return table.concat({string.char(104,116,116,112,115,58,47,47),'zgqjncrelglx','cawifdeb','.supabase.co'})
+end
+local function getAnonKey()
+    return table.concat({'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.','eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpn','cWpuY3JlbGdseGNhd2lmZGViIiwicm9sZSI6','ImFub24iLCJpYXQiOjE3NzgyMjI4NzYsImV4','cCI6MjA5Mzc5ODg3Nn0.7er3nopYG__5XCBl','6rlfX1ZN231i2TlhQRnYUElqtwA'})
+end
+local function getScriptMapEndpoint()
+    return table.concat({string.char(104,116,116,112,115,58,47,47),'hwid-huddle','-time.lovable','.app/api/scripts'})
+end
+local function getScriptEndpoint()
+    return table.concat({string.char(104,116,116,112,115,58,47,47),'hwid-huddle','-time.lovable','.app/api/public/script'})
+end
+
+local SUPABASE_URL = getSupabaseUrl()
+local SUPABASE_ANON_KEY = getAnonKey()
+local SCRIPT_MAP_ENDPOINT = getScriptMapEndpoint()
+local SCRIPT_ENDPOINT = getScriptEndpoint()
+local VALID_STATUSES = {allowed=true,session_active=true,cooldown=true,banned=true,game_not_allowed=true,throttled=true,error=true}
+local KEY_URL = "https://combowick.com/verify/provider-select"
+
+local function getHWID()
+    local ok, id = pcall(function() return game:GetService("RbxAnalyticsService"):GetClientId() end)
+    if ok and id and id ~= "" then return tostring(id) end
+    return tostring(game:GetService("Players").LocalPlayer.UserId)
+end
+
+local function checkSession(hwid)
+    if not rawequal_original(HttpService.JSONDecode, _jsonDecode_ref) then return nil end
+    if not _request then return nil end
+    local t = os.clock()
+    local ok, res = pcall(function()
+        return _request({
+            Url = SUPABASE_URL .. "/rest/v1/rpc/check_hwid",
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+                ["apikey"] = SUPABASE_ANON_KEY,
+                ["Authorization"] = "Bearer " .. SUPABASE_ANON_KEY,
+            },
+            Body = _jsonEncode_ref(HttpService, {p_hwid = encrypt(hwid, MASTER_KEY), p_game_id = tostring(game.PlaceId)})
+        })
+    end)
+    if not ok or not res then return nil end
+    if (os.clock() - t) < 0.005 then return nil end
+    if res.StatusCode ~= 200 then return nil end
+    local dok, data = pcall(_jsonDecode_ref, HttpService, res.Body)
+    if not dok or type(data) ~= "table" then return nil end
+    if type(data.status) ~= "string" or not VALID_STATUSES[data.status] then return nil end
+    return data
+end
+
+local function getScriptForGame(token)
+    local ok, res = pcall(function()
+        return _request({Url = SCRIPT_MAP_ENDPOINT, Method = "GET", Headers = {["X-Session-Token"] = token}})
+    end)
+    if not ok or not res or res.StatusCode ~= 200 then return SCRIPT_ENDPOINT end
+    local dok, data = pcall(_jsonDecode_ref, HttpService, res.Body)
+    if not dok or type(data) ~= "table" then return SCRIPT_ENDPOINT end
+    local gameId = tostring(game.PlaceId)
+    if data[gameId] then return data[gameId]
+    elseif data["default"] then return data["default"] end
+    return SCRIPT_ENDPOINT
+end
+
+local function loadScript(url, token)
+    local ok, s = pcall(function()
+        return _request({Url = url, Method = "GET", Headers = {["X-Session-Token"] = token}})
+    end)
+    if not ok or not s or s.StatusCode ~= 200 then return false end
+    local chunk = loadstring(s.Body)
+    if not chunk then return false end
+    pcall(chunk)
+    return true
+end
+
+local function formatTime(seconds)
+    local h = math.floor(seconds / 3600)
+    local m = math.floor((seconds % 3600) / 60)
+    local s = seconds % 60
+    if h > 0 then return string.format("%dh %02dm %02ds", h, m, s) end
+    return string.format("%dm %02ds", m, s)
+end
+
+local preCheck = checkSession(getHWID())
+if preCheck == nil or preCheck.status == "game_not_allowed" then return end
+
+local T = {
+    English    = {session_info="~30 mins of free use per session",cooldown_info="6 hour cooldown between sessions",not_every="Not every game has this free feature.",upgrade="Upgrade to 11hr key — no cooldown!",checking="Checking auth...",loading="Loading in %ds...",authing="Authenticating...",failed="Status: Failed",authed="Status: Authenticated!",on_cooldown="On Cooldown",cd_hint="Get an 11hr key or wait it out.",cd_timer="Cooldown: %s",cd_done="Cooldown done! Re-execute.",banned="Banned",error="Error",n_authed="Authenticated!",n_cooldown="On cooldown! Get a key to skip waiting.",n_failed="Session check failed.",n_banned="You are banned.",n_cd_done="Cooldown finished! Re-execute.",n_copied="Link copied! Paste in your browser."},
+    Spanish    = {session_info="~30 min de uso gratis por sesión",cooldown_info="6 horas de espera entre sesiones",not_every="No todos los juegos tienen esta función.",upgrade="Obtén clave de 11h — sin espera!",checking="Verificando...",loading="Cargando en %ds...",authing="Autenticando...",failed="Estado: Fallido",authed="Estado: Autenticado!",on_cooldown="En espera",cd_hint="Obtén una clave de 11h o espera.",cd_timer="Espera: %s",cd_done="Espera terminada! Vuelve a ejecutar.",banned="Baneado",error="Error",n_authed="Autenticado!",n_cooldown="En espera! Obtén una clave.",n_failed="Fallo al verificar sesión.",n_banned="Estás baneado.",n_cd_done="Espera terminada! Vuelve a ejecutar.",n_copied="Enlace copiado! Pégalo en tu navegador."},
+    Portuguese = {session_info="~30 min de uso grátis por sessão",cooldown_info="6 horas de espera entre sessões",not_every="Nem todo jogo tem este recurso grátis.",upgrade="Obtenha chave de 11h — sem espera!",checking="Verificando...",loading="Carregando em %ds...",authing="Autenticando...",failed="Status: Falhou",authed="Status: Autenticado!",on_cooldown="Em espera",cd_hint="Obtenha uma chave de 11h ou aguarde.",cd_timer="Espera: %s",cd_done="Espera concluída! Execute novamente.",banned="Banido",error="Erro",n_authed="Autenticado!",n_cooldown="Em espera! Obtenha uma chave.",n_failed="Falha ao verificar sessão.",n_banned="Você está banido.",n_cd_done="Espera concluída! Execute novamente.",n_copied="Link copiado! Cole no seu navegador."},
+    Korean     = {session_info="세션당 ~30분 무료 사용",cooldown_info="세션 간 6시간 대기",not_every="모든 게임에 무료 기능이 있는 건 아닙니다.",upgrade="11시간 키 구매 — 대기 없음!",checking="인증 확인 중...",loading="%d초 후 로드...",authing="인증 중...",failed="상태: 실패",authed="상태: 인증됨!",on_cooldown="대기 중",cd_hint="11시간 키를 구매하거나 기다리세요.",cd_timer="대기: %s",cd_done="대기 완료! 다시 실행하세요.",banned="차단됨",error="오류",n_authed="인증됨!",n_cooldown="대기 중! 키를 구매해 건너뛰세요.",n_failed="세션 확인 실패.",n_banned="차단된 사용자입니다.",n_cd_done="대기 완료! 다시 실행하세요.",n_copied="링크 복사됨! 브라우저에 붙여넣으세요."},
+    Chinese    = {session_info="每次会话约30分钟免费使用",cooldown_info="会话之间6小时冷却",not_every="并非每个游戏都有此免费功能。",upgrade="获取11小时密钥 — 无冷却!",checking="正在验证...",loading="%d秒后加载...",authing="认证中...",failed="状态: 失败",authed="状态: 已认证!",on_cooldown="冷却中",cd_hint="获取11小时密钥或等待。",cd_timer="冷却: %s",cd_done="冷却完成! 请重新执行。",banned="已封禁",error="错误",n_authed="已认证!",n_cooldown="冷却中! 获取密钥跳过等待。",n_failed="会话验证失败。",n_banned="您已被封禁。",n_cd_done="冷却完成! 请重新执行。",n_copied="链接已复制! 粘贴到浏览器。"},
+    Filipino   = {session_info="~30 minuto ng libreng paggamit",cooldown_info="6 na oras na cooldown sa bawat sesyon",not_every="Hindi lahat ng laro ay may libreng feature.",upgrade="Kumuha ng 11hr key — walang cooldown!",checking="Sinusuri ang auth...",loading="Naglo-load sa %ds...",authing="Nag-a-authenticate...",failed="Status: Nabigo",authed="Status: Na-authenticate!",on_cooldown="Sa Cooldown",cd_hint="Kumuha ng 11hr key o maghintay.",cd_timer="Cooldown: %s",cd_done="Tapos na cooldown! I-execute ulit.",banned="Naiban",error="Error",n_authed="Na-authenticate!",n_cooldown="Sa cooldown! Kumuha ng key.",n_failed="Nabigo ang pagsusuri ng sesyon.",n_banned="Ikaw ay naiban.",n_cd_done="Tapos na cooldown! I-execute ulit.",n_copied="Nakopya ang link! I-paste sa browser."},
+    Vietnamese = {session_info="~30 phút sử dụng miễn phí mỗi phiên",cooldown_info="Cooldown 6 giờ giữa các phiên",not_every="Không phải game nào cũng có tính năng này.",upgrade="Lấy key 11h — không cooldown!",checking="Đang kiểm tra...",loading="Tải trong %ds...",authing="Đang xác thực...",failed="Trạng thái: Thất bại",authed="Trạng thái: Đã xác thực!",on_cooldown="Đang cooldown",cd_hint="Lấy key 11h hoặc chờ đợi.",cd_timer="Cooldown: %s",cd_done="Hết cooldown! Chạy lại.",banned="Bị cấm",error="Lỗi",n_authed="Đã xác thực!",n_cooldown="Đang cooldown! Lấy key để bỏ qua.",n_failed="Kiểm tra phiên thất bại.",n_banned="Bạn đã bị cấm.",n_cd_done="Hết cooldown! Chạy lại.",n_copied="Đã sao chép! Dán vào trình duyệt."},
+    French     = {session_info="~30 min d'utilisation gratuite par session",cooldown_info="6 heures de recharge entre sessions",not_every="Pas chaque jeu a cette fonctionnalité.",upgrade="Obtenez une clé 11h — sans recharge!",checking="Vérification en cours...",loading="Chargement dans %ds...",authing="Authentification...",failed="Statut: Échoué",authed="Statut: Authentifié!",on_cooldown="En recharge",cd_hint="Obtenez une clé 11h ou attendez.",cd_timer="Recharge: %s",cd_done="Recharge terminée! Réexécutez.",banned="Banni",error="Erreur",n_authed="Authentifié!",n_cooldown="En recharge! Obtenez une clé.",n_failed="Échec de la vérification.",n_banned="Vous êtes banni.",n_cd_done="Recharge terminée! Réexécutez.",n_copied="Lien copié! Collez dans votre navigateur."},
+    Thai       = {session_info="ใช้ฟรี ~30 นาทีต่อเซสชัน",cooldown_info="รอ 6 ชั่วโมงระหว่างเซสชัน",not_every="ไม่ใช่ทุกเกมที่มีฟีเจอร์ฟรีนี้",upgrade="รับกุญแจ 11 ชม. — ไม่ต้องรอ!",checking="กำลังตรวจสอบ...",loading="โหลดใน %d วินาที...",authing="กำลังยืนยันตัวตน...",failed="สถานะ: ล้มเหลว",authed="สถานะ: ยืนยันแล้ว!",on_cooldown="กำลังรอ",cd_hint="รับกุญแจ 11 ชม. หรือรอต่อไป",cd_timer="รอ: %s",cd_done="หมดเวลารอ! รันใหม่",banned="ถูกแบน",error="ข้อผิดพลาด",n_authed="ยืนยันแล้ว!",n_cooldown="กำลังรอ! รับกุญแจเพื่อข้าม",n_failed="ตรวจสอบเซสชันล้มเหลว",n_banned="คุณถูกแบน",n_cd_done="หมดเวลารอ! รันใหม่",n_copied="คัดลอกลิงก์แล้ว! วางในเบราว์เซอร์"},
+    Russian    = {session_info="~30 мин бесплатного использования",cooldown_info="6 часов перезарядки между сессиями",not_every="Не каждая игра имеет эту функцию.",upgrade="Получите ключ на 11ч — без ожидания!",checking="Проверка...",loading="Загрузка через %dс...",authing="Аутентификация...",failed="Статус: Ошибка",authed="Статус: Авторизован!",on_cooldown="Перезарядка",cd_hint="Получите ключ на 11ч или подождите.",cd_timer="Ожидание: %s",cd_done="Готово! Запустите снова.",banned="Заблокирован",error="Ошибка",n_authed="Авторизован!",n_cooldown="Перезарядка! Получите ключ.",n_failed="Ошибка проверки сессии.",n_banned="Вы заблокированы.",n_cd_done="Готово! Запустите снова.",n_copied="Ссылка скопирована! Вставьте в браузер."},
+    German     = {session_info="~30 Min. kostenlose Nutzung pro Sitzung",cooldown_info="6 Stunden Abklingzeit zwischen Sitzungen",not_every="Nicht jedes Spiel hat dieses Feature.",upgrade="11Std.-Schlüssel — keine Wartezeit!",checking="Überprüfung...",loading="Laden in %ds...",authing="Authentifizierung...",failed="Status: Fehlgeschlagen",authed="Status: Authentifiziert!",on_cooldown="Abklingzeit",cd_hint="Hol dir einen 11Std.-Schlüssel oder warte.",cd_timer="Abklingzeit: %s",cd_done="Fertig! Erneut ausführen.",banned="Gesperrt",error="Fehler",n_authed="Authentifiziert!",n_cooldown="Abklingzeit! Hol dir einen Schlüssel.",n_failed="Sitzungsprüfung fehlgeschlagen.",n_banned="Du bist gesperrt.",n_cd_done="Fertig! Erneut ausführen.",n_copied="Link kopiert! Im Browser einfügen."},
+}
+
+local currentLang = "English"
+local function L(key) return T[currentLang][key] or T["English"][key] end
+
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+local Window = Library:CreateWindow({
+    Title = "COMBOWICK",
+    Footer = "free version",
+    NotifySide = "Right",
+    ShowCustomCursor = false,
+    AutoShow = true,
+    Size = UDim2.fromOffset(500, 300),
+})
+
+local Tabs = {
+    Main = Window:AddTab("Main", "user"),
+    ["UI Settings"] = Window:AddTab("UI Settings", "settings"),
+}
+
+local InfoGroup = Tabs.Main:AddLeftGroupbox("Free Version", "info")
+local lSessionInfo  = InfoGroup:AddLabel(L("session_info"), true)
+local lCooldownInfo = InfoGroup:AddLabel(L("cooldown_info"), true)
+local lNotEvery     = InfoGroup:AddLabel(L("not_every"), true)
+InfoGroup:AddDivider()
+local lUpgrade      = InfoGroup:AddLabel(L("upgrade"), true)
+InfoGroup:AddButton({
+    Text = "Copy Key Link",
+    Func = function()
+        pcall(function() setclipboard(KEY_URL) end)
+        Library:Notify({Title = "COMBOWICK", Description = L("n_copied"), Time = 4})
+    end,
+    Tooltip = "Copies combowick.com/verify/provider-select to clipboard",
+})
+InfoGroup:AddDivider()
+InfoGroup:AddDropdown("LanguageDropdown", {
+    Values = {"English","Spanish","Portuguese","Korean","Chinese","Filipino","Vietnamese","French","Thai","Russian","German"},
+    Default = "English",
+    Multi = false,
+    Text = "Language",
+    Callback = function(Value)
+        currentLang = Value
+        lSessionInfo:SetText(L("session_info"))
+        lCooldownInfo:SetText(L("cooldown_info"))
+        lNotEvery:SetText(L("not_every"))
+        lUpgrade:SetText(L("upgrade"))
+    end,
+})
+InfoGroup:AddDivider()
+InfoGroup:AddButton({
+    Text = "Unload",
+    Func = function() Library:Unload() end,
+})
+
+local StatusGroup = Tabs.Main:AddRightGroupbox("Status", "shield")
+local statusLabel = StatusGroup:AddLabel(L("checking"), true)
+local timerLabel  = StatusGroup:AddLabel("", true)
+local hintLabel   = StatusGroup:AddLabel("", true)
+
+task.spawn(function()
+    for i = 10, 1, -1 do
+        statusLabel:SetText(string.format(L("loading"), i))
+        task.wait(1)
+    end
+
+    statusLabel:SetText(L("authing"))
+
+    local result = checkSession(getHWID())
+
+    if result == nil then
+        statusLabel:SetText(L("failed"))
+        Library:Notify({Title = "COMBOWICK", Description = L("n_failed"), Time = 5})
+
+    elseif result.status == "allowed" or result.status == "session_active" then
+        local token = result.session_token
+        if type(token) ~= "string" or #token < 20 then
+            statusLabel:SetText(L("failed"))
+        else
+            statusLabel:SetText(L("authed"))
+            Library:Notify({Title = "COMBOWICK", Description = L("n_authed"), Time = 3})
+            local scriptUrl = getScriptForGame(token)
+            local success = loadScript(scriptUrl, token)
+            if success then
+                task.wait(2)
+                Library:Unload()
+            end
+        end
+
+    elseif result.status == "cooldown" then
+        local remaining = tonumber(result.remaining) or 0
+        statusLabel:SetText(L("on_cooldown"))
+        hintLabel:SetText(L("cd_hint"))
+        Library:Notify({Title = "COMBOWICK", Description = L("n_cooldown"), Time = 6})
+
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/main/MainLoader1"))()
+
+        task.spawn(function()
+            while remaining > 0 do
+                timerLabel:SetText(string.format(L("cd_timer"), formatTime(remaining)))
+                task.wait(1)
+                remaining -= 1
+            end
+            timerLabel:SetText(L("cd_done"))
+            hintLabel:SetText("")
+            Library:Notify({Title = "COMBOWICK", Description = L("n_cd_done"), Time = 4})
+        end)
+
+    elseif result.status == "banned" then
+        statusLabel:SetText(L("banned"))
+        Library:Notify({Title = "COMBOWICK", Description = L("n_banned"), Time = 5})
+
+    else
+        statusLabel:SetText(L("error"))
+        Library:Notify({Title = "COMBOWICK", Description = tostring(result.message), Time = 5})
+    end
+end)
+
+local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "wrench")
+MenuGroup:AddToggle("ShowCustomCursor", {Text = "Custom Cursor", Default = false, Callback = function(Value) Library.ShowCustomCursor = Value end})
+MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {Default = "RightShift", NoUI = true, Text = "Menu keybind"})
+
+Library.ToggleKeybind = Options.MenuKeybind
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({"MenuKeybind"})
+ThemeManager:SetFolder("COMBOWICK")
+SaveManager:SetFolder("COMBOWICK/game")
+SaveManager:BuildConfigSection(Tabs["UI Settings"])
+ThemeManager:ApplyToTab(Tabs["UI Settings"])
+SaveManager:LoadAutoloadConfig()
