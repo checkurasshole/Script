@@ -1,0 +1,122 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local PETS = {
+	{ Name = "Mr. Tanaka",        Rarity = "Common",    Value = 5    },
+	{ Name = "Mr. Chen",          Rarity = "Common",    Value = 6    },
+	{ Name = "Mr.Wong",           Rarity = "Common",    Value = 7    },
+	{ Name = "Mr. Kim",           Rarity = "Common",    Value = 8    },
+	{ Name = "Mr. Park",          Rarity = "Common",    Value = 9    },
+	{ Name = "Mr. Singh",         Rarity = "Common",    Value = 10   },
+	{ Name = "What the ?",        Rarity = "Common",    Value = 11   },
+	{ Name = "Mr. Lu",            Rarity = "Common",    Value = 12   },
+	{ Name = "Mr. Khan",          Rarity = "Common",    Value = 13   },
+	{ Name = "Jackie Chen",       Rarity = "Common",    Value = 15   },
+	{ Name = "Uncle Kantai",      Rarity = "Uncommon",  Value = 20   },
+	{ Name = "Buddha",            Rarity = "Uncommon",  Value = 22   },
+	{ Name = "Abbot",             Rarity = "Uncommon",  Value = 25   },
+	{ Name = "McRonald",          Rarity = "Uncommon",  Value = 28   },
+	{ Name = "Colonel",           Rarity = "Uncommon",  Value = 30   },
+	{ Name = "Uncle Einstein",    Rarity = "Uncommon",  Value = 32   },
+	{ Name = "Uncle Jackson",     Rarity = "Uncommon",  Value = 35   },
+	{ Name = "Uncle Lu",          Rarity = "Uncommon",  Value = 40   },
+	{ Name = "Uncle Rock",        Rarity = "Uncommon",  Value = 45   },
+	{ Name = "Uncle Mike",        Rarity = "Rare",      Value = 55   },
+	{ Name = "Most wanted uncle", Rarity = "Rare",      Value = 60   },
+	{ Name = "Uncle Eric",        Rarity = "Rare",      Value = 65   },
+	{ Name = "Someone's father",  Rarity = "Rare",      Value = 70   },
+	{ Name = "Mr. Billy",         Rarity = "Rare",      Value = 80   },
+	{ Name = "Mr. Koi",           Rarity = "Rare",      Value = 85   },
+	{ Name = "Uncle Koi",         Rarity = "Rare",      Value = 90   },
+	{ Name = "Sir Girafee",       Rarity = "Epic",      Value = 130  },
+	{ Name = "Uncle Tokugawa",    Rarity = "Epic",      Value = 140  },
+	{ Name = "Uncle Pirate",      Rarity = "Epic",      Value = 150  },
+	{ Name = "Alien",             Rarity = "Epic",      Value = 180  },
+	{ Name = "Uncle Juntaro",     Rarity = "Epic",      Value = 200  },
+	{ Name = "Mr. Musk",          Rarity = "Epic",      Value = 220  },
+	{ Name = "Sensai B.C",        Rarity = "Epic",      Value = 260  },
+	{ Name = "Dora A Man",        Rarity = "Epic",      Value = 280  },
+	{ Name = "Uncle Dave",        Rarity = "Legendary", Value = 350  },
+	{ Name = "Mr. Pea",           Rarity = "Legendary", Value = 400  },
+	{ Name = "Mr. Piranha Plant", Rarity = "Legendary", Value = 500  },
+	{ Name = "Uncle Gecko",       Rarity = "Legendary", Value = 550  },
+	{ Name = "Uncle Fuk",         Rarity = "Legendary", Value = 650  },
+	{ Name = "Quadruplets",       Rarity = "Mythical",  Value = 850  },
+	{ Name = "Dr. Tesla",         Rarity = "Mythical",  Value = 1000 },
+	{ Name = "Your highness",     Rarity = "Mythical",  Value = 1250 },
+	{ Name = "Sir Adam",          Rarity = "Mythical",  Value = 1500 },
+	{ Name = "Mr. P Peach",       Rarity = "Mythical",  Value = 1520 },
+	{ Name = "Dr. Hu (Who?)",     Rarity = "Secret",    Value = 1750 },
+	{ Name = "Mr. Dalek",         Rarity = "Secret",    Value = 2000 },
+}
+
+local MUTATIONS        = { "Normal", "Diamond", "Neon", "Rich", "Ruby", "Golden" }
+local RARITY_FILTERS   = { "All", "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythical", "Secret" }
+local RARITY_OVERRIDES = { "Default", "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythical", "Secret" }
+
+local petNameMap = {}
+for _, pet in ipairs(PETS) do
+	petNameMap[pet.Name .. " [" .. pet.Rarity .. "]"] = pet
+end
+
+local state = {
+	filterRarity     = "All",
+	selectedPetLabel = nil,
+	selectedMutation = "Normal",
+	selectedRarity   = "Default",
+	spawnDelay       = 1,
+	autoSpawn        = false,
+	autoRebirth      = false,
+	autoSpeedUpgrade = false,
+	autoSellAll      = false,
+}
+
+local Events
+local function getEvents()
+	if not Events then
+		Events = ReplicatedStorage:WaitForChild("Events", 9e9)
+	end
+	return Events
+end
+
+task.spawn(function()
+	while true do
+		task.wait(state.spawnDelay)
+		if state.autoSpawn and state.selectedPetLabel then
+			local pet = petNameMap[state.selectedPetLabel]
+			if pet then
+				local rarity = (state.selectedRarity == "Default") and pet.Rarity or state.selectedRarity
+				pcall(function()
+					getEvents():WaitForChild("RewardEscape", 9e9):FireServer(pet.Name, state.selectedMutation, rarity)
+				end)
+			end
+		end
+	end
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(1)
+		local ev = getEvents()
+		if state.autoRebirth      then pcall(function() ev:WaitForChild("RequestRebirth",      9e9):FireServer()              end) end
+		if state.autoSpeedUpgrade then pcall(function() ev:WaitForChild("RequestUpgradeAction", 9e9):FireServer("Speed", "1") end) end
+		if state.autoSellAll      then pcall(function() ev:WaitForChild("RequestSell",          9e9):FireServer("Inventory")  end) end
+	end
+end)
+
+local function getFilteredLabels()
+	local labels = {}
+	for _, pet in ipairs(PETS) do
+		if state.filterRarity == "All" or pet.Rarity == state.filterRarity then
+			table.insert(labels, pet.Name .. " [" .. pet.Rarity .. "]")
+		end
+	end
+	return labels
+end
+
+return {
+	MUTATIONS        = MUTATIONS,
+	RARITY_FILTERS   = RARITY_FILTERS,
+	RARITY_OVERRIDES = RARITY_OVERRIDES,
+	state            = state,
+	getFilteredLabels = getFilteredLabels,
+}
