@@ -1,0 +1,1071 @@
+return function(Library)
+    local player    = game.Players.LocalPlayer
+    local RS        = game:GetService("ReplicatedStorage")
+    local PlayerGui = player:WaitForChild("PlayerGui")
+    local UIS       = game:GetService("UserInputService")
+
+    local BOSS_RARITIES = { Boss=true, Godly=true, Divine=true }
+
+    local EXEC_CHECKS = {
+        "hookfunction","hookmetamethod","getrawmetatable","setreadonly",
+        "isexecutorclosure","checkcaller","getgenv","firetouchinterest",
+        "getconnections","newcclosure","getnamecallmethod","getrenv",
+        "getgc","getinstances","getnilinstances",
+    }
+
+    local RarityPriority = {
+        Common=1,Uncommon=2,Rare=3,Epic=4,Legendary=5,Mythical=6,Boss=7,Divine=8,
+    }
+
+    local RarityColors = {
+        Common    = Color3.fromRGB(200,200,200),
+        Uncommon  = Color3.fromRGB(85,255,85),
+        Rare      = Color3.fromRGB(85,170,255),
+        Epic      = Color3.fromRGB(170,85,255),
+        Legendary = Color3.fromRGB(255,170,0),
+        Mythical  = Color3.fromRGB(255,85,85),
+        Boss      = Color3.fromRGB(200,0,0),
+        Divine    = Color3.fromRGB(255,215,0),
+    }
+
+    local FoodNames = {
+        "Farmers Feed","Enriched Feed","Hay","Bone","Prime Feed","Steak","Stew",
+        "Coconut","Honey","Potato Bag","Pie","Fruit Bowl","Crystal Berry","Banana",
+        "Cave Mushroom","Golden Carrot","Cosmic Fruit","Volcanic Fruit","Heart Chocolate",
+        "Bloodmoon Grape","Tuna Fish","Dog Treat","Taco","Alien Fruit","Chocolate Egg",
+        "Radioactive Strawberry","Cotton Candy","Waffle","Star",
+    }
+
+    local FoodNamesSet = {}
+    for _, f in ipairs(FoodNames) do FoodNamesSet[f]=true end
+    local FoodSelectValues = {"All"}
+    for _, f in ipairs(FoodNames) do table.insert(FoodSelectValues,f) end
+
+    local AutoCatchState = {
+        Enabled=false, CatchDelay=1, TeleportDelay=0.3,
+        SelectedRarities={}, SelectedMutations={}, SelectedWeathers={},
+        MutatedOnly=false, CaughtPets={}, CurrentIsland="Scanning...",
+        ClicksFired=0, BossStatus="—",
+    }
+
+    local ManualCatchState = { Enabled=false, GuiConnection=nil, Catching=false }
+
+    local PenManagerState = {
+        AutoFeedEnabled=false, AutoPlaceEnabled=false, AutoCollectEnabled=false,
+        FeedDelay=30, PlaceDelay=0.5, CollectDelay=5,
+        FoodName="Farmers Feed", SelectedPetUUIDs={},
+    }
+
+    local AutoBuyState = { Enabled=false, SelectedFoods={}, Amount=1, BuyDelay=10 }
+
+    local ESPState = { Enabled=false, Labels={} }
+
+    local MovementState = { FlyEnabled=false, WalkSpeed=16, FlySpeed=50, FlyLoop=nil }
+
+    local function isSupported(name)
+        local ok, r = pcall(function()
+            local env = (type(getgenv)=="function" and getgenv()) or getfenv(0)
+            return type(env[name])=="function"
+        end)
+        return ok and r==true
+    end
+
+    local execSupported = 0
+    for _, n in ipairs(EXEC_CHECKS) do if isSupported(n) then execSupported+=1 end end
+    local execTotal   = #EXEC_CHECKS
+    local execPercent = math.floor((execSupported/execTotal)*100)
+    local execStatus  = execSupported.."/"..execTotal.." ("..execPercent.."%)"
+    local execWarn    = execSupported < 8
+
+    local _activeWeather = "Default"
+    local function resolveEffective(k) return k or "Default" end
+
+    local function initWeatherTracking()
+        task.spawn(function()
+            local ok, ws = pcall(function()
+                local knit = require(RS:WaitForChild("Packages",5):WaitForChild("knit",5))
+                return knit.GetService("WeatherService")
+            end)
+            if ok and ws and ws.GetActiveWeather then
+                local ok2, p = pcall(function() return ws:GetActiveWeather() end)
+                if ok2 and p and p.andThen then p:andThen(function(k) _activeWeather=resolveEffective(k) end) end
+            end
+        end)
+        local wc = RS:WaitForChild("Remotes",10):FindFirstChild("WeatherChanged")
+        if wc then wc.OnClientEvent:Connect(function(k) _activeWeather=resolveEffective(k) end) end
+    end
+
+    local function getCurrentWeather() return _activeWeather end
+
+    local function getTimeTillEvent()
+        return tonumber(workspace:GetAttribute("TimeTillEvent") or 0) or 0
+    end
+
+    local function loadKnownMutations()
+        local muts = {}
+        local ok, mc = pcall(function()
+            return require(RS:WaitForChild("Configs",3):WaitForChild("MutationConfig",3))
+        end)
+        if ok and type(mc)=="table" then
+            for name in pairs(mc) do table.insert(muts,tostring(name)) end
+        else
+            muts = {
+                "Albino","Gold","Rainbow","Glass","Neon","Shiny","Admin","Charged",
+                "Cosmic","Frozen","Volcanic","Fractured","Skeletal","Cupid","Bloodbound",
+                "Taco","Lovestruck","Seabound","Clawed","Fluffy","Alien","Abducted",
+                "Easter","Candy","Dusty","Cavern","Crystal","Steam Punk","Stary",
+            }
+        end
+        table.sort(muts)
+        table.insert(muts,1,"Any")
+        return muts
+    end
+
+    local function loadKnownWeathers()
+        local weathers, seen = {}, {}
+        local ok, we = pcall(function()
+            return player:WaitForChild("PlayerScripts",5):WaitForChild("Controllers",5)
+                :WaitForChild("WeatherController",5):WaitForChild("WeatherEvents",5)
+        end)
+        if ok and we then
+            for _, c in ipairs(we:GetChildren()) do
+                if c.Name~="Default" and not seen[c.Name] then
+                    seen[c.Name]=true table.insert(weathers,c.Name)
+                end
+            end
+        end
+        if #weathers==0 then
+            local ok2, wc = pcall(function()
+                return require(RS:WaitForChild("Configs",3):WaitForChild("WeatherConfig",3))
+            end)
+            if ok2 and type(wc)=="table" then
+                local ev = wc.Weather_Events or wc
+                for name in pairs(ev) do
+                    if name~="Default" and not seen[name] then
+                        seen[name]=true table.insert(weathers,tostring(name))
+                    end
+                end
+            end
+        end
+        if #weathers==0 then
+            weathers = {
+                "Rain","Thunderstorm","Sandstorm","AuroraBorealis","CosmicShower","Eruption",
+                "Underwater","Gravebound","Valentines","CatsAndDogs","Snowy","Blizzard",
+                "Bloodmoon","Taco","Galaxy","Easter","Disco","Abducted","Blossom",
+                "SandTornado","Luck","SteamPunk","Mist","ShinyNight",
+            }
+        end
+        table.sort(weathers)
+        table.insert(weathers,1,"Any")
+        return weathers
+    end
+
+    local function loadKnownRarities()
+        local rs2 = {}
+        local ok, rc = pcall(function()
+            return require(RS:WaitForChild("Configs",3):WaitForChild("RarityConfig",3))
+        end)
+        if ok and type(rc)=="table" then for n in pairs(rc) do rs2[tostring(n)]=true end end
+        local ok2, pc = pcall(function()
+            return require(RS:WaitForChild("Configs",3):WaitForChild("Pets",3))
+        end)
+        if ok2 and type(pc)=="table" then
+            for _, pd in pairs(pc) do
+                if type(pd)=="table" and pd.Rarity then rs2[tostring(pd.Rarity)]=true end
+            end
+        end
+        local rarities = {}
+        for n in pairs(rs2) do table.insert(rarities,n) end
+        if #rarities==0 then
+            rarities = {"Common","Uncommon","Rare","Epic","Legendary","Mythical","Boss","Divine"}
+        end
+        local order = {Common=1,Uncommon=2,Rare=3,Epic=4,Legendary=5,Mythical=6,Boss=7,Divine=8}
+        table.sort(rarities,function(a,b) return (order[a] or 99)<(order[b] or 99) end)
+        return rarities
+    end
+
+    local KnownMutations = loadKnownMutations()
+    local KnownWeathers  = loadKnownWeathers()
+    local KnownRarities  = loadKnownRarities()
+
+    local Remotes = RS:WaitForChild("Remotes")
+    local function getRemote(name) return Remotes:FindFirstChild(name) end
+
+    local function getKnitServiceRF(svc, name)
+        local ok, r = pcall(function()
+            return RS:WaitForChild("Packages",5):WaitForChild("_Index",5)
+                :WaitForChild("sleitnick_knit@1.7.0",5):WaitForChild("knit",5)
+                :WaitForChild("Services",5):WaitForChild(svc,5):WaitForChild("RF",5):WaitForChild(name,5)
+        end)
+        return ok and r or nil
+    end
+
+    local function getKnitServiceRE(svc, name)
+        local ok, r = pcall(function()
+            return RS:WaitForChild("Packages",5):WaitForChild("_Index",5)
+                :WaitForChild("sleitnick_knit@1.7.0",5):WaitForChild("knit",5)
+                :WaitForChild("Services",5):WaitForChild(svc,5):WaitForChild("RE",5):WaitForChild(name,5)
+        end)
+        return ok and r or nil
+    end
+
+    local function getPenServiceRF(name)  return getKnitServiceRF("PenService",name) end
+    local function getFoodServiceRF(name) return getKnitServiceRF("FoodService",name) end
+    local function getFoodServiceRE(name) return getKnitServiceRE("FoodService",name) end
+
+    local function getAllPetContainers()
+        local containers = {}
+        for _, child in pairs(workspace:GetChildren()) do
+            local pf = child:FindFirstChild("Pets")
+            if pf and #pf:GetChildren()>0 then
+                table.insert(containers,{containerName=child.Name,folder=pf})
+            end
+        end
+        return containers
+    end
+
+    local function friendlyIslandName(rawName)
+        local s = rawName:gsub("Pets$",""):gsub("Roaming","Main"):gsub("(%l)(%u)","%1 %2")
+        s = s:match("^%s*(.-)%s*$")
+        if s=="" then s="Main" end
+        if not s:lower():find("island") then s=s.." Island" end
+        return s
+    end
+
+    local function getNearestIslandPets()
+        local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not root then return {},"Unknown" end
+        local bestFolder, bestName, bestDist = nil,"Unknown",math.huge
+        for _, c in pairs(getAllPetContainers()) do
+            for _, pet in pairs(c.folder:GetChildren()) do
+                local pr = pet:FindFirstChild("HumanoidRootPart") or pet:FindFirstChild("Torso") or pet:FindFirstChild("Root")
+                if pr then
+                    local d = (pr.Position-root.Position).Magnitude
+                    if d<bestDist then bestDist=d bestFolder=c.folder bestName=friendlyIslandName(c.containerName) end
+                end
+            end
+        end
+        if bestFolder then return bestFolder:GetChildren(),bestName end
+        return {},"No Pets Nearby"
+    end
+
+    local function getAllBossesOnMap()
+        local bosses = {}
+        for _, c in pairs(getAllPetContainers()) do
+            for _, pet in pairs(c.folder:GetChildren()) do
+                local rarity = tostring(pet:GetAttribute("Rarity") or "")
+                if BOSS_RARITIES[rarity] then
+                    local pr = pet:FindFirstChild("HumanoidRootPart") or pet:FindFirstChild("Torso") or pet:FindFirstChild("Root")
+                    if pr then table.insert(bosses,pet) end
+                end
+            end
+        end
+        return bosses
+    end
+
+    local function getPetRootPart(pet)
+        return pet:FindFirstChild("HumanoidRootPart") or pet:FindFirstChild("Torso") or pet:FindFirstChild("Root")
+    end
+
+    local function getPetMutations(pet)
+        local parts, seen = {}, {}
+        local ml = pet:GetAttribute("MutationList")
+        if ml and tostring(ml)~="" and tostring(ml)~="None" then
+            for p in tostring(ml):gmatch("[^,]+") do
+                local t = p:match("^%s*(.-)%s*$")
+                if t~="" and not seen[t] then seen[t]=true table.insert(parts,t) end
+            end
+        end
+        local s = pet:GetAttribute("Mutation")
+        if s and tostring(s)~="" and tostring(s)~="None" then
+            for p in tostring(s):gmatch("[^%+,]+") do
+                local t = p:match("^%s*(.-)%s*$")
+                if t~="" and not seen[t] then seen[t]=true table.insert(parts,t) end
+            end
+        end
+        for i=1,6 do
+            local m = pet:GetAttribute("Mutation"..i)
+            if m and tostring(m)~="" and tostring(m)~="None" then
+                local t = tostring(m):match("^%s*(.-)%s*$")
+                if t~="" and not seen[t] then seen[t]=true table.insert(parts,t) end
+            end
+        end
+        return parts
+    end
+
+    local function getPetInfo(pet)
+        local muts = getPetMutations(pet)
+        return {
+            name      = tostring(pet:GetAttribute("Name") or pet.Name),
+            rarity    = tostring(pet:GetAttribute("Rarity") or "Common"),
+            level     = tostring(pet:GetAttribute("Level") or 1),
+            mutations = muts,
+            mutation  = #muts>0 and table.concat(muts," + ") or "None",
+            uuid      = tostring(pet:GetAttribute("PetGUID") or pet.Name),
+        }
+    end
+
+    local function isPetInInventory(uuid)
+        for _, folder in pairs({
+            player:FindFirstChild("Pets"), player:FindFirstChild("OwnedPets"),
+            player:FindFirstChild("Data"), player:FindFirstChild("PlayerData"),
+        }) do
+            if folder then
+                for _, p in pairs(folder:GetDescendants()) do
+                    local id = p:GetAttribute("PetGUID") or p:GetAttribute("UUID")
+                    if tostring(id)==tostring(uuid) then return true end
+                end
+            end
+        end
+        return false
+    end
+
+    local function getProgressSteps(gui)
+        local totalClicks = nil
+        if gui then
+            local attr = gui:GetAttribute("RequiredClicks") or gui:GetAttribute("TotalClicks") or gui:GetAttribute("MaxClicks")
+            if attr then totalClicks=tonumber(attr) end
+            if not totalClicks then
+                for _, d in ipairs(gui:GetDescendants()) do
+                    if d:IsA("IntValue") or d:IsA("NumberValue") then
+                        local n = d.Name:lower()
+                        if n:find("required") or n:find("total") or n:find("max") then
+                            totalClicks=tonumber(d.Value)
+                            if totalClicks then break end
+                        end
+                    end
+                end
+            end
+            if not totalClicks then
+                for _, d in ipairs(gui:GetDescendants()) do
+                    if d:IsA("TextLabel") then
+                        local n = tonumber(d.Text:match("/%s*(%d+)"))
+                        if n then totalClicks=n break end
+                    end
+                end
+            end
+        end
+        if totalClicks and totalClicks>0 then
+            local steps = {}
+            for i=1,totalClicks do table.insert(steps,(i/totalClicks)*100) end
+            return steps
+        end
+        return {25,28.333333333333336,36.66666666666667,100}
+    end
+
+    local function shouldCatchPet(petInfo)
+        if not petInfo then return false end
+        if AutoCatchState.CaughtPets[petInfo.uuid] then return false end
+        local rarityOk = (next(AutoCatchState.SelectedRarities)==nil)
+        if not rarityOk then
+            for rarity, enabled in pairs(AutoCatchState.SelectedRarities) do
+                if enabled and petInfo.rarity:lower()==rarity:lower() then rarityOk=true break end
+            end
+        end
+        if not rarityOk then return false end
+        if next(AutoCatchState.SelectedWeathers)~=nil then
+            local weatherOk = false
+            local cur = getCurrentWeather()
+            for w, enabled in pairs(AutoCatchState.SelectedWeathers) do
+                if enabled then
+                    if w=="Any" then
+                        if cur~="Default" and cur~="" then weatherOk=true break end
+                    elseif cur==w then
+                        weatherOk=true break
+                    end
+                end
+            end
+            if not weatherOk then return false end
+        end
+        if AutoCatchState.MutatedOnly and #petInfo.mutations==0 then return false end
+        if next(AutoCatchState.SelectedMutations)~=nil then
+            if AutoCatchState.SelectedMutations["Any"] then
+                if #petInfo.mutations==0 then return false end
+            else
+                local mutMatch = false
+                for _, pm in ipairs(petInfo.mutations) do
+                    if AutoCatchState.SelectedMutations[pm] then mutMatch=true break end
+                end
+                if not mutMatch then return false end
+            end
+        end
+        return true
+    end
+
+    local function fireCatchSequence(pet, petRoot, petInfo, catchGui)
+        local char = player.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        if not root then return false end
+        local success = pcall(function()
+            root.CFrame = CFrame.new(petRoot.Position+Vector3.new(0,5,0))
+            task.wait(AutoCatchState.TeleportDelay)
+            local throwRemote = getRemote("ThrowLasso")
+            if throwRemote then
+                local dir = (petRoot.Position-root.Position).Unit
+                throwRemote:FireServer(0.9,Vector3.new(dir.X,0,dir.Z))
+            end
+            task.wait(0.2)
+            local mgr = getRemote("minigameRequest")
+            if mgr then mgr:InvokeServer(pet,petRoot.CFrame) end
+            task.wait(0.2)
+            local pr = getRemote("UpdateProgress")
+            if pr then
+                for _, v in ipairs(getProgressSteps(catchGui)) do
+                    pr:FireServer(v) task.wait(0.08)
+                end
+            end
+            task.wait(0.15)
+            local gpi = getPenServiceRF("getPenIndex")
+            if gpi then pcall(function() gpi:InvokeServer() end) end
+            task.wait(0.1)
+            if pr then pr:FireServer(100) end
+            task.wait(0.1)
+            local wr = getRemote("RequestWalkPet")
+            if wr then wr:FireServer(petInfo.uuid,true) end
+            task.wait(0.2)
+            AutoCatchState.CaughtPets[petInfo.uuid] = true
+            Library:Notify({
+                Title="Caught! ["..AutoCatchState.CurrentIsland.."]",
+                Description=string.format("[%s] %s (Lv.%s) | %s",
+                    petInfo.rarity,petInfo.name,petInfo.level,
+                    petInfo.mutation~="None" and ("✦ "..petInfo.mutation) or "No Mutation"),
+                Time=4,
+            })
+        end)
+        return success
+    end
+
+    local function fireBossCatchSequence(pet, petRoot, petInfo)
+        local char = player.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        if not root then return false end
+        AutoCatchState.ClicksFired = 0
+        AutoCatchState.BossStatus  = "Teleporting to "..petInfo.name.."..."
+        local caught = false
+        pcall(function()
+            root.CFrame = CFrame.new(petRoot.Position+Vector3.new(0,5,0))
+            task.wait(AutoCatchState.TeleportDelay)
+            AutoCatchState.BossStatus = "Starting minigame..."
+            local mgr = getRemote("minigameRequest")
+            if mgr then mgr:InvokeServer(pet,petRoot.CFrame) end
+            task.wait(0.3)
+            local gpi = getPenServiceRF("getPenIndex")
+            if gpi then pcall(function() gpi:InvokeServer() end) end
+            task.wait(0.2)
+            local elr = getRemote("equipLassoVisual")
+            if elr then elr:InvokeServer(nil,true) end
+            task.wait(0.3)
+            AutoCatchState.BossStatus = "Clicking..."
+            local pr = getRemote("UpdateProgress")
+            local clickCount, elapsed, timeout = 0, 0, 60
+            while elapsed<timeout do
+                if not pet.Parent or isPetInInventory(petInfo.uuid) then caught=true break end
+                if pr then
+                    clickCount+=1
+                    pr:FireServer(clickCount)
+                    AutoCatchState.ClicksFired=clickCount
+                end
+                task.wait(0.05)
+                elapsed+=0.05
+            end
+        end)
+        if caught then
+            AutoCatchState.CaughtPets[petInfo.uuid] = true
+            AutoCatchState.BossStatus = "Caught! ("..AutoCatchState.ClicksFired.." clicks)"
+            Library:Notify({
+                Title="Boss Caught! ["..AutoCatchState.CurrentIsland.."]",
+                Description=string.format("[%s] %s (Lv.%s) | %s | %d clicks",
+                    petInfo.rarity,petInfo.name,petInfo.level,
+                    petInfo.mutation~="None" and ("✦ "..petInfo.mutation) or "No Mutation",
+                    AutoCatchState.ClicksFired),
+                Time=5,
+            })
+        else
+            AutoCatchState.BossStatus = "Timed out."
+        end
+        return caught
+    end
+
+    local function catchPet(pet, catchGui)
+        local petRoot = getPetRootPart(pet)
+        if not petRoot then return false end
+        local petInfo = getPetInfo(pet)
+        if not shouldCatchPet(petInfo) then return false end
+        if BOSS_RARITIES[petInfo.rarity] then return fireBossCatchSequence(pet,petRoot,petInfo) end
+        return fireCatchSequence(pet,petRoot,petInfo,catchGui)
+    end
+
+    local function sortPetsByRarity(pets)
+        local pd = {}
+        for _, pet in pairs(pets) do
+            local info = getPetInfo(pet)
+            if info then table.insert(pd,{pet=pet,priority=RarityPriority[info.rarity] or 0}) end
+        end
+        table.sort(pd,function(a,b) return a.priority>b.priority end)
+        local sorted = {}
+        for _, d in ipairs(pd) do table.insert(sorted,d.pet) end
+        return sorted
+    end
+
+    local function autoCatchLoop()
+        while AutoCatchState.Enabled do
+            local pets, islandName = getNearestIslandPets()
+            AutoCatchState.CurrentIsland = islandName
+            local sortedPets = sortPetsByRarity(pets)
+            local caughtThisRound = 0
+            for _, pet in ipairs(sortedPets) do
+                if not AutoCatchState.Enabled then break end
+                if catchPet(pet) then caughtThisRound+=1 task.wait(AutoCatchState.CatchDelay) end
+            end
+            if caughtThisRound==0 then task.wait(2) end
+        end
+    end
+
+    local function isCatchGui(gui)
+        for _, d in ipairs(gui:GetDescendants()) do
+            if d:IsA("TextLabel") then
+                local t = d.Text:lower()
+                if t:find("total clicks") or t:find("clicks") then return true end
+            end
+        end
+        return false
+    end
+
+    local function getNearestRoamingPet()
+        local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not root then return nil end
+        local best, bestDist = nil, math.huge
+        for _, c in pairs(getAllPetContainers()) do
+            for _, pet in pairs(c.folder:GetChildren()) do
+                local pr = getPetRootPart(pet)
+                if pr then
+                    local dist = (pr.Position-root.Position).Magnitude
+                    if dist<bestDist then best=pet bestDist=dist end
+                end
+            end
+        end
+        return best
+    end
+
+    local function completeCatch(catchGui)
+        if ManualCatchState.Catching then return end
+        ManualCatchState.Catching = true
+        local pet  = getNearestRoamingPet()
+        local info = pet and getPetInfo(pet)
+        if info and BOSS_RARITIES[info.rarity] then
+            AutoCatchState.ClicksFired = 0
+            AutoCatchState.BossStatus  = "Manual — clicking "..info.name.."..."
+            local pr  = getRemote("UpdateProgress")
+            local elr = getRemote("equipLassoVisual")
+            local gpi = getPenServiceRF("getPenIndex")
+            if gpi then pcall(function() gpi:InvokeServer() end) end
+            task.wait(0.2)
+            if elr then elr:InvokeServer(nil,true) end
+            task.wait(0.2)
+            local clickCount, elapsed, timeout, caught = 0, 0, 60, false
+            while elapsed<timeout do
+                if not pet.Parent or isPetInInventory(info.uuid) then caught=true break end
+                if pr then
+                    clickCount+=1
+                    pr:FireServer(clickCount)
+                    AutoCatchState.ClicksFired=clickCount
+                end
+                task.wait(0.05)
+                elapsed+=0.05
+            end
+            if caught then
+                AutoCatchState.BossStatus = "Caught! ("..AutoCatchState.ClicksFired.." clicks)"
+                Library:Notify({
+                    Title="Boss Caught! ✓",
+                    Description=string.format("[%s] %s  Lv.%s  —  %s  |  %d clicks",
+                        info.rarity,info.name,info.level,
+                        info.mutation~="None" and ("✦ "..info.mutation) or "No Mutation",
+                        AutoCatchState.ClicksFired),
+                    Time=5,
+                })
+            else
+                AutoCatchState.BossStatus = "Timed out."
+                Library:Notify({Title="Boss",Description="Timed out on "..info.name,Time=3})
+            end
+        else
+            local pr = getRemote("UpdateProgress")
+            if pr then
+                for _, v in ipairs(getProgressSteps(catchGui)) do
+                    pr:FireServer(v) task.wait(0.08)
+                end
+            end
+            task.wait(0.15)
+            local pi = getPenServiceRF("getPenIndex")
+            if pi then pcall(function() pi:InvokeServer() end) end
+            task.wait(0.1)
+            if pr then pr:FireServer(100) end
+            task.wait(0.1)
+            local wr = getRemote("RequestWalkPet")
+            if wr and info then wr:FireServer(info.uuid,true) end
+            if info then
+                Library:Notify({
+                    Title="Caught! ✓",
+                    Description=string.format("[%s] %s  Lv.%s  —  %s",
+                        info.rarity,info.name,info.level,
+                        info.mutation~="None" and ("✦ "..info.mutation) or "No Mutation"),
+                    Time=4,
+                })
+            end
+        end
+        task.wait(0.5)
+        ManualCatchState.Catching = false
+    end
+
+    local function startWatching()
+        if ManualCatchState.GuiConnection then ManualCatchState.GuiConnection:Disconnect() end
+        ManualCatchState.GuiConnection = PlayerGui.ChildAdded:Connect(function(gui)
+            if not ManualCatchState.Enabled then return end
+            task.wait(0.05)
+            if isCatchGui(gui) then task.spawn(function() completeCatch(gui) end) end
+        end)
+    end
+
+    local function stopWatching()
+        if ManualCatchState.GuiConnection then
+            ManualCatchState.GuiConnection:Disconnect()
+            ManualCatchState.GuiConnection = nil
+        end
+    end
+
+    local function findMyPen()
+        local pens = workspace:FindFirstChild("PlayerPens")
+        if not pens then return nil end
+        for _, pen in pairs(pens:GetChildren()) do
+            local owner = pen:GetAttribute("Owner")
+            if owner and (owner==player.Name or owner==player.DisplayName) then return pen end
+        end
+        return nil
+    end
+
+    local function getMyPenPets()
+        local pen = findMyPen()
+        if not pen then return {} end
+        local folder = pen:FindFirstChild("Pets")
+        if folder then return folder:GetChildren() end
+        local pets = {}
+        for _, child in pairs(pen:GetChildren()) do
+            if child:GetAttribute("Rarity") or child:GetAttribute("PetGUID") then
+                table.insert(pets,child)
+            end
+        end
+        return pets
+    end
+
+    local function getPenBasePosition()
+        local pen = findMyPen()
+        if not pen then return nil end
+        local spawn = pen:FindFirstChild("SpawnLocation")
+        if spawn and spawn:IsA("BasePart") then return spawn.Position+Vector3.new(0,3,0) end
+        local cf, _ = pen:GetBoundingBox()
+        return cf.Position+Vector3.new(0,3,0)
+    end
+
+    local UUID_PATTERN = "^%x+%-%x+%-%x+%-%x+%-%x+$"
+
+    local function getInventoryPets()
+        local backpack = player:FindFirstChild("Backpack")
+        if not backpack then return {} end
+        local alreadyPlaced = {}
+        for _, pet in pairs(getMyPenPets()) do alreadyPlaced[getPetInfo(pet).uuid]=true end
+        local uuids = {}
+        for _, item in pairs(backpack:GetChildren()) do
+            if item.Name:match(UUID_PATTERN) and not alreadyPlaced[item.Name] then
+                table.insert(uuids,item.Name)
+            end
+        end
+        return uuids
+    end
+
+    local function getInventoryFoodNames()
+        local backpack = player:FindFirstChild("Backpack")
+        if not backpack then return {} end
+        local found = {}
+        for _, item in pairs(backpack:GetChildren()) do
+            if FoodNamesSet[item.Name] and not found[item.Name] then found[item.Name]=true end
+        end
+        local result = {}
+        for name in pairs(found) do table.insert(result,name) end
+        return result
+    end
+
+    local function feedPet(petUUID, foodName, amount)
+        local rf = getFoodServiceRF("FeedPet")
+        if not rf then return false end
+        local ok = pcall(function() rf:InvokeServer(foodName,petUUID,amount) end)
+        return ok
+    end
+
+    local function feedPetWithFood(uuid)
+        if PenManagerState.FoodName=="All" then
+            local foods = getInventoryFoodNames()
+            if #foods==0 then return false end
+            local success = false
+            for _, food in ipairs(foods) do
+                if feedPet(uuid,food,1) then success=true end
+                task.wait(0.1)
+            end
+            return success
+        else
+            return feedPet(uuid,PenManagerState.FoodName,1)
+        end
+    end
+
+    local penPetLabelToUUID = {}
+
+    local function buildPenPetLabels()
+        for k in pairs(penPetLabelToUUID) do penPetLabelToUUID[k]=nil end
+        local labels = {}
+        for _, pet in pairs(getMyPenPets()) do
+            local info  = getPetInfo(pet)
+            local label = info.name.." ["..info.rarity.."]"
+            penPetLabelToUUID[label] = info.uuid
+            table.insert(labels,label)
+        end
+        return labels
+    end
+
+    local function feedAllPenPets()
+        local pets = getMyPenPets()
+        if #pets==0 then Library:Notify({Title="Auto Feed",Description="No pets in pen.",Time=2}) return 0 end
+        local fed = 0
+        for _, pet in pairs(pets) do
+            local info = getPetInfo(pet)
+            if feedPetWithFood(info.uuid) then fed+=1 task.wait(0.25) end
+        end
+        return fed
+    end
+
+    local function feedSelectedPets()
+        local uuids = PenManagerState.SelectedPetUUIDs
+        if not uuids or #uuids==0 then return feedAllPenPets() end
+        local fed = 0
+        for _, uuid in ipairs(uuids) do
+            if feedPetWithFood(uuid) then fed+=1 task.wait(0.25) end
+        end
+        return fed
+    end
+
+    local function autoFeedLoop()
+        while PenManagerState.AutoFeedEnabled do
+            local count = feedSelectedPets()
+            Library:Notify({
+                Title="Auto Feed",
+                Description=string.format("Fed %d pet(s) — %s",count,PenManagerState.FoodName),
+                Time=3,
+            })
+            local elapsed = 0
+            while elapsed<PenManagerState.FeedDelay and PenManagerState.AutoFeedEnabled do
+                task.wait(0.1) elapsed+=0.1
+            end
+        end
+    end
+
+    local function collectAllPenCash()
+        local pets = getMyPenPets()
+        if #pets==0 then return 0 end
+        local remote = getRemote("collectPetCash")
+        if not remote then return 0 end
+        local collected = 0
+        for _, pet in pairs(pets) do
+            local info = getPetInfo(pet)
+            local ok = pcall(function() remote:FireServer(info.uuid) end)
+            if ok then collected+=1 task.wait(0.1) end
+        end
+        return collected
+    end
+
+    local function autoCollectLoop()
+        while PenManagerState.AutoCollectEnabled do
+            local count = collectAllPenCash()
+            if count>0 then
+                Library:Notify({Title="Auto Collect",Description="Collected from "..count.." pets.",Time=2})
+            end
+            local elapsed = 0
+            while elapsed<PenManagerState.CollectDelay and PenManagerState.AutoCollectEnabled do
+                task.wait(1) elapsed+=1
+            end
+        end
+    end
+
+    local function placePetInPen(petUUID)
+        local remote = getRemote("RequestPlacePet")
+        if not remote then return false end
+        local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not root then return false end
+        local ok = pcall(function()
+            remote:FireServer(petUUID,root.Position,CFrame.new(0,0,0,1,0,0,0,1,0,0,0,1))
+        end)
+        return ok
+    end
+
+    local function placeAllInventoryPets()
+        local uuids = getInventoryPets()
+        if #uuids==0 then
+            Library:Notify({Title="Auto Place",Description="No backpack pets to place.",Time=2})
+            return 0
+        end
+        local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not root then return 0 end
+        local penPets = getMyPenPets()
+        if #penPets>0 then
+            local part = penPets[1]:FindFirstChildWhichIsA("BasePart")
+            if part then root.CFrame=CFrame.new(part.Position+Vector3.new(0,3,0)) task.wait(0.5) end
+        else
+            local penPos = getPenBasePosition()
+            if penPos then root.CFrame=CFrame.new(penPos) task.wait(0.5) end
+        end
+        local placed = 0
+        for _, uuid in ipairs(uuids) do
+            if placePetInPen(uuid) then placed+=1 task.wait(PenManagerState.PlaceDelay) end
+        end
+        return placed
+    end
+
+    local function autoPlaceLoop()
+        while PenManagerState.AutoPlaceEnabled do
+            local count = placeAllInventoryPets()
+            if count>0 then
+                Library:Notify({Title="Auto Place",Description="Placed "..count.." pets.",Time=3})
+            end
+            task.wait(5)
+        end
+    end
+
+    local function teleportToRarity(rarity)
+        local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+        local best, bestDist = nil, math.huge
+        for _, c in pairs(getAllPetContainers()) do
+            for _, pet in pairs(c.folder:GetChildren()) do
+                local info = getPetInfo(pet)
+                if info and info.rarity:lower()==rarity:lower() then
+                    local pr = getPetRootPart(pet)
+                    if pr then
+                        local dist = (pr.Position-root.Position).Magnitude
+                        if dist<bestDist then best=pet bestDist=dist end
+                    end
+                end
+            end
+        end
+        if best then
+            local pr = getPetRootPart(best)
+            local info = getPetInfo(best)
+            root.CFrame = CFrame.new(pr.Position+Vector3.new(0,5,0))
+            Library:Notify({Title="Teleported → "..rarity,Description=info.name.." ("..info.rarity..")",Time=2})
+        else
+            Library:Notify({Title="Not Found",Description="No "..rarity.." pets nearby.",Time=2})
+        end
+    end
+
+    local function clearESP()
+        for _, objects in pairs(ESPState.Labels) do
+            for _, obj in ipairs(objects) do
+                pcall(function() if obj and obj.Parent then obj:Destroy() end end)
+            end
+        end
+        ESPState.Labels = {}
+    end
+
+    local function addESPToModel(model, info)
+        if ESPState.Labels[model] then return end
+        local color   = RarityColors[info.rarity] or Color3.new(1,1,1)
+        local objects = {}
+        pcall(function()
+            local h = Instance.new("Highlight")
+            h.Name                = "_CWKESP"
+            h.FillColor           = color
+            h.OutlineColor        = color
+            h.FillTransparency    = 0.75
+            h.OutlineTransparency = 0
+            h.DepthMode           = Enum.HighlightDepthMode.AlwaysOnTop
+            h.Adornee             = model
+            h.Parent              = model
+            table.insert(objects,h)
+        end)
+        pcall(function()
+            local rootPart = model:FindFirstChild("HumanoidRootPart")
+                or model:FindFirstChild("Torso")
+                or model:FindFirstChildWhichIsA("BasePart")
+            if not rootPart then return end
+            local bb = Instance.new("BillboardGui")
+            bb.Name        = "_CWKESP_BB"
+            bb.Size        = UDim2.new(0,220,0,55)
+            bb.StudsOffset = Vector3.new(0,4,0)
+            bb.AlwaysOnTop = true
+            bb.Parent      = rootPart
+            table.insert(objects,bb)
+            local lbl = Instance.new("TextLabel")
+            lbl.Size                   = UDim2.new(1,0,1,0)
+            lbl.BackgroundTransparency = 1
+            lbl.TextColor3             = color
+            lbl.TextStrokeTransparency = 0
+            lbl.TextStrokeColor3       = Color3.new(0,0,0)
+            lbl.Font                   = Enum.Font.GothamBold
+            lbl.TextSize               = 13
+            lbl.TextWrapped            = true
+            lbl.Text = string.format("[%s] %s\n%s",info.rarity,info.name,
+                info.mutation~="None" and ("✦ "..info.mutation) or "")
+            lbl.Parent = bb
+        end)
+        if #objects>0 then ESPState.Labels[model]=objects end
+    end
+
+    local function updateESP()
+        local seen = {}
+        for _, c in pairs(getAllPetContainers()) do
+            for _, pet in pairs(c.folder:GetChildren()) do
+                seen[pet] = true
+                if not ESPState.Labels[pet] then addESPToModel(pet,getPetInfo(pet)) end
+            end
+        end
+        for model in pairs(ESPState.Labels) do
+            if not seen[model] then
+                for _, obj in ipairs(ESPState.Labels[model]) do
+                    pcall(function() if obj and obj.Parent then obj:Destroy() end end)
+                end
+                ESPState.Labels[model] = nil
+            end
+        end
+    end
+
+    local function setWalkSpeed(v)
+        MovementState.WalkSpeed = v
+        local char = player.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed=v end
+        end
+    end
+
+    local function startCameraFly()
+        local char = player.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.PlatformStand=true end
+        local bv = Instance.new("BodyVelocity")
+        bv.Velocity  = Vector3.zero
+        bv.MaxForce  = Vector3.new(1e5,1e5,1e5)
+        bv.Parent    = hrp
+        local bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(1e5,1e5,1e5)
+        bg.D         = 50
+        bg.Parent    = hrp
+        MovementState.FlyLoop = game:GetService("RunService").Heartbeat:Connect(function()
+            if not MovementState.FlyEnabled then return end
+            local cam = workspace.CurrentCamera
+            bv.Velocity = cam.CFrame.LookVector * MovementState.FlySpeed
+            bg.CFrame = cam.CFrame
+        end)
+    end
+
+    local function stopCameraFly()
+        if MovementState.FlyLoop then
+            MovementState.FlyLoop:Disconnect()
+            MovementState.FlyLoop = nil
+        end
+        local char = player.Character
+        if char then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                for _, obj in ipairs(hrp:GetChildren()) do
+                    if obj:IsA("BodyVelocity") or obj:IsA("BodyGyro") then obj:Destroy() end
+                end
+            end
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.PlatformStand = false
+                hum.WalkSpeed     = MovementState.WalkSpeed
+            end
+        end
+    end
+
+    local function buyFood(foodName, amount)
+        local re = getFoodServiceRE("BuyFood")
+        if not re then return false end
+        local ok = pcall(function() re:FireServer(foodName,amount) end)
+        return ok
+    end
+
+    local function autoBuyLoop()
+        while AutoBuyState.Enabled do
+            for food, enabled in pairs(AutoBuyState.SelectedFoods) do
+                if enabled then
+                    buyFood(food, AutoBuyState.Amount)
+                    task.wait(0.2)
+                end
+            end
+            local elapsed = 0
+            while elapsed<AutoBuyState.BuyDelay and AutoBuyState.Enabled do
+                task.wait(0.1) elapsed+=0.1
+            end
+        end
+    end
+
+    local function redeemCode(code)
+        local remote = getRemote("redeemCode")
+        if not remote then return false end
+        local ok = pcall(function() remote:InvokeServer(code) end)
+        return ok
+    end
+
+    player.CharacterAdded:Connect(function(char)
+        task.wait(1)
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hum then return end
+        if MovementState.WalkSpeed~=16 then hum.WalkSpeed=MovementState.WalkSpeed end
+        if MovementState.FlyEnabled then startCameraFly() end
+    end)
+
+    task.spawn(initWeatherTracking)
+
+    return {
+        AutoCatchState     = AutoCatchState,
+        ManualCatchState   = ManualCatchState,
+        PenManagerState    = PenManagerState,
+        AutoBuyState       = AutoBuyState,
+        ESPState           = ESPState,
+        MovementState      = MovementState,
+        KnownRarities      = KnownRarities,
+        KnownMutations     = KnownMutations,
+        KnownWeathers      = KnownWeathers,
+        FoodNames          = FoodNames,
+        FoodSelectValues   = FoodSelectValues,
+        penPetLabelToUUID  = penPetLabelToUUID,
+        execStatus         = execStatus,
+        execWarn           = execWarn,
+        autoCatchLoop      = autoCatchLoop,
+        startWatching      = startWatching,
+        stopWatching       = stopWatching,
+        autoFeedLoop       = autoFeedLoop,
+        autoPlaceLoop      = autoPlaceLoop,
+        autoCollectLoop    = autoCollectLoop,
+        autoBuyLoop        = autoBuyLoop,
+        feedSelectedPets   = feedSelectedPets,
+        placeAllInventoryPets = placeAllInventoryPets,
+        collectAllPenCash  = collectAllPenCash,
+        findMyPen          = findMyPen,
+        getMyPenPets       = getMyPenPets,
+        getInventoryPets   = getInventoryPets,
+        buildPenPetLabels  = buildPenPetLabels,
+        getNearestIslandPets = getNearestIslandPets,
+        getAllBossesOnMap   = getAllBossesOnMap,
+        getCurrentWeather  = getCurrentWeather,
+        teleportToRarity   = teleportToRarity,
+        clearESP           = clearESP,
+        updateESP          = updateESP,
+        setWalkSpeed       = setWalkSpeed,
+        startCameraFly     = startCameraFly,
+        stopCameraFly      = stopCameraFly,
+        redeemCode         = redeemCode,
+        buyFood            = buyFood,
+        completeCatch      = completeCatch,
+        getPenBasePosition = getPenBasePosition,
+    }
+end
