@@ -1,0 +1,420 @@
+-- Module.lua
+local Players     = game:GetService("Players")
+local RunService  = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local CoreGui     = game:GetService("CoreGui")
+local player      = Players.LocalPlayer
+
+local Module = {}
+
+Module.State = {
+    AutoSlash       = false,
+    AutoThrow       = false,
+    TargetTeamCheck = false,
+    ThrowDelay      = 2.1,
+    ESPEnabled      = false,
+    ESPFillColor    = Color3.fromRGB(255, 50, 50),
+    ESPOutlineColor = Color3.fromRGB(255, 255, 255),
+    AimbotEnabled   = false,
+}
+
+local espFolder = CoreGui:FindFirstChild("combowick_ESP")
+if espFolder then espFolder:Destroy() end
+espFolder        = Instance.new("Folder")
+espFolder.Name   = "combowick_ESP"
+espFolder.Parent = CoreGui
+
+local espData       = {}
+local espConn       = nil
+local aimbotConn    = nil
+local tpKillActive  = false
+local lastThrow     = 0
+
+local function getPlayerTeam(playerName)
+    local gui = player.PlayerGui:FindFirstChild("RoundUI")
+    if not gui then return nil end
+    local frame = gui:FindFirstChild("Frame")
+    if not frame then return nil end
+    local stats = frame:FindFirstChild("RoundStatistics")
+    if not stats then return nil end
+    for _, teamFrame in ipairs(stats:GetChildren()) do
+        if teamFrame.Name:match("^Team_%d+$") then
+            local score = teamFrame:FindFirstChild("TeamScore")
+            local slots = score and score:FindFirstChild("PlayerSlots")
+            if slots and slots:FindFirstChild(playerName) then
+                return teamFrame.Name
+            end
+        end
+    end
+    return nil
+end
+
+local function getEquippedKnife()
+    local char = workspace:FindFirstChild(player.Name)
+    if not char then return nil end
+    for _, tool in ipairs(char:GetChildren()) do
+        if tool:IsA("Tool") and tool:FindFirstChild("KnifeServer") then
+            return tool
+        end
+    end
+    return nil
+end
+
+local function getKnifeInBackpack()
+    for _, tool in ipairs(player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool:FindFirstChild("KnifeServer") then
+            return tool
+        end
+    end
+    return nil
+end
+
+local function knifeEquipped()
+    return getEquippedKnife() ~= nil
+end
+
+local function getSlashRemote()
+    local knife = getEquippedKnife()
+    if not knife then return nil end
+    local ks = knife:FindFirstChild("KnifeServer")
+    if not ks then return nil end
+    return ks:FindFirstChild("SlashStart")
+end
+
+local function getFlingRemote()
+    local knife = getEquippedKnife()
+    if not knife then return nil, nil end
+    local ks = knife:FindFirstChild("KnifeServer")
+    if not ks then return nil, nil end
+    return ks:FindFirstChild("FlingKnifeEvent"), ks:FindFirstChild("SetKnifeGoneTime")
+end
+
+local function getCharRoot()
+    local char = player.Character
+    return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+local function isAlive(p)
+    if not p or not p.Character then return false end
+    local hum = p.Character:FindFirstChild("Humanoid")
+    return hum and hum.Health > 0
+end
+
+local function isSameTeam(p)
+    if not Module.State.TargetTeamCheck then return false end
+    local myTeam    = getPlayerTeam(player.Name)
+    local theirTeam = getPlayerTeam(p.Name)
+    if myTeam == nil or theirTeam == nil then return false end
+    return myTeam == theirTeam
+end
+
+local function getNearestPlayer(maxDist)
+    local root = getCharRoot()
+    if not root then return nil, nil end
+    local best, bestDist = nil, maxDist or math.huge
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= player and isAlive(p) and not isSameTeam(p) then
+            local hr = p.Character:FindFirstChild("HumanoidRootPart")
+            if hr then
+                local dist = (hr.Position - root.Position).Magnitude
+                if dist < bestDist then
+                    best     = p
+                    bestDist = dist
+                end
+            end
+        end
+    end
+    return best, bestDist
+end
+
+local function hasLineOfSight(targetHR)
+    local myRoot = getCharRoot()
+    if not myRoot or not targetHR then return false end
+    local origin    = myRoot.Position
+    local direction = targetHR.Position - origin
+    local rayParams = RaycastParams.new()
+    rayParams.FilterDescendantsInstances = { player.Character, targetHR.Parent }
+    rayParams.FilterType = Enum.RaycastFilterType.Exclude
+    local result = workspace:Raycast(origin, direction.Unit * direction.Magnitude, rayParams)
+    return result == nil
+end
+
+local function doThrow(pos)
+    local fling, setGone = getFlingRemote()
+    if not fling then return false end
+    pcall(function()
+        fling:FireServer(CFrame.new(pos), HttpService:GenerateGUID(false))
+        if setGone then setGone:FireServer(1) end
+    end)
+    return true
+end
+
+local function equipKnife()
+    if knifeEquipped() then return true end
+    local knife = getKnifeInBackpack()
+    if knife then
+        local hum = player.Character and player.Character:FindFirstChild("Humanoid")
+        if hum then
+            hum:EquipTool(knife)
+            task.wait(0.3)
+            return true
+        end
+    end
+    return false
+end
+
+local function fireSlash()
+    local remote = getSlashRemote()
+    if remote then
+        pcall(function() remote:FireServer(0.5) end)
+    end
+end
+
+local function getEquippedGun()
+    local char = workspace:FindFirstChild(player.Name)
+    if not char then return nil end
+    for _, tool in ipairs(char:GetChildren()) do
+        if tool:IsA("Tool") and tool:FindFirstChild("FireWeapon") then
+            return tool
+        end
+    end
+    return nil
+end
+
+local function autoSlashLoop()
+    while Module.State.AutoSlash do
+        fireSlash()
+        task.wait()
+    end
+end
+
+local function autoThrowLoop()
+    while Module.State.AutoThrow do
+        local now = time()
+        if knifeEquipped() and now - lastThrow >= Module.State.ThrowDelay then
+            local target = getNearestPlayer()
+            if target then
+                local hr = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                if hr and hasLineOfSight(hr) then
+                    lastThrow = now
+                    doThrow(hr.Position)
+                    task.wait(1)
+                end
+            end
+        end
+        task.wait(0.05)
+    end
+end
+
+local function buildESP(p)
+    if espData[p.Name] then return end
+    local char = p.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local hl = Instance.new("Highlight")
+    hl.Name                = "cwHL"
+    hl.Adornee             = char
+    hl.DepthMode           = Enum.HighlightDepthMode.AlwaysOnTop
+    hl.FillColor           = Module.State.ESPFillColor
+    hl.OutlineColor        = Module.State.ESPOutlineColor
+    hl.FillTransparency    = 0.55
+    hl.OutlineTransparency = 0
+    hl.Parent              = espFolder
+
+    local bb = Instance.new("BillboardGui")
+    bb.Name         = "cwBB"
+    bb.Adornee      = root
+    bb.AlwaysOnTop  = true
+    bb.Size         = UDim2.new(0, 150, 0, 46)
+    bb.StudsOffset  = Vector3.new(0, 3.5, 0)
+    bb.ResetOnSpawn = false
+    bb.Parent       = espFolder
+
+    local bg = Instance.new("Frame", bb)
+    bg.Size                   = UDim2.new(1, 0, 1, 0)
+    bg.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+    bg.BackgroundTransparency = 0.45
+    bg.BorderSizePixel        = 0
+    Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 6)
+
+    local lbl = Instance.new("TextLabel", bg)
+    lbl.Size                   = UDim2.new(1, 0, 1, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.TextColor3             = Color3.fromRGB(255, 255, 255)
+    lbl.TextStrokeTransparency = 0.3
+    lbl.TextStrokeColor3       = Color3.fromRGB(0, 0, 0)
+    lbl.Font                   = Enum.Font.GothamBold
+    lbl.TextSize               = 12
+    lbl.Text                   = p.Name
+
+    espData[p.Name] = { hl=hl, bb=bb, label=lbl, root=root, plr=p }
+end
+
+local function removeESP(name)
+    local d = espData[name]
+    if d then
+        if d.hl and d.hl.Parent then d.hl:Destroy() end
+        if d.bb and d.bb.Parent then d.bb:Destroy() end
+        espData[name] = nil
+    end
+end
+
+local function clearAllESP()
+    for name in pairs(espData) do removeESP(name) end
+end
+
+local function onCharacterAdded(p)
+    task.wait(0.3)
+    removeESP(p.Name)
+    if Module.State.ESPEnabled then buildESP(p) end
+end
+
+local function hookPlayer(p)
+    if p == player then return end
+    p.CharacterAdded:Connect(function() onCharacterAdded(p) end)
+    p.CharacterRemoving:Connect(function() removeESP(p.Name) end)
+    if Module.State.ESPEnabled and p.Character then buildESP(p) end
+end
+
+function Module.StartAutoSlash()
+    Module.State.AutoSlash = true
+    task.spawn(autoSlashLoop)
+end
+
+function Module.StopAutoSlash()
+    Module.State.AutoSlash = false
+end
+
+function Module.StartAutoThrow()
+    Module.State.AutoThrow = true
+    task.spawn(autoThrowLoop)
+end
+
+function Module.StopAutoThrow()
+    Module.State.AutoThrow = false
+end
+
+function Module.TeleportAndKill(Library)
+    if tpKillActive then return end
+    local target = getNearestPlayer()
+    if not target then
+        Library:Notify({ Title="Teleport Kill", Description="No valid target found.", Time=2 })
+        return
+    end
+    local hr = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+    if not hr then return end
+    local myRoot = getCharRoot()
+    if not myRoot then return end
+
+    tpKillActive        = true
+    local savedCFrame   = myRoot.CFrame
+    local FLAT_ROTATION = CFrame.Angles(math.rad(90), 0, 0)
+    local UNDER_OFFSET  = Vector3.new(0, -3, 0)
+    local TIMEOUT       = 12
+
+    equipKnife()
+    task.wait(0.1)
+
+    Library:Notify({ Title="Teleport Kill", Description="Locking onto " .. target.Name .. "…", Time=2 })
+
+    local elapsed = 0
+    while isAlive(target) and elapsed < TIMEOUT do
+        if not (myRoot and myRoot.Parent) then break end
+        if hr and hr.Parent then
+            myRoot.CFrame = CFrame.new(hr.Position + UNDER_OFFSET) * FLAT_ROTATION
+        end
+        fireSlash()
+        task.wait(0.05)
+        elapsed += 0.05
+    end
+
+    tpKillActive = false
+    if myRoot and myRoot.Parent then myRoot.CFrame = savedCFrame end
+
+    local msg = not isAlive(target)
+        and (target.Name .. " has been eliminated.")
+        or  "Timed out — returning to original position."
+    Library:Notify({ Title="Teleport Kill", Description=msg, Time=3 })
+end
+
+function Module.StartAimbot()
+    if aimbotConn then aimbotConn:Disconnect() end
+    aimbotConn = RunService.RenderStepped:Connect(function()
+        if not Module.State.AimbotEnabled then return end
+        local gun = getEquippedGun()
+        if not gun then return end
+        local target = getNearestPlayer()
+        if not target then return end
+        local hr = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+        if not hr then return end
+        if not hasLineOfSight(hr) then return end
+        local cam = workspace.CurrentCamera
+        if cam then
+            cam.CFrame = CFrame.new(cam.CFrame.Position, hr.Position)
+        end
+    end)
+end
+
+function Module.StopAimbot()
+    if aimbotConn then aimbotConn:Disconnect() aimbotConn = nil end
+end
+
+function Module.StartESP()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= player and p.Character then buildESP(p) end
+    end
+    if espConn then espConn:Disconnect() end
+    espConn = RunService.RenderStepped:Connect(function()
+        if not Module.State.ESPEnabled then return end
+        local myRoot = getCharRoot()
+        for name, d in pairs(espData) do
+            if d.bb and d.bb.Parent and d.root and d.root.Parent then
+                local hum   = d.plr.Character and d.plr.Character:FindFirstChild("Humanoid")
+                local hp    = hum and math.floor(hum.Health)    or 0
+                local maxHp = hum and math.floor(hum.MaxHealth) or 100
+                local dist  = myRoot and math.floor((d.root.Position - myRoot.Position).Magnitude) or 0
+                local alive = hum and hum.Health > 0
+                local los   = hasLineOfSight(d.root) and "Visible" or "Behind Wall"
+                local ally  = Module.State.TargetTeamCheck and isSameTeam(d.plr)
+                local tag   = ally and " [ALLY]" or ""
+                d.label.Text      = string.format("%s%s [%s]\n%d/%d HP  %d studs", name, tag, los, hp, maxHp, dist)
+                d.bb.Enabled      = alive
+                d.hl.Enabled      = alive
+                d.hl.FillColor    = ally and Color3.fromRGB(50, 200, 50) or Module.State.ESPFillColor
+                d.hl.OutlineColor = Module.State.ESPOutlineColor
+            else
+                espData[name] = nil
+            end
+        end
+    end)
+end
+
+function Module.StopESP()
+    if espConn then espConn:Disconnect() espConn = nil end
+    clearAllESP()
+end
+
+function Module.Cleanup()
+    Module.State.AutoSlash     = false
+    Module.State.AutoThrow     = false
+    Module.State.ESPEnabled    = false
+    Module.State.AimbotEnabled = false
+    tpKillActive               = false
+    Module.StopESP()
+    Module.StopAimbot()
+end
+
+function Module.Initialize()
+    for _, p in ipairs(Players:GetPlayers()) do hookPlayer(p) end
+    Players.PlayerAdded:Connect(hookPlayer)
+    Players.PlayerRemoving:Connect(function(p) removeESP(p.Name) end)
+    
+    player.CharacterAdded:Connect(function()
+        task.wait(1.5)
+        if Module.State.AutoSlash then task.spawn(autoSlashLoop) end
+    end)
+end
+
+return Module
