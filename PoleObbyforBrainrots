@@ -216,7 +216,7 @@ TeleportGroup:AddButton({
 				end
 			end
 		else
-			Library:Notify({ Title = "No Base", Description = "You do not own a base.", Time = 3 })
+			Library:Notify({ Title = "combowick", Description = "No base found.", Time = 3 })
 		end
 	end,
 	DoubleClick = false,
@@ -238,7 +238,7 @@ TeleportGroup:AddToggle("InstantTake", {
 					fireproximityprompt(prompt)
 				end)
 			else
-				Library:Notify({ Title = "Not Supported", Description = "Your executor does not support Instant Grab.", Time = 4 })
+				Library:Notify({ Title = "combowick", Description = "Exploit missing fireproximityprompt.", Time = 4 })
 				Toggles.InstantTake:SetValue(false)
 			end
 		else
@@ -379,7 +379,7 @@ PetGroup:AddButton({
 			Options.PetDropdown:SetValue(entry)
 			Library:Notify({ Title = "Target Locked", Description = entry, Time = 3 })
 		else
-			Library:Notify({ Title = "No Targets", Description = "No rare mobs are currently spawned.", Time = 3 })
+			Library:Notify({ Title = "combowick", Description = "No targets found.", Time = 3 })
 		end
 	end,
 	DoubleClick = false,
@@ -415,7 +415,7 @@ local function doSteal()
 		local char = LocalPlayer.Character
 		local hrp = char and char:FindFirstChild("HumanoidRootPart")
 		if not hrp then
-			Library:Notify({ Title = "Spawn In", Description = "Your character is not in the game yet.", Time = 3 })
+			Library:Notify({ Title = "combowick", Description = "Character not found.", Time = 3 })
 			return
 		end
 
@@ -429,13 +429,13 @@ local function doSteal()
 
 		local rootPart = targetMob:FindFirstChild("RootPart") or targetMob:FindFirstChildWhichIsA("BasePart", true)
 		if not rootPart then
-			Library:Notify({ Title = "Grab Failed", Description = "Target has no valid position.", Time = 3 })
+			Library:Notify({ Title = "combowick", Description = "Target has no root part.", Time = 3 })
 			return
 		end
 
 		local prompt = getPrompt(targetMob)
 		if not prompt then
-			Library:Notify({ Title = "Grab Failed", Description = "Target has no grab prompt.", Time = 3 })
+			Library:Notify({ Title = "combowick", Description = "No grab prompt on target.", Time = 3 })
 			return
 		end
 
@@ -460,14 +460,14 @@ local function doSteal()
 
 		local gotMob = getMobInBackpack(cleanName) or (not targetMob.Parent)
 		if gotMob then
-			Library:Notify({ Title = "Secured!", Description = cleanName .. " is in your inventory.", Time = 3 })
+			Library:Notify({ Title = "Loot Secured", Description = "Returned to base.", Time = 3 })
 		else
-			Library:Notify({ Title = "Back at Base", Description = "Grab attempted. Waiting for next target.", Time = 3 })
+			Library:Notify({ Title = "Grab Attempted", Description = "Returned to base.", Time = 3 })
 		end
 	end)
 
 	if not success then
-		Library:Notify({ Title = "Script Error", Description = tostring(errorMsg), Time = 4 })
+		Library:Notify({ Title = "Error", Description = tostring(errorMsg), Time = 4 })
 	end
 
 	stealBusy = false
@@ -483,7 +483,7 @@ PetGroup:AddButton({
 	Func = function()
 		local selected = Options.PetDropdown.Value
 		if selected == "None found" then
-			Library:Notify({ Title = "No Target", Description = "Select a target from the list first.", Time = 3 })
+			Library:Notify({ Title = "combowick", Description = "No target selected.", Time = 3 })
 			return
 		end
 		local cleanName = selected:match("^(.-)%s%[") or selected
@@ -492,14 +492,14 @@ PetGroup:AddButton({
 				local rootPart = mob:FindFirstChild("RootPart") or mob:FindFirstChildWhichIsA("BasePart", true)
 				if rootPart then
 					teleportTo(rootPart)
-					Library:Notify({ Title = "Warped!", Description = "Jumped to " .. cleanName, Time = 3 })
+					Library:Notify({ Title = "Teleported", Description = "Jumped to " .. cleanName, Time = 3 })
 				else
-					Library:Notify({ Title = "Warp Failed", Description = "Target has no valid position.", Time = 3 })
+					Library:Notify({ Title = "combowick", Description = "Target has no position.", Time = 3 })
 				end
 				return
 			end
 		end
-		Library:Notify({ Title = "Despawned", Description = cleanName .. " is no longer in the world.", Time = 3 })
+		Library:Notify({ Title = "combowick", Description = "Target not found in world.", Time = 3 })
 	end,
 	DoubleClick = false,
 })
@@ -573,7 +573,12 @@ local collectTimer = 0
 local upgradeAllTimer = 0
 local lastBestEntry = nil
 
+-- Global kill switch: set to true when session expires to halt all loops
+local sessionExpired = false
+
 RunService.Heartbeat:Connect(function(dt)
+	if sessionExpired then return end
+
 	updateTimer     += dt
 	upgradeTimer    += dt
 	stealTimer      += dt
@@ -697,31 +702,49 @@ SaveManager:BuildConfigSection(Tabs["UI Settings"])
 ThemeManager:ApplyToTab(Tabs["UI Settings"])
 SaveManager:LoadAutoloadConfig()
 
-local function forceCleanup()
-	stealBusy = false
+-- ────────────────────────────────────────────────────────────────
+-- Session expiry: shuts down every feature then shows the popup
+-- ────────────────────────────────────────────────────────────────
+
+local function shutdownAllFeatures()
+	-- Flip the kill switch so the Heartbeat loop stops immediately
+	sessionExpired = true
+
+	-- Disconnect the instant-grab proximity listener if active
 	if PromptButtonHoldBegan then
 		PromptButtonHoldBegan:Disconnect()
 		PromptButtonHoldBegan = nil
 	end
-	pcall(function() Toggles.AutoSteal:SetValue(false) end)
-	pcall(function() Toggles.AutoCarry:SetValue(false) end)
-	pcall(function() Toggles.AutoPole:SetValue(false) end)
-	pcall(function() Toggles.AutoBoost:SetValue(false) end)
-	pcall(function() Toggles.AutoRebirth:SetValue(false) end)
-	pcall(function() Toggles.AutoUpgradeAll:SetValue(false) end)
-	pcall(function() Toggles.AutoCollect:SetValue(false) end)
-	pcall(function() Toggles.InstantTake:SetValue(false) end)
+
+	-- Force every toggle off so callbacks fire and clean up
+	local toggleKeys = {
+		"InstantTake",
+		"AutoSteal",
+		"AutoCarry",
+		"AutoPole",
+		"AutoBoost",
+		"AutoRebirth",
+		"AutoUpgradeAll",
+		"AutoCollect",
+	}
+	for _, key in ipairs(toggleKeys) do
+		pcall(function()
+			if Toggles[key] then
+				Toggles[key]:SetValue(false)
+			end
+		end)
+	end
+
+	-- Prevent any in-flight steal from continuing
+	stealBusy = true
 end
 
 local function showExpiredPopup(onDone)
-	forceCleanup()
-
 	local ScreenGui = Instance.new("ScreenGui")
 	ScreenGui.Name = "CW_Expired"
 	ScreenGui.ResetOnSpawn = false
 	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	ScreenGui.Parent = game:GetService("CoreGui")
-
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.fromOffset(280, 140)
 	Frame.Position = UDim2.new(0.5, -140, 0, -150)
@@ -729,11 +752,9 @@ local function showExpiredPopup(onDone)
 	Frame.BorderSizePixel = 0
 	Frame.Parent = ScreenGui
 	Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 14)
-
 	local Stroke = Instance.new("UIStroke", Frame)
 	Stroke.Color = Color3.fromRGB(80, 80, 100)
 	Stroke.Thickness = 1
-
 	local Title = Instance.new("TextLabel", Frame)
 	Title.Size = UDim2.new(1, -20, 0, 28)
 	Title.Position = UDim2.fromOffset(10, 10)
@@ -743,7 +764,6 @@ local function showExpiredPopup(onDone)
 	Title.TextSize = 14
 	Title.Font = Enum.Font.GothamBold
 	Title.TextXAlignment = Enum.TextXAlignment.Left
-
 	local Sub = Instance.new("TextLabel", Frame)
 	Sub.Size = UDim2.new(1, -20, 0, 34)
 	Sub.Position = UDim2.fromOffset(10, 36)
@@ -754,7 +774,6 @@ local function showExpiredPopup(onDone)
 	Sub.Font = Enum.Font.Gotham
 	Sub.TextXAlignment = Enum.TextXAlignment.Left
 	Sub.TextWrapped = true
-
 	local Button = Instance.new("TextButton", Frame)
 	Button.Size = UDim2.new(1, -20, 0, 24)
 	Button.Position = UDim2.fromOffset(10, 74)
@@ -771,35 +790,17 @@ local function showExpiredPopup(onDone)
 		task.wait(1.5)
 		Button.Text = "Copy Key Link"
 	end)
-
 	local Bar = Instance.new("Frame", Frame)
 	Bar.Size = UDim2.new(1, -20, 0, 3)
 	Bar.Position = UDim2.fromOffset(10, 122)
 	Bar.BackgroundColor3 = Color3.fromRGB(100, 100, 200)
 	Bar.BorderSizePixel = 0
 	Instance.new("UICorner", Bar).CornerRadius = UDim.new(1, 0)
-
-	Frame:TweenPosition(
-		UDim2.new(0.5, -140, 0, 20),
-		Enum.EasingDirection.Out,
-		Enum.EasingStyle.Quint,
-		0.4,
-		true
-	)
-
+	Frame:TweenPosition(UDim2.new(0.5, -140, 0, 20), Enum.EasingDirection.Out, Enum.EasingStyle.Quint, 0.4, true)
 	local ts = game:GetService("TweenService")
-	ts:Create(Bar, TweenInfo.new(20, Enum.EasingStyle.Linear), {
-		Size = UDim2.new(0, 0, 0, 3)
-	}):Play()
-
+	ts:Create(Bar, TweenInfo.new(20, Enum.EasingStyle.Linear), { Size = UDim2.new(0, 0, 0, 3) }):Play()
 	task.delay(20, function()
-		Frame:TweenPosition(
-			UDim2.new(0.5, -140, 0, -150),
-			Enum.EasingDirection.In,
-			Enum.EasingStyle.Quint,
-			0.4,
-			true
-		)
+		Frame:TweenPosition(UDim2.new(0.5, -140, 0, -150), Enum.EasingDirection.In, Enum.EasingStyle.Quint, 0.4, true)
 		task.wait(0.5)
 		ScreenGui:Destroy()
 		if onDone then onDone() end
@@ -816,6 +817,8 @@ if _G.COMBOWICK_FREE then
 	_G.COMBOWICK_ACTIVE = true
 	task.spawn(function()
 		repeat task.wait(1) until _G.COMBOWICK_ACTIVE == false
+		-- Kill all features first, then show the popup
+		shutdownAllFeatures()
 		showExpiredPopup(function()
 			Library:Unload()
 		end)
