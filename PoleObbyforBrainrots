@@ -1,1 +1,698 @@
-105215477731035
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+Library.ShowToggleFrameInKeybinds = true
+
+local Window = Library:CreateWindow({
+	Title = "combowick",
+	Footer = "v1.0",
+	NotifySide = "Right",
+	ShowCustomCursor = false,
+	Size = UDim2.fromOffset(300, 420),
+})
+
+local Tabs = {
+	Main = Window:AddTab("Main", "user"),
+	Upgrades = Window:AddTab("Upgrades", "arrow-up"),
+	["UI Settings"] = Window:AddTab("UI Settings", "settings"),
+}
+
+local Net = ReplicatedStorage:WaitForChild("Packages", 9e9):WaitForChild("Net", 9e9)
+
+local rarityPriority = { Admin = 1, OG = 2, Secret = 3 }
+
+local function getPart(obj)
+	if not obj then return nil end
+	if obj:IsA("BasePart") then return obj end
+	if obj:IsA("Model") then return obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart", true) end
+	if obj:IsA("Folder") then return obj:FindFirstChildWhichIsA("BasePart", true) end
+	return nil
+end
+
+local function teleportTo(part)
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local hrp = char:WaitForChild("HumanoidRootPart")
+	local origin = part.Position + Vector3.new(0, 60, 0)
+	local direction = Vector3.new(0, -500, 0)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Blacklist
+	params.FilterDescendantsInstances = { char }
+	local result = workspace:Raycast(origin, direction, params)
+	local finalPos = result and (result.Position + Vector3.new(0, 7, 0)) or (part.Position + Vector3.new(0, 7, 0))
+	hrp.CFrame = CFrame.new(finalPos)
+end
+
+local function getMyBase()
+	local myId = LocalPlayer.UserId
+	for _, base in ipairs(workspace.Bases:GetChildren()) do
+		if base:GetAttribute("OwnerID") == myId then
+			return base
+		end
+	end
+	return nil
+end
+
+local function teleportToBase()
+	local base = getMyBase()
+	if not base then return end
+	local part = base:FindFirstChildWhichIsA("BasePart", true)
+	if part then
+		local char = LocalPlayer.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		if root then
+			root.CFrame = CFrame.new(part.Position + Vector3.new(0, 5, 0))
+		end
+	end
+end
+
+local function parseGenValue(text)
+	if not text then return 0 end
+	local clean = text:gsub("%$", ""):gsub("/s", ""):gsub("%s+", ""):gsub(",", ".")
+	local numStr, suffix = clean:match("^([%d%.]+)([KkMmBb]?)")
+	local num = tonumber(numStr) or 0
+	if suffix == "M" or suffix == "m" then return num * 1_000_000
+	elseif suffix == "K" or suffix == "k" then return num * 1_000
+	elseif suffix == "B" or suffix == "b" then return num * 1_000_000_000
+	end
+	return num
+end
+
+local function getPrompt(mob)
+	local rootPart = mob:FindFirstChild("RootPart")
+	if rootPart then
+		local prompt = rootPart:FindFirstChildOfClass("ProximityPrompt")
+		if prompt then return prompt end
+	end
+	return mob:FindFirstChildOfClass("ProximityPrompt", true)
+end
+
+local function getMobInBackpack(mobName)
+	local backpack = LocalPlayer.Backpack
+	if not backpack then return nil end
+	return backpack:FindFirstChild(mobName)
+end
+
+local spawns = workspace.BrainrotSpawns
+
+local function teleportToPreSpawn()
+	local secretPart = getPart(spawns.Secret)
+	if secretPart then
+		teleportTo(secretPart)
+		task.wait(0.3)
+		return
+	end
+	local epicPart = getPart(spawns.Epic)
+	if epicPart then
+		teleportTo(epicPart)
+		task.wait(0.3)
+	end
+end
+
+local spawnMap = {
+	["OG"]        = spawns.OG,
+	["Secret"]    = spawns.Secret,
+	["Admin"]     = spawns.Admin,
+	["Epic"]      = spawns.Epic,
+	["Legendary"] = spawns.Legendary,
+	["Mythical"]  = spawns.Mythical,
+}
+
+local function doAutoCollect()
+	local base = getMyBase()
+	if not base then return end
+	local slots = base:FindFirstChild("Slots")
+	if not slots then return end
+	local char = LocalPlayer.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+	for _, slot in ipairs(slots:GetChildren()) do
+		local hitbox = slot:FindFirstChild("Hitbox")
+		if hitbox then
+			local ti = hitbox:FindFirstChildOfClass("TouchTransmitter") or hitbox:FindFirstChild("TouchInterest")
+			if ti and firetouchinterest then
+				firetouchinterest(hrp, hitbox, 0)
+				task.wait(0.05)
+				firetouchinterest(hrp, hitbox, 1)
+			end
+		end
+	end
+end
+
+local function doAutoUpgradeAll()
+	local base = getMyBase()
+	if not base then return end
+	local slots = base:FindFirstChild("Slots")
+	if not slots then return end
+	for _, slot in ipairs(slots:GetChildren()) do
+		local slotNum = tonumber(slot.Name:match("%d+"))
+		if slotNum then
+			Net:WaitForChild("RE/UpgradeBrainrot", 9e9):FireServer(slotNum)
+			task.wait(0.05)
+		end
+	end
+end
+
+local TeleportGroup = Tabs.Main:AddLeftGroupbox("Fast Travel", "map-pin")
+
+TeleportGroup:AddDropdown("TeleportDropdown", {
+	Values = { "OG", "Secret", "Admin", "Epic", "Legendary", "Mythical" },
+	Default = 1,
+	Multi = false,
+	Text = "Select Spawn",
+	Searchable = false,
+})
+
+TeleportGroup:AddButton({
+	Text = "Go To Spawn",
+	Func = function()
+		local selected = Options.TeleportDropdown.Value
+		local target = spawnMap[selected]
+		if not target then return end
+
+		if selected == "OG" then
+			teleportToPreSpawn()
+			local ogPart = getPart(spawns.OG)
+			if ogPart then teleportTo(ogPart) end
+		elseif selected == "Admin" then
+			teleportToPreSpawn()
+			local ogPart = getPart(spawns.OG)
+			if ogPart then
+				teleportTo(ogPart)
+				task.wait(0.5)
+			end
+			local adminSpawnChild = spawns.Admin:FindFirstChild("Spawn")
+			local adminPart = (adminSpawnChild and getPart(adminSpawnChild)) or getPart(spawns.Admin)
+			if adminPart then teleportTo(adminPart) end
+		else
+			local part = getPart(target)
+			if part then teleportTo(part) end
+		end
+	end,
+	DoubleClick = false,
+})
+
+TeleportGroup:AddButton({
+	Text = "Go To Base",
+	Func = function()
+		local base = getMyBase()
+		if base then
+			local part = base:FindFirstChildWhichIsA("BasePart", true)
+			if part then
+				local char = LocalPlayer.Character
+				local root = char and char:FindFirstChild("HumanoidRootPart")
+				if root then
+					root.CFrame = CFrame.new(part.Position + Vector3.new(0, 5, 0))
+				end
+			end
+		else
+			Library:Notify({ Title = "combowick", Description = "No base found.", Time = 3 })
+		end
+	end,
+	DoubleClick = false,
+})
+
+local PromptButtonHoldBegan = nil
+
+TeleportGroup:AddToggle("InstantTake", {
+	Text = "Instant Grab",
+	Default = false,
+	Callback = function(Value)
+		if Value then
+			if fireproximityprompt then
+				if PromptButtonHoldBegan then
+					PromptButtonHoldBegan:Disconnect()
+					PromptButtonHoldBegan = nil
+				end
+				PromptButtonHoldBegan = ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
+					fireproximityprompt(prompt)
+				end)
+			else
+				Library:Notify({ Title = "combowick", Description = "Exploit missing fireproximityprompt.", Time = 4 })
+				Toggles.InstantTake:SetValue(false)
+			end
+		else
+			if PromptButtonHoldBegan then
+				PromptButtonHoldBegan:Disconnect()
+				PromptButtonHoldBegan = nil
+			end
+		end
+	end,
+})
+
+local PetGroup = Tabs.Main:AddLeftGroupbox("Target Hunt", "crosshair")
+
+PetGroup:AddDropdown("RarityFilter", {
+	Values = { "Admin", "OG", "Secret" },
+	Default = 1,
+	Multi = true,
+	Text = "Rarity Filter",
+	Searchable = false,
+})
+
+Options.RarityFilter:SetValue({ Admin = true, OG = true, Secret = true })
+
+local function getFilteredRarities()
+	local selected = Options.RarityFilter.Value
+	local active = {}
+	for k, v in pairs(selected) do
+		if v then active[k] = true end
+	end
+	if not next(active) then
+		active = { Admin = true, OG = true, Secret = true }
+	end
+	return active
+end
+
+local function getIdleSpawn()
+	local filter = getFilteredRarities()
+	if filter["Admin"] then
+		local adminSpawnChild = spawns.Admin:FindFirstChild("Spawn")
+		local part = (adminSpawnChild and getPart(adminSpawnChild)) or getPart(spawns.Admin)
+		if part then return part end
+	end
+	if filter["Secret"] then
+		local part = getPart(spawns.Secret)
+		if part then return part end
+	end
+	if filter["OG"] then
+		local part = getPart(spawns.OG)
+		if part then return part end
+	end
+	return getPart(spawns.Epic)
+end
+
+local function teleportToIdleSpawn()
+	local char = LocalPlayer.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+	local part = getIdleSpawn()
+	if part then
+		hrp.CFrame = CFrame.new(part.Position + Vector3.new(0, 5, 0))
+	end
+end
+
+local function getMobList()
+	local filter = getFilteredRarities()
+	local buckets = { Admin = {}, OG = {}, Secret = {} }
+
+	for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+		local overhead = mob:FindFirstChild("AnimalOverhead", true)
+		if overhead then
+			local rarity = overhead:FindFirstChild("Rarity")
+			local generation = overhead:FindFirstChild("Generation")
+			if rarity and filter[rarity.Text] and buckets[rarity.Text] then
+				local gen = generation and generation.Text or ""
+				table.insert(buckets[rarity.Text], mob.Name .. " [" .. rarity.Text .. "] " .. gen)
+			end
+		end
+	end
+
+	local names = {}
+	for _, r in ipairs({ "Admin", "OG", "Secret" }) do
+		for _, entry in ipairs(buckets[r]) do
+			table.insert(names, entry)
+		end
+	end
+
+	if #names == 0 then
+		table.insert(names, "None found")
+	end
+	return names
+end
+
+local function getBestMobEntry()
+	local filter = getFilteredRarities()
+	local bestMob = nil
+	local bestPriority = math.huge
+	local bestVal = -math.huge
+
+	for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+		local overhead = mob:FindFirstChild("AnimalOverhead", true)
+		if overhead then
+			local rarity = overhead:FindFirstChild("Rarity")
+			local generation = overhead:FindFirstChild("Generation")
+			if rarity and filter[rarity.Text] and generation then
+				local priority = rarityPriority[rarity.Text] or 99
+				local val = parseGenValue(generation.Text)
+				if priority < bestPriority or (priority == bestPriority and val > bestVal) then
+					bestPriority = priority
+					bestVal = val
+					bestMob = mob
+				end
+			end
+		end
+	end
+
+	if bestMob then
+		local overhead = bestMob:FindFirstChild("AnimalOverhead", true)
+		local rarity = overhead and overhead:FindFirstChild("Rarity")
+		local gen = overhead and overhead:FindFirstChild("Generation")
+		return bestMob.Name .. " [" .. (rarity and rarity.Text or "?") .. "] " .. (gen and gen.Text or "")
+	end
+	return nil
+end
+
+PetGroup:AddDropdown("PetDropdown", {
+	Values = getMobList(),
+	Default = 1,
+	Multi = false,
+	Text = "Select Target",
+	Searchable = true,
+})
+
+PetGroup:AddButton({
+	Text = "Lock Best Target",
+	Func = function()
+		local entry = getBestMobEntry()
+		if entry then
+			Options.PetDropdown:SetValue(entry)
+			Library:Notify({ Title = "Target Locked", Description = entry, Time = 3 })
+		else
+			Library:Notify({ Title = "combowick", Description = "No targets found.", Time = 3 })
+		end
+	end,
+	DoubleClick = false,
+})
+
+local stealBusy = false
+
+local function doSteal()
+	if stealBusy then return end
+	local selected = Options.PetDropdown.Value
+	if selected == "None found" then
+		teleportToIdleSpawn()
+		return
+	end
+	local cleanName = selected:match("^(.-)%s%[") or selected
+
+	local targetMob = nil
+	for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+		if mob.Name == cleanName then
+			targetMob = mob
+			break
+		end
+	end
+
+	if not targetMob then
+		teleportToIdleSpawn()
+		return
+	end
+
+	stealBusy = true
+
+	local success, errorMsg = pcall(function()
+		local char = LocalPlayer.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		if not hrp then
+			Library:Notify({ Title = "combowick", Description = "Character not found.", Time = 3 })
+			return
+		end
+
+		teleportToPreSpawn()
+
+		local ogPart = getPart(spawns.OG)
+		if ogPart then
+			teleportTo(ogPart)
+			task.wait(0.3)
+		end
+
+		local rootPart = targetMob:FindFirstChild("RootPart") or targetMob:FindFirstChildWhichIsA("BasePart", true)
+		if not rootPart then
+			Library:Notify({ Title = "combowick", Description = "Target has no root part.", Time = 3 })
+			return
+		end
+
+		local prompt = getPrompt(targetMob)
+		if not prompt then
+			Library:Notify({ Title = "combowick", Description = "No grab prompt on target.", Time = 3 })
+			return
+		end
+
+		hrp.CFrame = CFrame.new(rootPart.Position + Vector3.new(0, 3, 0))
+		task.wait(0.2)
+
+		if Toggles.InstantTake.Value and fireproximityprompt then
+			fireproximityprompt(prompt)
+		else
+			local holdDuration = prompt.HoldDuration or 0
+			prompt:InputHoldBegin()
+			task.wait(math.max(holdDuration + 0.1, 0.3))
+			prompt:InputHoldEnd()
+		end
+
+		task.wait(0.5)
+
+		local args = {}
+		Net:WaitForChild("RE/SafeZoneEvent", 9e9):FireServer(unpack(args))
+		task.wait(0.3)
+		teleportToBase()
+
+		local gotMob = getMobInBackpack(cleanName) or (not targetMob.Parent)
+		if gotMob then
+			Library:Notify({ Title = "Loot Secured", Description = "Returned to base.", Time = 3 })
+		else
+			Library:Notify({ Title = "Grab Attempted", Description = "Returned to base.", Time = 3 })
+		end
+	end)
+
+	if not success then
+		Library:Notify({ Title = "Error", Description = tostring(errorMsg), Time = 4 })
+	end
+
+	stealBusy = false
+end
+
+PetGroup:AddToggle("AutoSteal", {
+	Text = "Auto Snipe",
+	Default = false,
+})
+
+PetGroup:AddButton({
+	Text = "Go To Target",
+	Func = function()
+		local selected = Options.PetDropdown.Value
+		if selected == "None found" then
+			Library:Notify({ Title = "combowick", Description = "No target selected.", Time = 3 })
+			return
+		end
+		local cleanName = selected:match("^(.-)%s%[") or selected
+		for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+			if mob.Name == cleanName then
+				local rootPart = mob:FindFirstChild("RootPart") or mob:FindFirstChildWhichIsA("BasePart", true)
+				if rootPart then
+					teleportTo(rootPart)
+					Library:Notify({ Title = "Teleported", Description = "Jumped to " .. cleanName, Time = 3 })
+				else
+					Library:Notify({ Title = "combowick", Description = "Target has no position.", Time = 3 })
+				end
+				return
+			end
+		end
+		Library:Notify({ Title = "combowick", Description = "Target not found in world.", Time = 3 })
+	end,
+	DoubleClick = false,
+})
+
+local StatusGroup = Tabs.Main:AddRightGroupbox("Mob Radar", "activity")
+local statusLabel = StatusGroup:AddLabel("Scanning...", true)
+
+local function updateStatus()
+	local rarityList = { Admin = {}, OG = {}, Secret = {} }
+	for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+		local overhead = mob:FindFirstChild("AnimalOverhead", true)
+		if overhead then
+			local rarity = overhead:FindFirstChild("Rarity")
+			local generation = overhead:FindFirstChild("Generation")
+			if rarity and rarityList[rarity.Text] then
+				local gen = generation and generation.Text or ""
+				table.insert(rarityList[rarity.Text], mob.Name .. " " .. gen)
+			end
+		end
+	end
+	local lines = {}
+	for _, r in ipairs({ "Admin", "OG", "Secret" }) do
+		if #rarityList[r] > 0 then
+			table.insert(lines, "[" .. r .. "]")
+			for _, name in ipairs(rarityList[r]) do
+				table.insert(lines, "  " .. name)
+			end
+		end
+	end
+	statusLabel:SetText(#lines > 0 and table.concat(lines, "\n") or "No targets active")
+end
+
+local UpgradeGroup = Tabs.Upgrades:AddLeftGroupbox("Upgrades", "arrow-up")
+
+UpgradeGroup:AddToggle("AutoCarry", {
+	Text = "Auto Carry Upgrade",
+	Default = false,
+})
+
+UpgradeGroup:AddToggle("AutoPole", {
+	Text = "Auto Pole Upgrade",
+	Default = false,
+})
+
+UpgradeGroup:AddToggle("AutoBoost", {
+	Text = "Auto Boost x5",
+	Default = false,
+})
+
+UpgradeGroup:AddToggle("AutoRebirth", {
+	Text = "Auto Rebirth",
+	Default = false,
+})
+
+UpgradeGroup:AddToggle("AutoUpgradeAll", {
+	Text = "Auto Upgrade All Slots",
+	Default = false,
+})
+
+UpgradeGroup:AddToggle("AutoCollect", {
+	Text = "Auto Collect",
+	Default = false,
+})
+
+local lastMobList = {}
+local updateTimer = 0
+local upgradeTimer = 0
+local stealTimer = 0
+local rebirthTimer = 0
+local collectTimer = 0
+local upgradeAllTimer = 0
+local lastBestEntry = nil
+
+RunService.Heartbeat:Connect(function(dt)
+	updateTimer     += dt
+	upgradeTimer    += dt
+	stealTimer      += dt
+	rebirthTimer    += dt
+	collectTimer    += dt
+	upgradeAllTimer += dt
+
+	if upgradeTimer >= 0.5 then
+		upgradeTimer = 0
+		if Toggles.AutoCarry.Value then
+			Net:WaitForChild("RE/RequestStatsUpgrade", 9e9):FireServer("CarryMax", 1)
+		end
+		if Toggles.AutoPole.Value then
+			Net:WaitForChild("RE/RequestStatsUpgrade", 9e9):FireServer("PoleSize", 1)
+		end
+		if Toggles.AutoBoost.Value then
+			Net:WaitForChild("RE/RequestStatsUpgrade", 9e9):FireServer("Boost", 5)
+		end
+	end
+
+	if rebirthTimer >= 1 then
+		rebirthTimer = 0
+		if Toggles.AutoRebirth.Value then
+			local args = {}
+			Net:WaitForChild("RE/RequestRebirth", 9e9):FireServer(unpack(args))
+		end
+	end
+
+	if collectTimer >= 0.5 then
+		collectTimer = 0
+		if Toggles.AutoCollect.Value then
+			task.spawn(doAutoCollect)
+		end
+	end
+
+	if upgradeAllTimer >= 1 then
+		upgradeAllTimer = 0
+		if Toggles.AutoUpgradeAll.Value then
+			task.spawn(doAutoUpgradeAll)
+		end
+	end
+
+	if stealTimer >= 1 then
+		stealTimer = 0
+		if Toggles.AutoSteal.Value and not stealBusy then
+			task.spawn(doSteal)
+		end
+	end
+
+	if updateTimer >= 2 then
+		updateTimer = 0
+
+		local currentSelection = Options.PetDropdown.Value
+		local newList = getMobList()
+
+		local isSame = #newList == #lastMobList
+		if isSame then
+			for i, v in ipairs(newList) do
+				if v ~= lastMobList[i] then
+					isSame = false
+					break
+				end
+			end
+		end
+
+		if not isSame then
+			lastMobList = newList
+			Options.PetDropdown:SetValues(newList)
+			local stillExists = false
+			for _, v in ipairs(newList) do
+				if v == currentSelection then
+					stillExists = true
+					break
+				end
+			end
+			if stillExists then
+				Options.PetDropdown:SetValue(currentSelection)
+			end
+		end
+
+		if not stealBusy then
+			local bestEntry = getBestMobEntry()
+			if bestEntry and bestEntry ~= lastBestEntry then
+				lastBestEntry = bestEntry
+				Options.PetDropdown:SetValue(bestEntry)
+			end
+		end
+
+		updateStatus()
+	end
+end)
+
+local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "wrench")
+
+MenuGroup:AddToggle("KeybindMenuOpen", {
+	Default = Library.KeybindFrame.Visible,
+	Text = "Open Keybind Menu",
+	Callback = function(value)
+		Library.KeybindFrame.Visible = value
+	end,
+})
+
+MenuGroup:AddDivider()
+MenuGroup:AddLabel("Menu bind")
+	:AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "Menu keybind" })
+
+MenuGroup:AddButton("Unload", function()
+	Library:Unload()
+end)
+
+Library.ToggleKeybind = Options.MenuKeybind
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+ThemeManager:SetFolder("combowick")
+SaveManager:SetFolder("combowick/brainrot")
+
+SaveManager:BuildConfigSection(Tabs["UI Settings"])
+ThemeManager:ApplyToTab(Tabs["UI Settings"])
+SaveManager:LoadAutoloadConfig()
