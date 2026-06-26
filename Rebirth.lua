@@ -2525,6 +2525,11 @@ local function _buildExplorer()
     end
 
     -- ── init + search ──
+    -- force-load every standard service so the tree shows the FULL game tree.
+    -- game:GetChildren() only returns services already instantiated, which left big gaps.
+    for _, svc in { "Workspace","Players","Lighting","ReplicatedStorage","ReplicatedFirst","ServerStorage","ServerScriptService","StarterGui","StarterPack","StarterPlayer","SoundService","Chat","Teams","LocalizationService","TestService","RunService","UserInputService","ContextActionService","TweenService","Debris","CollectionService","PhysicsService","MarketplaceService","HttpService","TextService","GuiService","PathfindingService","ProximityPromptService","TeleportService","PolicyService","MaterialService","InsertService","BadgeService","GroupService","AssetService","AvatarEditorService","TextChatService","VoiceChatService" } do
+        pcall(function() game:GetService(svc) end)
+    end
     expanded[game] = true
     refreshTree(); renderProps(nil); loadRMD()   -- fetch real Studio icon indices in the background
     explorerTick = function() pcall(function() treeList.tick() end) end   -- driven by the runtime loop so scrolling repaints the window
