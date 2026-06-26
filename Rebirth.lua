@@ -752,7 +752,7 @@ do
 end
 local function viewport() local c = workspace.CurrentCamera; return (c and c.ViewportSize) or Vector2.new(1280, 720) end
 
-local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(760, 470), Position = UDim2.new(0.5, -380, 0.5, -235) }, { corner(12), stroke("StrokeS", 1, 0.2) })
+local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12), stroke("StrokeS", 1, 0.2) })
 shadow(Window, 64, 0.36)
 make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(14), grad(90, Color3.fromRGB(26, 24, 44), Theme.Bg) })
 
@@ -1023,7 +1023,7 @@ track(minBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     contentArea.Visible = not minimized
     statusBar.Visible = not minimized
-    TweenService:Create(Window, EASE, { Size = minimized and UDim2.fromOffset(760, 50) or UDim2.fromOffset(760, 470) }):Play()
+    TweenService:Create(Window, EASE, { Size = minimized and UDim2.fromOffset(800, 50) or UDim2.fromOffset(800, 540) }):Play()
 end))
 
 -- resize grip
@@ -1041,10 +1041,10 @@ end
 
 --==============================  Nav rail  ================================--
 
-local rail = make("Frame", { Name = "Rail", Parent = contentArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(0, 178, 1, -14), Position = UDim2.fromOffset(12, 4) }, { corner(12), stroke("Stroke", 1, 0.5) })
+local rail = make("Frame", { Name = "Rail", Parent = contentArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(0, 150, 1, -14), Position = UDim2.fromOffset(12, 4) }, { corner(12), stroke("Stroke", 1, 0.5) })
 local railInner = make("Frame", { Parent = rail, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, -66) }, { pad(10), vlayout(5) })
 local railIndicator = make("Frame", { Parent = rail, BackgroundColor3 = "@Accent", BorderSizePixel = 0, Size = UDim2.fromOffset(3, 22), Position = UDim2.fromOffset(0, 16), ZIndex = 3 }, { corner(2), grad(90, Theme.Accent, Theme.Accent2) })
-local PageHolder = make("Frame", { Name = "Pages", Parent = contentArea, BackgroundColor3 = "@Panel", BorderSizePixel = 0, Position = UDim2.fromOffset(198, 4), Size = UDim2.new(1, -210, 1, -14) }, { corner(12), stroke("Stroke", 1, 0.5) })
+local PageHolder = make("Frame", { Name = "Pages", Parent = contentArea, BackgroundColor3 = "@Panel", BorderSizePixel = 0, Position = UDim2.fromOffset(172, 4), Size = UDim2.new(1, -184, 1, -14) }, { corner(12), stroke("Stroke", 1, 0.5) })
 
 local Pages, navBtns, activePage = {}, {}, nil
 local function selectPage(name)
@@ -1268,7 +1268,7 @@ local function createView(page, cfg)
     do local d = UI.dropdown(filtC, { "All", "Roblox", "ByteNet", "BridgeNet", "BridgeNet2", "Blink", "Warp", "Red", "Zap", "Knit", "Aero", "Buffer", "Obfuscated" }, "All", function(v) view.filterFw = v; view.dirtyFilter = true end, 124); d.LayoutOrder = 3; d.Size = UDim2.fromOffset(124, 28) end
 
     --── body: list | divider | detail ──
-    local split = 0.48
+    local split = 0.44
     local body = make("Frame", { Parent = page, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 72), Size = UDim2.new(1, 0, 1, -72) })
     local listPanel = make("Frame", { Parent = body, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(split, -6, 1, 0) }, { corner(11), stroke("Stroke", 1) })
     local divider = make("TextButton", { Parent = body, AutoButtonColor = false, BackgroundColor3 = "@StrokeS", BackgroundTransparency = 1, BorderSizePixel = 0, Text = "", Position = UDim2.new(split, -5, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.new(0, 10, 0.4, 0) }, { corner(3) })
@@ -1284,12 +1284,11 @@ local function createView(page, cfg)
     end
 
     --── log table: column header · body · per-type footer ──
-    local COLS = { time = 12, typ = 80, path = 170 }
-    local listHeader = make("Frame", { Parent = listPanel, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 28) })
-    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Time", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.time, 0), Size = UDim2.fromOffset(64, 28) })
-    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Type", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.typ, 0), Size = UDim2.fromOffset(84, 28) })
-    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Remote Path", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.path, 0), Size = UDim2.new(1, -COLS.path - 64, 0, 28) })
-    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Count", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 0), Size = UDim2.fromOffset(50, 28) })
+    local COLS = { typ = 26, path = 112 }
+    local listHeader = make("Frame", { Parent = listPanel, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26) })
+    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Type", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.typ, 0), Size = UDim2.fromOffset(84, 26) })
+    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Remote Path", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.path, 0), Size = UDim2.new(1, -COLS.path - 52, 0, 26) })
+    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Count", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 0), Size = UDim2.fromOffset(46, 26) })
     make("Frame", { Parent = listHeader, BackgroundColor3 = "@Stroke", BorderSizePixel = 0, Position = UDim2.new(0, 8, 1, -1), Size = UDim2.new(1, -16, 0, 1) })
     local listFooter = make("ScrollingFrame", { Parent = listPanel, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 38), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X, ScrollingDirection = Enum.ScrollingDirection.X }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }), pad(0, 0, 8, 8) })
     local footerLabels = {}
@@ -1310,17 +1309,15 @@ local function createView(page, cfg)
 
     --── virtualized columnar rows (Time · Type · Remote Path) ──
     local function buildRow()
-        local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 36) }, {
-            corner(8),
-            make("Frame", { Name = "Bar", BorderSizePixel = 0, BackgroundColor3 = "@Accent", BackgroundTransparency = 1, Size = UDim2.fromOffset(3, 22), Position = UDim2.fromOffset(2, 7) }, { corner(2) }),
-            make("TextLabel", { Name = "Time", BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 11, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(12, 0), Size = UDim2.fromOffset(58, 36) }),
-            -- colored, rounded TYPE pill (the target uses a color block, not a dot)
-            make("Frame", { Name = "TypePill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(76, 18), Size = UDim2.fromOffset(11, 16) }, { corner(5) }),
-            make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(96, 0), Size = UDim2.fromOffset(98, 36) }),
-            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(202, 0), Size = UDim2.new(1, -266, 1, 0) }),
+        local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 34) }, {
+            corner(7),
+            -- colored, rounded TYPE pill on the left (the target uses a color block, not a dot)
+            make("Frame", { Name = "TypePill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(8, 17), Size = UDim2.fromOffset(10, 16) }, { corner(5) }),
+            make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(26, 0), Size = UDim2.fromOffset(80, 34) }),
+            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(112, 0), Size = UDim2.new(1, -160, 1, 0) }),
             -- COUNT pill (right, tinted to the type color)
-            make("Frame", { Name = "CountPill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", BackgroundTransparency = 0.8, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X }, {
-                corner(9), make("UIPadding", { PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9) }),
+            make("Frame", { Name = "CountPill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", BackgroundTransparency = 0.8, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X }, {
+                corner(9), make("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }),
                 make("TextLabel", { Name = "Lbl", BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 11, TextColor3 = "@Accent2", Text = "", AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0) }),
             }),
         })
@@ -1332,23 +1329,21 @@ local function createView(page, cfg)
         local sel = (e == view.selectedEntry)
         row:SetAttribute("sel", sel)
         local tc = typeColor(e.typeLabel)
-        row.Time.Text = e.time or ""
         row.TypePill.BackgroundColor3 = tc
         row.Typ.Text = e.typeLabel or e.class
+        row.Typ.TextColor3 = tc
         row.Path.Text = (e.framework ~= "Roblox" and ("[" .. e.framework .. "] ") or "") .. (e.shortPath or e.fullName or e.name)
         local cp, lbl = row.CountPill, row.CountPill.Lbl
         local txt, col = (e.count or 1) .. "x", tc
         if view.spoofs[e.name] then txt, col = "SPOOF", Theme.Good elseif view.block[e.name] then txt, col = "BLOCK", Theme.Bad end
         lbl.Text = txt; lbl.TextColor3 = col; cp.BackgroundColor3 = col
-        row.Bar.BackgroundColor3 = tc
-        row.Bar.BackgroundTransparency = sel and 0 or 1
         row.BackgroundTransparency = sel and 0.5 or 1
     end
-    local vlist = VirtualList(listBody, 40, buildRow, bindRow, function(e) view.select(e) end)
+    local vlist = VirtualList(listBody, 38, buildRow, bindRow, function(e) view.select(e) end)
     view.vlist = vlist
 
     --── detail panel ──
-    local headerCard = make("Frame", { Parent = detail, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 118) }, { corner(11), stroke("Stroke", 1), pad(12) })
+    local headerCard = make("Frame", { Parent = detail, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 112) }, { corner(11), stroke("Stroke", 1), pad(12) })
     local nameLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Select a capture", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 22) })
     local chipRow = make("Frame", { Parent = headerCard, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 20) }, { hlayout(6) })
     local pathLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, -26, 0, 14) })
@@ -1357,8 +1352,8 @@ local function createView(page, cfg)
     local metaLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true, Position = UDim2.fromOffset(0, 68), Size = UDim2.new(1, 0, 0, 30) })
 
     -- tabs
-    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 126), Size = UDim2.new(1, 0, 0, 28) }, { hlayout(6) })
-    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 160), Size = UDim2.new(1, 0, 1, -(160 + 76)) })
+    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 120), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
+    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 152), Size = UDim2.new(1, 0, 1, -(152 + 70)) })
     local scriptArea = make("Frame", { Parent = bodyArea, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) })
     local argsArea = make("ScrollingFrame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { corner(11), stroke("Stroke", 1), pad(10), vlayout(6) })
     local connArea = make("Frame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0) }, { corner(11), stroke("Stroke", 1) })
@@ -1389,10 +1384,10 @@ local function createView(page, cfg)
 
     -- action bar (per-capture) — uniform buttons wrapped into tidy rows (2 visible, quiet vertical scroll for overflow)
     local actionBar = make("ScrollingFrame", { Parent = detail, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 66), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y }, {
-        make("UIGridLayout", { CellSize = UDim2.fromOffset(92, 30), CellPadding = UDim2.fromOffset(6, 6), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Left, VerticalAlignment = Enum.VerticalAlignment.Top }),
+        make("UIGridLayout", { CellSize = UDim2.fromOffset(80, 28), CellPadding = UDim2.fromOffset(6, 6), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Left, VerticalAlignment = Enum.VerticalAlignment.Top }),
     })
     local function act(text, o)
-        o = o or {}; o.text = text; o.order = #actionBar:GetChildren(); o.autoX = false; o.textSize = o.textSize or 12
+        o = o or {}; o.text = text; o.order = #actionBar:GetChildren(); o.autoX = false; o.textSize = o.textSize or 11
         local b, lbl = UI.button(actionBar, o)
         lbl.TextXAlignment = Enum.TextXAlignment.Center
         local p = lbl:FindFirstChildOfClass("UIPadding"); if p then p.PaddingLeft = UDim.new(0, 6); p.PaddingRight = UDim.new(0, 6) end
