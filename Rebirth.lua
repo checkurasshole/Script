@@ -1343,17 +1343,15 @@ local function createView(page, cfg)
     view.vlist = vlist
 
     --── detail panel ──
-    local headerCard = make("Frame", { Parent = detail, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 84) }, { corner(11), stroke("Stroke", 1), pad(12) })
-    local nameLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 22) })
-    local chipRow = make("Frame", { Parent = headerCard, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 20) }, { hlayout(6) })
-    local pathLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, -26, 0, 14) })
-    local copyPath = UI.iconBtn(headerCard, "Copy", { flat = true, sz = 40, color = "Sub", textSize = 11 })
-    copyPath.AnchorPoint = Vector2.new(1, 0); copyPath.Position = UDim2.new(1, 0, 0, 48)
-    -- (cryptic caller/thread/size meta line removed — was clutter)
+    -- compact boxless header (no separate panel/section — just name, type chips, path)
+    local headerCard = make("Frame", { Parent = detail, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 60) })
+    local nameLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "", TextColor3 = "@Text", TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 20) })
+    local chipRow = make("Frame", { Parent = headerCard, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 22), Size = UDim2.new(1, 0, 0, 18) }, { hlayout(6) })
+    local pathLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(0, 44), Size = UDim2.new(1, 0, 0, 14) })
 
     -- tabs
-    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 92), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
-    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 124), Size = UDim2.new(1, 0, 1, -(124 + 42)) })
+    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 68), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
+    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 100), Size = UDim2.new(1, 0, 1, -(100 + 42)) })
     local scriptArea = make("Frame", { Parent = bodyArea, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) })
     local argsArea = make("ScrollingFrame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { corner(11), stroke("Stroke", 1), pad(10), vlayout(6) })
     local connArea = make("Frame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0) }, { corner(11), stroke("Stroke", 1) })
@@ -1507,7 +1505,6 @@ local function createView(page, cfg)
         local ok, conns = pcall(getconnections, sig)
         if ok and type(conns) == "table" then for _, con in conns do pcall(function() (con.Disable or con.disable)(con) end) end Notify("Disabled all", e.name .. " incoming blocked", "Bad"); view.renderConns(e) end
     end))
-    track(copyPath.MouseButton1Click:Connect(function() if view.selectedEntry then clip(view.selectedEntry.path or ToString.GetPath(view.selectedEntry.remote)) end end))
 
     function view.select(e)
         view.selectedEntry = e; view._lastSelCount = e.count; view.callIdx = nil
