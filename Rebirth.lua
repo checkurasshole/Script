@@ -2189,6 +2189,16 @@ do
         "MaxActivationDistance", "ActionText", "ObjectText", "HoldDuration", "RequiresLineOfSight",
         "Locked", "Archivable", "CanBeDropped",
     }
+    local CAT_ORDER = { "Data", "Appearance", "Text", "Transform", "Behavior", "Other" }
+    local PROP_CAT = {
+        Name = "Data", Value = "Data", Archivable = "Data", RunContext = "Data", Enabled = "Data", Disabled = "Data",
+        Color = "Appearance", BrickColor = "Appearance", Material = "Appearance", Transparency = "Appearance", Reflectance = "Appearance", CastShadow = "Appearance",
+        BackgroundColor3 = "Appearance", BackgroundTransparency = "Appearance", BorderColor3 = "Appearance", BorderSizePixel = "Appearance",
+        Image = "Appearance", ImageColor3 = "Appearance", ImageTransparency = "Appearance", ScaleType = "Appearance", TextColor3 = "Appearance", TextTransparency = "Appearance", Texture = "Appearance", Visible = "Appearance",
+        Text = "Text", Font = "Text", TextSize = "Text", TextScaled = "Text", TextWrapped = "Text", RichText = "Text", PlaceholderText = "Text",
+        Position = "Transform", Size = "Transform", CFrame = "Transform", Orientation = "Transform", Rotation = "Transform", AnchorPoint = "Transform", WorldPivot = "Transform",
+        Anchored = "Behavior", CanCollide = "Behavior", CanTouch = "Behavior", CanQuery = "Behavior", Massless = "Behavior", Locked = "Behavior", CollisionGroup = "Behavior", Active = "Behavior", CanBeDropped = "Behavior", AutomaticSize = "Behavior", ClipsDescendants = "Behavior",
+    }
 
     local search = UI.input(page, "Search the tree (name / class)", nil, { size = UDim2.new(1, -104, 0, 30) })
     search.Parent.Position = UDim2.fromOffset(0, 0)
@@ -2281,6 +2291,40 @@ do
         end)
     end
 
+    -- ── authentic Studio class icons (same as Dex: local ClassImages texture,
+    --    linear 16px strip indexed by ReflectionMetadata.ExplorerImageIndex) ──
+    local CLASS_IMG = "rbxasset://textures/ClassImages.PNG"
+    local ICON_FALLBACK = {
+        Part = 1, MeshPart = 1, TrussPart = 1, WedgePart = 1, UnionOperation = 77, Terrain = 65, Model = 2, Folder = 70,
+        Script = 6, LocalScript = 18, ModuleScript = 71, Humanoid = 9, Players = 21, Player = 12, Workspace = 19, Tool = 17,
+        RemoteEvent = 80, RemoteFunction = 79, BindableEvent = 67, BindableFunction = 66, Sound = 11, Decal = 7, Texture = 10,
+        Frame = 48, ScrollingFrame = 48, TextLabel = 50, TextButton = 51, TextBox = 51, ImageLabel = 49, ImageButton = 52,
+        ScreenGui = 47, BillboardGui = 64, SurfaceGui = 64, Lighting = 13, ReplicatedStorage = 72, ReplicatedFirst = 72,
+        StarterGui = 46, StarterPack = 20, SoundService = 31, IntValue = 4, NumberValue = 4, StringValue = 4, BoolValue = 4,
+        ObjectValue = 4, Vector3Value = 4, CFrameValue = 4, Color3Value = 4, Motor6D = 34, Weld = 34, Seat = 35, VehicleSeat = 35,
+        SpawnLocation = 25, ParticleEmitter = 69, PointLight = 13, SpotLight = 13, Team = 24, Teams = 23, Configuration = 70,
+    }
+    local iconIndex = setmetatable({}, { __index = function(_, k) return ICON_FALLBACK[k] end })
+    local function setRowIcon(img, className) img.ImageRectOffset = Vector2.new(16 * (iconIndex[className] or 0), 0) end
+    local rmdState = "idle"
+    local function loadRMD()
+        if rmdState ~= "idle" then return end
+        rmdState = "loading"
+        task.spawn(function()
+            local xml = httpGetText("https://raw.githubusercontent.com/CloneTrooper1019/Roblox-Client-Tracker/roblox/ReflectionMetadata.xml")
+            if not xml then rmdState = "fail"; return end
+            local map = {}
+            for props in xml:gmatch('<Item class="ReflectionMetadataClass">%s*<Properties>(.-)</Properties>') do
+                local name = props:match('<string name="Name">(.-)</string>')
+                local idx = props:match('<int name="ExplorerImageIndex">(.-)</int>')
+                if name and idx then map[name] = tonumber(idx) end
+            end
+            iconIndex = setmetatable(map, { __index = function(_, k) return ICON_FALLBACK[k] end })   -- RMD over fallback
+            rmdState = "ready"
+            if treeList then treeList.invalidate() end
+        end)
+    end
+
     -- ── tree ──
     local treeList, renderProps
     local function flatten()
@@ -2301,6 +2345,7 @@ do
         local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 24) }, {
             corner(6),
             make("ImageButton", { Name = "Arrow", AutoButtonColor = false, BackgroundTransparency = 1, Image = "rbxassetid://10709791437", ImageColor3 = "@Sub", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(11, 11), Rotation = 0, Visible = false }),
+            make("ImageLabel", { Name = "Ico", BackgroundTransparency = 1, Image = CLASS_IMG, ImageRectSize = Vector2.new(16, 16), ScaleType = Enum.ScaleType.Crop, AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromOffset(16, 16) }),
             make("TextLabel", { Name = "Nm", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, -40, 1, 0) }),
             make("TextLabel", { Name = "Cls", BackgroundTransparency = 1, Font = FONT_REG, TextSize = 10, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 24), AutomaticSize = Enum.AutomaticSize.X }),
         })
@@ -2316,15 +2361,18 @@ do
     local function bindTreeRow(row, node)
         rowMap[row] = node
         local inst = node.inst
-        local x = node.search and 4 or (node.depth * 14 + 4)
+        local x = node.search and 2 or (node.depth * 14 + 4)
         row.Arrow.Position = UDim2.fromOffset(x + 5, 12)
         row.Arrow.Visible = node.hasKids and not node.search
         row.Arrow.Rotation = expanded[inst] and 90 or 0
-        local nx = node.search and 8 or (x + 16)
+        local cls = (pcall(function() return inst.ClassName end)) and inst.ClassName or ""
+        local ix = node.search and 4 or (x + 16)
+        row.Ico.Position = UDim2.fromOffset(ix, 12); setRowIcon(row.Ico, cls)
+        local nx = ix + 20
         local okn, nm = pcall(function() return node.search and inst:GetFullName() or inst.Name end)
-        row.Nm.Position = UDim2.fromOffset(nx, 0); row.Nm.Size = UDim2.new(1, -nx - 70, 1, 0)
+        row.Nm.Position = UDim2.fromOffset(nx, 0); row.Nm.Size = UDim2.new(1, -nx - 66, 1, 0)
         row.Nm.Text = okn and nm or "?"
-        row.Cls.Text = (pcall(function() return inst.ClassName end)) and inst.ClassName or "?"
+        row.Cls.Text = cls ~= "" and cls or "?"
         local seld = (inst == selectedInst)
         row:SetAttribute("sel", seld)
         row.BackgroundColor3 = seld and Theme.Accent or Theme.Panel2
@@ -2388,21 +2436,32 @@ do
             ord += 1; sectionHeader("ATTRIBUTES", ord)
             for k, v in attrs do ord += 1; valueRow(k, v, function(nv) return (pcall(function() inst:SetAttribute(k, nv) end)) end, ord) end
         end
-        -- properties — full API-dump set when loaded, curated fallback while it loads
+        -- properties — full API-dump set when loaded (curated fallback while loading),
+        -- bucketed into Dex-style categories (Data / Appearance / Transform / …)
         local full = (apiState == "ready" and inst.ClassName and ApiProps[inst.ClassName]) or nil
-        local label = full and "PROPERTIES" or ("PROPERTIES  ·  " .. (apiState == "loading" and "loading full set…" or apiState == "fail" and "basic (dump unavailable)" or "basic"))
-        ord += 1; sectionHeader(label, ord)
-        local names = full or PROPS
-        local seen, shown = {}, 0
+        if not full then ord += 1; sectionHeader("PROPERTIES  ·  " .. (apiState == "loading" and "loading full set…" or apiState == "fail" and "basic (dump unavailable)" or "basic"), ord) end
+        local names, buckets, seen, shown = full or PROPS, {}, {}, 0
         for _, p in names do
             if not seen[p] and p ~= "Parent" and p ~= "ClassName" then
                 seen[p] = true
                 local ok, val = readProp(inst, p)
                 if ok and val ~= nil and typeof(val) ~= "function" then
+                    local cat = PROP_CAT[p] or "Other"
+                    local b = buckets[cat]; if not b then b = {}; buckets[cat] = b end
+                    b[#b + 1] = { name = p, val = val }
+                end
+            end
+        end
+        for _, cat in CAT_ORDER do
+            local b = buckets[cat]
+            if b and #b > 0 then
+                table.sort(b, function(a, c) return a.name < c.name end)
+                ord += 1; sectionHeader(cat, ord)
+                for _, it in b do
                     shown += 1; ord += 1
-                    local vt = typeof(val)
-                    local setter = (vt == "boolean" or vt == "number" or vt == "string") and function(nv) return writeProp(inst, p, nv) end or nil
-                    valueRow(p, val, setter, ord)
+                    local vt = typeof(it.val)
+                    local setter = (vt == "boolean" or vt == "number" or vt == "string") and function(nv) return writeProp(inst, it.name, nv) end or nil
+                    valueRow(it.name, it.val, setter, ord)
                 end
             end
         end
@@ -2427,7 +2486,7 @@ do
 
     -- ── init + search ──
     expanded[game] = true
-    refreshTree(); renderProps(nil)
+    refreshTree(); renderProps(nil); loadRMD()   -- fetch real Studio icon indices in the background
     track(refreshBtn.MouseButton1Click:Connect(function() refreshTree(); if selectedInst then renderProps(selectedInst) end end))
     local searchToken = 0
     track(search:GetPropertyChangedSignal("Text"):Connect(function()
