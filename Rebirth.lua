@@ -2222,6 +2222,65 @@ do
         return s
     end
 
+    -- ── full property enumeration via the Roblox API dump (the same source Dex uses) ──
+    local gethiddenproperty = fn("gethiddenproperty")
+    local sethiddenproperty = fn("sethiddenproperty")
+    local setscriptable     = fn("setscriptable")
+    local ApiProps, apiState = nil, "idle"   -- idle | loading | ready | fail
+    local function httpGetText(u)
+        local ok, r = pcall(function() return game:HttpGet(u) end)
+        if ok and type(r) == "string" and #r > 0 then return r end
+        if httpRequestFn then local ok2, resp = pcall(httpRequestFn, { Url = u, Method = "GET" }); if ok2 and type(resp) == "table" and resp.Body and #resp.Body > 0 then return resp.Body end end
+        return nil
+    end
+    local function readProp(inst, name)
+        local ok, v = pcall(function() return inst[name] end)
+        if ok then return true, v end
+        if gethiddenproperty then local ok2, v2 = pcall(gethiddenproperty, inst, name); if ok2 then return true, v2 end end
+        return false
+    end
+    local function writeProp(inst, name, nv)
+        if pcall(function() inst[name] = nv end) then return true end
+        if setscriptable then pcall(setscriptable, inst, name, true); if pcall(function() inst[name] = nv end) then return true end end
+        if sethiddenproperty then return (pcall(sethiddenproperty, inst, name, nv)) end
+        return false
+    end
+    local function loadApiDump(after)
+        if apiState == "ready" then if after then after() end return end
+        if apiState == "loading" then return end
+        apiState = "loading"
+        task.spawn(function()
+            local ver = httpGetText("http://setup.roblox.com/versionQTStudio")
+            local raw
+            if ver then ver = ver:gsub("%s+", ""); raw = httpGetText("http://setup.roblox.com/" .. ver .. "-API-Dump.json") end
+            raw = raw or httpGetText("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json")
+            local ok, api = pcall(function() return HttpService:JSONDecode(raw or "") end)
+            if not ok or type(api) ~= "table" or not api.Classes then apiState = "fail"; if after then after() end return end
+            local own, super = {}, {}
+            for _, class in api.Classes do
+                super[class.Name] = class.Superclass
+                local list = {}
+                for _, m in (class.Members or {}) do
+                    if m.MemberType == "Property" then
+                        local skip = false
+                        for _, tg in (m.Tags or {}) do if tg == "Deprecated" or tg == "Hidden" then skip = true break end end
+                        local sec = m.Security; local rs = (type(sec) == "table" and sec.Read) or sec
+                        if rs and rs ~= "None" and rs ~= "PluginSecurity" and rs ~= "LocalUserSecurity" then skip = true end
+                        if not skip then list[#list + 1] = m.Name end
+                    end
+                end
+                own[class.Name] = list
+            end
+            ApiProps = setmetatable({}, { __index = function(t, cls)   -- flatten with inheritance, cached per class
+                local out, seen = {}, {}
+                local c = cls
+                while c do for _, nm in (own[c] or {}) do if not seen[nm] then seen[nm] = true; out[#out + 1] = nm end end c = super[c] end
+                rawset(t, cls, out); return out
+            end })
+            apiState = "ready"; if after then after() end
+        end)
+    end
+
     -- ── tree ──
     local treeList, renderProps
     local function flatten()
@@ -2329,22 +2388,27 @@ do
             ord += 1; sectionHeader("ATTRIBUTES", ord)
             for k, v in attrs do ord += 1; valueRow(k, v, function(nv) return (pcall(function() inst:SetAttribute(k, nv) end)) end, ord) end
         end
-        -- properties (curated; read via pcall, simple types editable)
-        ord += 1; sectionHeader("PROPERTIES", ord)
+        -- properties — full API-dump set when loaded, curated fallback while it loads
+        local full = (apiState == "ready" and inst.ClassName and ApiProps[inst.ClassName]) or nil
+        local label = full and "PROPERTIES" or ("PROPERTIES  ·  " .. (apiState == "loading" and "loading full set…" or apiState == "fail" and "basic (dump unavailable)" or "basic"))
+        ord += 1; sectionHeader(label, ord)
+        local names = full or PROPS
         local seen, shown = {}, 0
-        for _, p in PROPS do
-            if not seen[p] then
+        for _, p in names do
+            if not seen[p] and p ~= "Parent" and p ~= "ClassName" then
                 seen[p] = true
-                local ok, val = pcall(function() return inst[p] end)
+                local ok, val = readProp(inst, p)
                 if ok and val ~= nil and typeof(val) ~= "function" then
                     shown += 1; ord += 1
                     local vt = typeof(val)
-                    local setter = (vt == "boolean" or vt == "number" or vt == "string") and function(nv) return (pcall(function() inst[p] = nv end)) end or nil
+                    local setter = (vt == "boolean" or vt == "number" or vt == "string") and function(nv) return writeProp(inst, p, nv) end or nil
                     valueRow(p, val, setter, ord)
                 end
             end
         end
-        if shown == 0 then ord += 1; make("TextLabel", { Parent = propScroll, BackgroundTransparency = 1, Font = FONT_REG, Text = "(no common properties to show)", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = ord }) end
+        if shown == 0 then ord += 1; make("TextLabel", { Parent = propScroll, BackgroundTransparency = 1, Font = FONT_REG, Text = "(no readable properties)", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = ord }) end
+        -- lazily pull the full dump, then re-render this same instance when it's ready
+        if apiState ~= "ready" then loadApiDump(function() if selectedInst == inst then renderProps(inst) end end) end
     end
 
     -- ── reveal (spy → explorer) ──
