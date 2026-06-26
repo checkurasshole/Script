@@ -46,7 +46,6 @@ local loadstringFn      = fn("loadstring")
 local writefileFn       = fn("writefile")
 local readfileFn        = fn("readfile")
 local isfileFn          = fn("isfile")
-local listfilesFn       = fn("listfiles")
 local makefolderFn      = fn("makefolder")
 local protectgui        = fn("protect_gui") or fn("protectgui")
 local gethui            = fn("gethui")
@@ -243,10 +242,6 @@ local function resolveCaller()
         if src ~= "[C]" then return src end
     end
     return nil
-end
-local function resolveThread()
-    local ok, name = pcall(function() return tostring(coroutine.running()) end)
-    return ok and name or "?"
 end
 
 --========================  Serializer (ToString)  ==========================--
@@ -1141,7 +1136,7 @@ end
 local Topbar = make("Frame", { Name = "Topbar", Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 50) }, {
     make("Frame", { BackgroundColor3 = "@Stroke", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 1) }),
 })
-local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, ClipsDescendants = true, AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromOffset(28, 28), Position = UDim2.new(0, 18, 0.5, 0) }, {
+make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, ClipsDescendants = true, AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromOffset(28, 28), Position = UDim2.new(0, 18, 0.5, 0) }, {
     corner(14), grad(55, Theme.Accent, Theme.Accent2),
     make("Frame", { Name = "Gloss", BackgroundColor3 = Color3.fromRGB(255, 250, 235), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0.55, 0) }, { make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1) }) }) }),
     make("TextLabel", { BackgroundTransparency = 1, Font = FONT_BOLD, Text = "R", TextColor3 = Color3.fromRGB(34, 26, 15), TextSize = 17, Size = UDim2.new(1, 0, 1, 0) }),
@@ -1210,7 +1205,7 @@ local contentArea = make("Frame", { Name = "Content", Parent = Window, Backgroun
 
 -- status bar (bottom)
 local statusBar = make("Frame", { Name = "StatusBar", Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 24) }, { make("Frame", { BackgroundColor3 = "@Stroke", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 1) }) })
-local connDot = make("Frame", { Parent = statusBar, BackgroundColor3 = "@Good", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(14, 12), Size = UDim2.fromOffset(7, 7) }, { corner(4) })
+make("Frame", { Parent = statusBar, BackgroundColor3 = "@Good", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(14, 12), Size = UDim2.fromOffset(7, 7) }, { corner(4) })
 make("TextLabel", { Parent = statusBar, BackgroundTransparency = 1, Font = FONT, Text = "Connected to Roblox", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(28, 0), Size = UDim2.new(0, 220, 1, 0) })
 -- (FPS / Ping moved to the title strip at the top)
 
@@ -1323,7 +1318,8 @@ do
     local function esc(s) return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub("\"", "&quot;")) end
     local function span(c, t) return "<font color=\"" .. c .. "\">" .. esc(t) .. "</font>" end
     function highlight(code)
-        if not Settings.Highlight_syntax then return esc(code) end
+        -- skip the per-char highlighter on very large sources (huge decompiled scripts) to avoid a freeze
+        if not Settings.Highlight_syntax or #code > 60000 then return esc(code) end
         local out, i, n = {}, 1, #code
         while i <= n do
             local c = code:sub(i, i)
@@ -2224,7 +2220,7 @@ local function _buildExplorer()
     local search = UI.input(page, "Search tree (name/class) — or type, then Find code", nil, { size = UDim2.new(1, -190, 0, 30) })
     search.Parent.Position = UDim2.fromOffset(0, 0)
     local codeBtn, codeLbl = UI.button(page, { text = "Find code", autoX = false })
-    codeBtn.AnchorPoint = Vector2.new(1, 0); codeBtn.Position = UDim2.new(1, -96, 0, 0); codeBtn.Size = UDim2.fromOffset(90, 30)
+    codeBtn.AnchorPoint = Vector2.new(1, 0); codeBtn.Position = UDim2.new(1, -96, 0, 0); codeBtn.Size = UDim2.fromOffset(90, 30); codeBtn.Visible = DECOMPILE_OK
     local refreshBtn = UI.button(page, { text = "Refresh", autoX = false })
     refreshBtn.AnchorPoint = Vector2.new(1, 0); refreshBtn.Position = UDim2.new(1, 0, 0, 0); refreshBtn.Size = UDim2.fromOffset(90, 30)
 
@@ -2486,7 +2482,7 @@ local function _buildExplorer()
     function renderProps(inst)
         for _, c in propScroll:GetChildren() do if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then c:Destroy() end end
         for _, c in pBtns:GetChildren() do if c:IsA("TextButton") then c:Destroy() end end
-        if not inst then pName.Text = "Select an instance"; pPath.Text = ""; return end
+        if not inst then pName.Text = "Select an instance"; pPath.Text = ""; scrFrame.Visible = false; propScroll.Visible = true; return end
         local okn = pcall(function() pName.Text = richEsc(inst.Name) .. '   <font color="#7a6c59">' .. inst.ClassName .. '</font>' end)
         if not okn then pName.Text = "?" end
         ToString.SetCompress(nil)
@@ -2606,7 +2602,7 @@ local function _buildExplorer()
                 if #matches >= 400 then break end
                 task.wait()
             end
-            searchMatches = matches; refreshTree()
+            searchMatches = (#matches > 0) and matches or nil; refreshTree()
             local was = scanning; scanning = false; codeLbl.Text = "Find code"
             Notify("Code search", #matches .. " script" .. (#matches == 1 and "" or "s") .. (q ~= "" and (" matched '" .. q .. "'") or " found") .. (was and "" or " (stopped)"), "Good")
         end)
