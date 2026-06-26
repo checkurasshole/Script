@@ -1075,24 +1075,16 @@ local function selectPage(name)
     end
 end
 local navOrder = 0
--- minimal vector nav icons drawn from UI frames (Roblox's font has no icon glyphs)
+-- real Lucide icons (verified asset IDs from the Fluent/Lucide library), tinted to theme
+local NAV_ICON = {
+    dashboard = "rbxassetid://10723424646",  -- layout-dashboard
+    remote    = "rbxassetid://10734931596",  -- radio
+    event     = "rbxassetid://10709752035",  -- activity
+    http      = "rbxassetid://10723404337",  -- globe
+    settings  = "rbxassetid://10734950309",  -- settings
+}
 local function navIcon(parent, kind, color)
-    local ic = make("Frame", { Name = "Icon", Parent = parent, BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 0), Size = UDim2.fromOffset(18, 38) })
-    local box = make("Frame", { Parent = ic, BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(16, 16) })
-    local function px(x, y, w, h, r) make("Frame", { Parent = box, BorderSizePixel = 0, BackgroundColor3 = color, Position = UDim2.fromOffset(x, y), Size = UDim2.fromOffset(w, h) }, { corner(r or 2) }) end
-    if kind == "dashboard" then
-        px(0, 0, 7, 7, 2); px(9, 0, 7, 7, 2); px(0, 9, 7, 7, 2); px(9, 9, 7, 7, 2)
-    elseif kind == "remote" then
-        px(0, 2, 16, 3, 2); px(0, 7, 11, 3, 2); px(0, 12, 15, 3, 2)
-    elseif kind == "event" then
-        px(6, 0, 4, 16, 2); px(0, 6, 16, 4, 2)            -- spark / plus
-    elseif kind == "http" then
-        px(0, 3, 12, 3, 2); px(4, 10, 12, 3, 2)           -- offset bars = exchange
-    elseif kind == "settings" then
-        px(0, 2, 16, 2, 1); px(0, 8, 16, 2, 1); px(0, 14, 16, 2, 1)
-        px(10, 0, 4, 4, 2); px(3, 6, 4, 4, 2); px(11, 12, 4, 4, 2)  -- slider knobs
-    end
-    return ic
+    return make("ImageLabel", { Name = "Icon", Parent = parent, BackgroundTransparency = 1, Image = NAV_ICON[kind] or "", ImageColor3 = color, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 0), Size = UDim2.fromOffset(19, 19), ScaleType = Enum.ScaleType.Fit })
 end
 local function addNav(name, kind, label)
     navOrder += 1
