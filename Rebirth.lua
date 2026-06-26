@@ -958,9 +958,12 @@ end
 --==============================  Topbar  ==================================--
 
 local Topbar = make("Frame", { Name = "Topbar", Parent = Window, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 50) })
-local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, Size = UDim2.fromOffset(14, 14), Position = UDim2.fromOffset(20, 18) }, { corner(7), grad(40, Theme.Accent, Theme.Accent2) })
-make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Rebirth", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(44, 0), Size = UDim2.fromOffset(90, 50) })
-make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT, Text = "v" .. VERSION, TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(118, 1), Size = UDim2.fromOffset(50, 50) })
+local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(18, 12) }, {
+    corner(13), grad(40, Theme.Accent, Theme.Accent2),
+    make("TextLabel", { BackgroundTransparency = 1, Font = FONT_BOLD, Text = "R", TextColor3 = Color3.fromRGB(34, 26, 15), TextSize = 16, Size = UDim2.new(1, 0, 1, 0) }),
+})
+make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Rebirth", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(54, 0), Size = UDim2.fromOffset(90, 50) })
+make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT, Text = "v" .. VERSION, TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(128, 1), Size = UDim2.fromOffset(50, 50) })
 
 -- live "Capturing" badge (top-right, green, with an animated signal/equalizer icon — matches the v2.0 layout)
 local statusPill = make("Frame", { Parent = Topbar, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -90, 0.5, 0), BackgroundColor3 = "@Good", BackgroundTransparency = 0.82, BorderSizePixel = 0, Size = UDim2.fromOffset(0, 26), AutomaticSize = Enum.AutomaticSize.X }, { corner(13), stroke("Good", 1, 0.5), make("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 12) }), hlayout(7) })
@@ -1084,14 +1087,10 @@ end
 -- profile card (pinned to rail bottom)
 do
     local profile = make("Frame", { Parent = rail, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -8), Size = UDim2.new(1, -16, 0, 52) }, { corner(10), stroke("Stroke", 1, 0.5) })
-    local av = make("ImageLabel", { Parent = profile, BackgroundColor3 = "@Panel3", BorderSizePixel = 0, Position = UDim2.fromOffset(8, 8), Size = UDim2.fromOffset(36, 36) }, { corner(9) })
+    local av = make("ImageLabel", { Parent = profile, BackgroundColor3 = "@Panel3", BorderSizePixel = 0, Position = UDim2.fromOffset(8, 8), Size = UDim2.fromOffset(36, 36), Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=48&h=48", ScaleType = Enum.ScaleType.Crop }, { corner(9) })
     make("TextLabel", { Parent = profile, BackgroundTransparency = 1, Font = FONT_BOLD, Text = LocalPlayer.DisplayName, TextColor3 = "@Text", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(52, 9), Size = UDim2.new(1, -60, 0, 16) })
     make("Frame", { Parent = profile, BackgroundColor3 = "@Good", BorderSizePixel = 0, Position = UDim2.fromOffset(53, 31), Size = UDim2.fromOffset(7, 7) }, { corner(4) })
     make("TextLabel", { Parent = profile, BackgroundTransparency = 1, Font = FONT, Text = "@" .. LocalPlayer.Name, TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(66, 27), Size = UDim2.new(1, -74, 0, 14) })
-    task.spawn(function()
-        local ok, url = pcall(function() return Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48) end)
-        if ok and url and av and av.Parent then av.Image = url end
-    end)
 end
 
 local function teardown()
@@ -1144,9 +1143,9 @@ end
 local function codeView(parent)
     local frame = make("Frame", { Parent = parent, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ClipsDescendants = true }, { corner(10), stroke("Stroke", 1) })
     local gutBg = make("Frame", { Parent = frame, BackgroundColor3 = "@Panel", BorderSizePixel = 0, Size = UDim2.new(0, 44, 1, 0), ClipsDescendants = true })
-    local gutter = make("TextLabel", { Parent = gutBg, BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 14, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Right, TextYAlignment = Enum.TextYAlignment.Top, Text = "1", Position = UDim2.fromOffset(0, 12), Size = UDim2.new(1, -9, 0, 0), AutomaticSize = Enum.AutomaticSize.Y })
+    local gutter = make("TextLabel", { Parent = gutBg, BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 16, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Right, TextYAlignment = Enum.TextYAlignment.Top, Text = "1", Position = UDim2.fromOffset(0, 12), Size = UDim2.new(1, -9, 0, 0), AutomaticSize = Enum.AutomaticSize.Y })
     local scroll = make("ScrollingFrame", { Parent = frame, BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(50, 0), Size = UDim2.new(1, -50, 1, 0), ScrollBarThickness = 5, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.XY, ScrollingDirection = Enum.ScrollingDirection.XY, ClipsDescendants = true })
-    local box = make("TextLabel", { Parent = scroll, BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.XY, Size = UDim2.fromOffset(0, 0), Font = FONT_MONO, TextSize = 14, RichText = true, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = false, Text = "" }, { pad(12, 12, 8, 12) })
+    local box = make("TextLabel", { Parent = scroll, BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.XY, Size = UDim2.fromOffset(0, 0), Font = FONT_MONO, TextSize = 16, RichText = true, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = false, Text = "" }, { pad(12, 12, 8, 12) })
     track(scroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function() gutter.Position = UDim2.fromOffset(0, 12 - scroll.CanvasPosition.Y) end))
     local api = { Raw = "" }
     function api.set(raw)
@@ -1311,7 +1310,7 @@ local function createView(page, cfg)
         local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 34) }, {
             corner(7),
             -- row index number (1, 2, 3 …)
-            make("TextLabel", { Name = "Num", BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 11, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(4, 0), Size = UDim2.fromOffset(22, 34) }),
+            make("TextLabel", { Name = "Num", BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 11, TextColor3 = "@Accent", TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(4, 0), Size = UDim2.fromOffset(22, 34) }),
             -- colored, rounded TYPE pill
             make("Frame", { Name = "TypePill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(32, 17), Size = UDim2.fromOffset(10, 16) }, { corner(5) }),
             make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(48, 0), Size = UDim2.fromOffset(30, 34) }),
@@ -1336,7 +1335,7 @@ local function createView(page, cfg)
         row.Typ.TextColor3 = tc
         row.Path.Text = (e.framework ~= "Roblox" and ("[" .. e.framework .. "] ") or "") .. (e.shortPath or e.fullName or e.name)
         local cp, lbl = row.CountPill, row.CountPill.Lbl
-        local txt, col = (e.count or 1) .. "x", tc
+        local txt, col = (e.count or 1) .. "x", Theme.Accent
         if view.spoofs[e.name] then txt, col = "SPOOF", Theme.Good elseif view.block[e.name] then txt, col = "BLOCK", Theme.Bad end
         lbl.Text = txt; lbl.TextColor3 = col; cp.BackgroundColor3 = col
         row.BackgroundTransparency = sel and 0.5 or 1
