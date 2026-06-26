@@ -992,6 +992,11 @@ end
 local trafficR = tlDot(Color3.fromRGB(237, 106, 94), 16)
 local trafficY = tlDot(Color3.fromRGB(245, 191, 79), 34)
 local trafficG = tlDot(Color3.fromRGB(98, 197, 84), 52)
+-- title strip: live clock (center) + FPS/Ping (right)
+local tsClock = make("TextLabel", { Parent = titleStrip, BackgroundTransparency = 1, Font = FONT_MONO, Text = "00:00:00", TextColor3 = "@Sub", TextSize = 11, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.fromOffset(90, 26) })
+local tsStat = make("Frame", { Parent = titleStrip, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 14), HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }) })
+local tsFps = make("TextLabel", { Parent = tsStat, BackgroundTransparency = 1, Font = FONT_MONO, Text = "FPS: —", TextColor3 = "@Faint", TextSize = 11, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 1 })
+local tsPing = make("TextLabel", { Parent = tsStat, BackgroundTransparency = 1, Font = FONT_MONO, Text = "Ping: — ms", TextColor3 = "@Faint", TextSize = 11, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 2 })
 local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, ClipsDescendants = true, Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(18, 11) }, {
     corner(13), grad(55, Theme.Accent, Theme.Accent2),
     -- glossy top highlight (shine) — clipped to the badge's rounded shape
@@ -1056,10 +1061,7 @@ local contentArea = make("Frame", { Name = "Content", Parent = Window, Backgroun
 local statusBar = make("Frame", { Name = "StatusBar", Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 24) }, { make("Frame", { BackgroundColor3 = "@Stroke", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 1) }) })
 local connDot = make("Frame", { Parent = statusBar, BackgroundColor3 = "@Good", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(14, 12), Size = UDim2.fromOffset(7, 7) }, { corner(4) })
 make("TextLabel", { Parent = statusBar, BackgroundTransparency = 1, Font = FONT, Text = "Connected to Roblox", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(28, 0), Size = UDim2.new(0, 220, 1, 0) })
-local sbRight = make("Frame", { Parent = statusBar, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -14, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 16), HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }) })
-local function sbItem(text, order, ck) return make("TextLabel", { Parent = sbRight, BackgroundTransparency = 1, Font = FONT_MONO, Text = text, TextColor3 = "@" .. (ck or "Faint"), TextSize = 11, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = order }) end
-local sbFps = sbItem("FPS: —", 3, "Sub")
-local sbPing = sbItem("Ping: — ms", 4, "Sub")
+-- (FPS / Ping moved to the title strip at the top)
 
 local minimized = false
 local function doMinimize()
@@ -2094,9 +2096,10 @@ task.spawn(function()
     while task.wait(1) do
         table.remove(Stats.history, 1); Stats.history[60] = Stats.sec; Stats.perSec = Stats.sec; Stats.sec = 0
         if remotesView and not remotesView.paused then statusLbl.Text = "Capturing" end
-        sbFps.Text = "FPS: " .. frameCount; frameCount = 0
+        tsClock.Text = os.date("%H:%M:%S")
+        tsFps.Text = "FPS: " .. frameCount; frameCount = 0
         local okp, ping = pcall(function() return LocalPlayer:GetNetworkPing() * 1000 end)
-        sbPing.Text = (okp and ping) and ("Ping: " .. math.floor(ping) .. " ms") or "Ping: — ms"
+        tsPing.Text = (okp and ping) and ("Ping: " .. math.floor(ping) .. " ms") or "Ping: — ms"
         if activePage == "Dashboard" and dashRefresh then pcall(dashRefresh) end
     end
 end)
