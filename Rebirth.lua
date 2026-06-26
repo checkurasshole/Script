@@ -753,9 +753,22 @@ do
 end
 local function viewport() local c = workspace.CurrentCamera; return (c and c.ViewportSize) or Vector2.new(1280, 720) end
 
-local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12), make("UIStroke", { Color = Theme.Accent, Thickness = 1.4, Transparency = 0.45, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }) })
--- warm gold outer glow on the window edge
-make("ImageLabel", { Parent = Window, BackgroundTransparency = 1, ZIndex = 0, Image = "rbxassetid://6014261993", ImageColor3 = Color3.fromRGB(196, 142, 74), ImageTransparency = 0.28, ScaleType = Enum.ScaleType.Slice, SliceCenter = Rect.new(49, 49, 450, 450), Size = UDim2.new(1, 140, 1, 140), Position = UDim2.new(0, -70, 0, -64) })
+local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12) })
+-- animated shiny-gold border: a bright streak slowly travels around the window edge
+local winStroke = make("UIStroke", { Parent = Window, Color = Theme.Accent, Thickness = 1.6, Transparency = 0.2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
+local winShine = make("UIGradient", { Parent = winStroke, Rotation = 0, Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Theme.Accent),
+    ColorSequenceKeypoint.new(0.42, Theme.Accent),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 241, 204)),
+    ColorSequenceKeypoint.new(0.58, Theme.Accent),
+    ColorSequenceKeypoint.new(1, Theme.Accent),
+}) })
+task.spawn(function()
+    while winShine and winShine.Parent do
+        winShine.Rotation = (winShine.Rotation + 2) % 360
+        task.wait(0.03)
+    end
+end)
 make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(12), grad(90, Color3.fromRGB(48, 36, 23), Theme.Bg) })
 
 local UIScaleObj = make("UIScale", { Parent = Window, Scale = 1 })
@@ -967,8 +980,10 @@ end
 local trafficR = tlDot(Color3.fromRGB(237, 106, 94), 16)
 local trafficY = tlDot(Color3.fromRGB(245, 191, 79), 34)
 local trafficG = tlDot(Color3.fromRGB(98, 197, 84), 52)
-local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(76, 12) }, {
-    corner(13), grad(40, Theme.Accent, Theme.Accent2),
+local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, ClipsDescendants = true, Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(76, 12) }, {
+    corner(13), grad(55, Theme.Accent, Theme.Accent2),
+    -- glossy top highlight (shine) — clipped to the badge's rounded shape
+    make("Frame", { Name = "Gloss", BackgroundColor3 = Color3.fromRGB(255, 250, 235), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0.55, 0) }, { make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1) }) }) }),
     make("TextLabel", { BackgroundTransparency = 1, Font = FONT_BOLD, Text = "R", TextColor3 = Color3.fromRGB(34, 26, 15), TextSize = 16, Size = UDim2.new(1, 0, 1, 0) }),
 })
 make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Rebirth", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(112, 0), Size = UDim2.fromOffset(90, 50) })
@@ -1111,6 +1126,12 @@ do
     make("TextLabel", { Parent = profile, BackgroundTransparency = 1, Font = FONT_BOLD, Text = LocalPlayer.DisplayName, TextColor3 = "@Text", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(52, 9), Size = UDim2.new(1, -60, 0, 16) })
     make("Frame", { Parent = profile, BackgroundColor3 = "@Good", BorderSizePixel = 0, Position = UDim2.fromOffset(53, 31), Size = UDim2.fromOffset(7, 7) }, { corner(4) })
     make("TextLabel", { Parent = profile, BackgroundTransparency = 1, Font = FONT, Text = "@" .. LocalPlayer.Name, TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(66, 27), Size = UDim2.new(1, -74, 0, 14) })
+    -- privacy: frosted overlay blurs out the name/username (face/avatar stays visible)
+    do
+        local fog = make("Frame", { Parent = profile, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(50, 7), Size = UDim2.new(1, -58, 0, 38), ZIndex = 5 }, { corner(7) })
+        make("Frame", { Parent = fog, BackgroundColor3 = "@Panel3", BackgroundTransparency = 0.35, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ZIndex = 5 }, { corner(7) })
+        fog.BackgroundTransparency = 0.12
+    end
 end
 
 local function teardown()
@@ -1242,13 +1263,13 @@ local function typeLabel(class, incoming)
     return class
 end
 local TYPE_COLOR = {
-    RemoteEvent  = Color3.fromRGB(96, 150, 255),
-    FireServer   = Color3.fromRGB(74, 214, 140),
-    InvokeServer = Color3.fromRGB(255, 170, 92),
-    InvokeClient = Color3.fromRGB(255, 146, 78),
-    Unreliable   = Color3.fromRGB(255, 214, 92),
-    Fire         = Color3.fromRGB(96, 200, 255),
-    Invoke       = Color3.fromRGB(152, 140, 255),
+    RemoteEvent  = Color3.fromRGB(214, 134, 82),   -- copper
+    FireServer   = Color3.fromRGB(233, 178, 96),   -- amber
+    InvokeServer = Color3.fromRGB(206, 112, 86),   -- terracotta
+    InvokeClient = Color3.fromRGB(228, 148, 78),   -- warm orange
+    Unreliable   = Color3.fromRGB(238, 210, 146),  -- champagne
+    Fire         = Color3.fromRGB(190, 150, 102),  -- bronze
+    Invoke       = Color3.fromRGB(216, 160, 134),  -- rose-gold
 }
 local function typeColor(label) return TYPE_COLOR[label] or Theme.Sub end
 -- short labels for the row "Type" column (RemoteEvent -> RE, etc.)
