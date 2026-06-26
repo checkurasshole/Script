@@ -118,7 +118,6 @@ captest("decompile", false, function() return typeof(decompile) == "function" en
 
 local HOOKS_AVAILABLE    = Caps.hookfunction.ok
 local NAMECALL_AVAILABLE = Caps.hookmetamethod.ok and Caps.getnamecallmethod.ok
-local INCOMING_AVAILABLE = Caps.getconnections.ok or Caps.firesignal.ok
 local NIL_FN_NAME        = fn("getnilinstances") and "getnilinstances" or (fn("getnils") and "getnils")
 
 --==============================  GC keeper  =================================--
@@ -145,7 +144,6 @@ local Settings = keep({
 })
 local CFG_DIR = "IxSpy"
 local SETTINGS_PATH = CFG_DIR .. "/Settings.json"
-local THEME_PATH    = CFG_DIR .. "/Theme.json"
 
 local function ensureDir() if makefolderFn then pcall(makefolderFn, CFG_DIR) end end
 local function writeJSON(path, tbl)
@@ -732,6 +730,21 @@ do
     end
 end
 
+-- Decompile a script: native `decompile` first, then the Konstant HTTP fallback.
+-- Shared by the per-call Decompile action and the Script Scanner.
+local function decompileScript(scr)
+    if decompile then local ok, s = pcall(decompile, scr); if ok and type(s) == "string" and #s > 0 then return s end end
+    if getscriptbytecode and httpRequestFn then
+        local okb, bc = pcall(getscriptbytecode, scr)
+        if okb and bc and #bc > 0 then
+            local okr, resp = pcall(httpRequestFn, { Url = "https://api.plusgiant5.com/konstant/decompile", Method = "POST", Body = bc, Headers = { ["Content-Type"] = "text/plain" } })
+            if okr and type(resp) == "table" and resp.Body and #resp.Body > 0 then return resp.Body end
+        end
+    end
+    return nil
+end
+local DECOMPILE_OK = (decompile ~= nil) or (getscriptbytecode ~= nil and httpRequestFn ~= nil)
+
 -- ============================================================================
 --  REBIRTH v2 — GUI
 -- ============================================================================
@@ -1128,7 +1141,6 @@ local statusPill = make("Frame", { Parent = Topbar, AnchorPoint = Vector2.new(1,
 local statusWave = make("Frame", { Parent = statusPill, BackgroundTransparency = 1, Size = UDim2.fromOffset(15, 14), LayoutOrder = 1 }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 2), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }) })
 local waveBars = {}
 for i = 1, 4 do waveBars[i] = make("Frame", { Parent = statusWave, BackgroundColor3 = "@Good", BorderSizePixel = 0, Size = UDim2.fromOffset(2, ({ 6, 11, 7, 13 })[i]), LayoutOrder = i }, { corner(1) }) end
-local statusDot = waveBars[2]  -- kept for back-compat with pause-state color setters
 local statusLbl = make("TextLabel", { Parent = statusPill, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Capturing", TextColor3 = "@Good", TextSize = 12, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 2 })
 local function setStatusColor(c)
     statusPill.BackgroundColor3 = c
@@ -1184,11 +1196,13 @@ make("TextLabel", { Parent = statusBar, BackgroundTransparency = 1, Font = FONT,
 -- (FPS / Ping moved to the title strip at the top)
 
 local minimized = false
+local restoreSize = UDim2.fromOffset(800, 540)
 local function doMinimize()
     minimized = not minimized
+    if minimized then restoreSize = Window.Size end            -- remember the (possibly resized) size
     contentArea.Visible = not minimized
     statusBar.Visible = not minimized
-    TweenService:Create(Window, EASE, { Size = minimized and UDim2.fromOffset(800, 50) or UDim2.fromOffset(800, 540) }):Play()
+    TweenService:Create(Window, EASE, { Size = minimized and UDim2.fromOffset(restoreSize.X.Offset, 50) or restoreSize }):Play()
 end
 track(minBtn.MouseButton1Click:Connect(doMinimize))
 
@@ -1239,6 +1253,7 @@ local NAV_ICON = {
     event     = "rbxassetid://10709752035",  -- activity
     http      = "rbxassetid://10723404337",  -- globe
     settings  = "rbxassetid://10734950309",  -- settings
+    scripts   = "rbxassetid://10723356507",  -- file-code
 }
 local function addNav(name, kind, label)
     navOrder += 1
@@ -1492,6 +1507,8 @@ local function createView(page, cfg)
     local function buildRow()
         local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 34) }, {
             corner(7),
+            -- pinned indicator: a gold accent bar down the left edge (hidden unless pinned)
+            make("Frame", { Name = "PinBar", BackgroundColor3 = "@Accent2", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 1, 0.5, 0), Size = UDim2.fromOffset(3, 22), Visible = false, ZIndex = 4 }, { corner(2), grad(0, Theme.Accent, Theme.Accent2) }),
             -- expand arrow (only shown on grouped rows fired more than once)
             make("ImageButton", { Name = "Arrow", AutoButtonColor = false, BackgroundTransparency = 1, Image = "rbxassetid://10709791437", ImageColor3 = "@Sub", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromOffset(11, 17), Size = UDim2.fromOffset(12, 12), Rotation = 0, Visible = false }),
             make("TextLabel", { Name = "Num", BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 11, TextColor3 = "@Accent", TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(20, 0), Size = UDim2.fromOffset(20, 34) }),
@@ -1518,7 +1535,7 @@ local function createView(page, cfg)
         local e = item.entry
         if item.__call then
             -- sub-row: one individual fire of the grouped remote
-            row.Arrow.Visible = false; row.Num.Text = ""; row.TypePill.Visible = false; row.Typ.Text = ""; row.CountPill.Visible = false
+            row.Arrow.Visible = false; row.Num.Text = ""; row.TypePill.Visible = false; row.Typ.Text = ""; row.CountPill.Visible = false; row.PinBar.Visible = false
             local c, idx = item.call, item.idx
             local subSel = (view.selectedEntry == e and view.callIdx == idx)
             local nargs = (c.packed and (c.packed.n or #c.packed)) or 0
@@ -1534,9 +1551,12 @@ local function createView(page, cfg)
         local sel = (e == view.selectedEntry)
         row:SetAttribute("sel", sel)
         local tc = typeColor(e.typeLabel)
+        local pinned = view.pins[e.name] and true or false
+        row.PinBar.Visible = pinned                               -- gold bar marks pinned rows
         local expandable = e.history and #e.history > 1
         row.Arrow.Visible = expandable; row.Arrow.Rotation = view.expanded[e] and 90 or 0
         row.Num.Text = tostring(item.num or "")
+        row.Num.TextColor3 = pinned and Theme.Accent2 or Theme.Accent
         row.TypePill.Visible = true; row.TypePill.BackgroundColor3 = tc
         row.Typ.Text = shortType(e.typeLabel or e.class); row.Typ.TextColor3 = tc
         local p = (e.name ~= "" and e.name) or e.class or "?"
@@ -1763,7 +1783,7 @@ local function createView(page, cfg)
             local r = view.rate[nm]
             if not r or (clk - r.t) > 1 then r = { t = clk, c = 0 }; view.rate[nm] = r end
             r.c += 1
-            if r.c > 80 then view.ignore[nm] = true; if not view.autoIgnored[nm] then view.autoIgnored[nm] = true; Notify("Auto-ignored spam", nm .. " (>80/s)", "Warn", 3) end return end
+            if r.c > 80 then view.ignore[nm] = true; view.dirtyFilter = true; if not view.autoIgnored[nm] then view.autoIgnored[nm] = true; Notify("Auto-ignored spam", nm .. " (>80/s)", "Warn", 3) end return end
         end
         local lbl = typeLabel(remote.ClassName, incoming)
         view.typeCounts[lbl] = (view.typeCounts[lbl] or 0) + 1  -- per-call totals for the footer
@@ -1818,6 +1838,7 @@ local function createView(page, cfg)
         return true
     end
     function view.passes(e)
+        if view.ignore[e.name] then return false end   -- ignored remotes vanish from the list immediately
         if view.filterDir == "Out" and e.incoming then return false end
         if view.filterDir == "In" and not e.incoming then return false end
         if view.filterType ~= "All" and e.class ~= view.filterType then return false end
@@ -1847,6 +1868,12 @@ local function createView(page, cfg)
         if view.selectedEntry and view.selectedEntry.count ~= view._lastSelCount then
             view._lastSelCount = view.selectedEntry.count
             pcall(view._refreshMeta, view.selectedEntry)
+            -- viewing the LATEST call? keep the code/args panel live (throttled to 4/s) so it
+            -- never shows a stale older fire while the remote keeps firing
+            if view.callIdx == nil then
+                local now = os.clock()
+                if now - (view._detailClock or 0) > 0.25 then view._detailClock = now; pcall(view.renderDetail, view.selectedEntry) end
+            end
             vlist.invalidate()
         end
     end
@@ -1860,9 +1887,12 @@ local function createView(page, cfg)
         statusLbl.Text = view.paused and "Paused" or "Capturing"
     end))
     track(clearBtn.MouseButton1Click:Connect(function()
-        view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.typeCounts = {}; view.expanded = {}
+        view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.typeCounts = {}; view.expanded = {}; view.callIdx = nil
         view.refreshDisplay(); countPill.Text = "0 logs"; empty.Visible = true; view.refreshFooter()
         code.set(""); callBtn.Visible = false
+        for _, c in argsArea:GetChildren() do if c:IsA("Frame") then c:Destroy() end end   -- wipe the detail too
+        for _, c in connList:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
+        connHead.Text = ""; showTab("script")
     end))
 
     --── toolbar actions ──
@@ -1953,8 +1983,8 @@ local function createView(page, cfg)
     UI.menuButton(actionBar, { text = "List", icon = "rbxassetid://10723375128", order = #actionBar:GetChildren(), items = {
         { text = "Block remote", icon = ACT_ICON.Block, tint = "Bad", onClick = function() local e = view.selectedEntry; if e then view.block[e.remote] = true; view.block[e.name] = true; vlist.invalidate(); Notify("Blocked", e.name, "Bad") end end },
         { text = "Unblock all",  icon = ACT_ICON.Unblock, onClick = function() table.clear(view.block); vlist.invalidate(); Notify("Unblocked all", "", "Good") end },
-        { text = "Ignore remote", icon = ACT_ICON.Ignore, onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; Notify("Ignored", e.name, "Sub") end end },
-        { text = "Unignore all",  onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end Notify("Unignored all", "", "Good") end },
+        { text = "Ignore remote", icon = ACT_ICON.Ignore, onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; if view.selectedEntry == e then view.selectedEntry = nil; code.set(""); callBtn.Visible = false end view.dirtyFilter = true; Notify("Ignored", e.name, "Sub") end end },
+        { text = "Unignore all",  onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end view.dirtyFilter = true; Notify("Unignored all", "", "Good") end },
         { text = "Pin / Unpin",   icon = ACT_ICON.Pin, onClick = function() local e = view.selectedEntry; if e then view.pins[e.name] = not view.pins[e.name]; view.dirtyFilter = true; Notify(view.pins[e.name] and "Pinned" or "Unpinned", e.name, "Warn") end end },
     } })
     act("⤓  Decompile", { onClick = doDecompile })
@@ -1969,6 +1999,7 @@ end
 addNav("Dashboard", "dashboard", "Dashboard")
 addNav("Remotes", "remote", "Remote Spy")
 addNav("Events", "event", "Event Spy")
+addNav("Scripts", "scripts", "Scripts"); navBtns.Scripts.Visible = DECOMPILE_OK  -- capability-gated (Ketamine-style)
 addNav("Http", "http", "HTTP Spy"); navBtns.Http.Visible = Settings.Show_http
 addNav("Settings", "settings", "Settings")
 
@@ -2208,6 +2239,106 @@ do
     addNamecallRoute(function(self, M, ...) if self == HttpService then local a = { ... }; if M == "RequestAsync" and typeof(a[1]) == "table" then push(a[1].Url, a[1].Method or "GET", a[1].Headers, a[1].Body) elseif M == "GetAsync" then push(a[1], "GET") elseif M == "PostAsync" then push(a[1], "POST", nil, a[2]) end end return false end)
 end
 
+--==============================  Script Scanner  =========================--
+-- Decompile every client script and keyword-search across the whole game's source
+-- (Ketamine-style). Blank query = list all scripts. Click a result to view its source.
+do
+    local page = newPage("Scripts")
+    make("TextLabel", { Parent = page, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Script Scanner", TextColor3 = "@Text", TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(2, 0), Size = UDim2.fromOffset(200, 28) })
+
+    if not DECOMPILE_OK then
+        make("TextLabel", { Parent = page, BackgroundTransparency = 1, Font = FONT, Text = "No decompiler available on this executor\n(needs `decompile`, or `getscriptbytecode` + `request`).", TextColor3 = "@Faint", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, Position = UDim2.fromOffset(0, 40), Size = UDim2.new(1, 0, 1, -40) })
+    else
+        local search = UI.input(page, "Keywords (use ;  ·  blank = list every script)", nil, { size = UDim2.new(1, -132, 0, 30) })
+        search.Parent.Position = UDim2.fromOffset(0, 34)
+        local scanBtn, scanLbl = UI.button(page, { text = "Scan", primary = true, autoX = false })
+        scanBtn.AnchorPoint = Vector2.new(1, 0); scanBtn.Position = UDim2.new(1, 0, 0, 34); scanBtn.Size = UDim2.fromOffset(120, 30)
+        local prog = make("TextLabel", { Parent = page, BackgroundTransparency = 1, Font = FONT_MONO, Text = "ready — enter keywords and press Scan", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(2, 70), Size = UDim2.new(1, -4, 0, 16) })
+
+        local body = make("Frame", { Parent = page, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 92), Size = UDim2.new(1, 0, 1, -92) })
+        local listPanel = make("Frame", { Parent = body, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(0.4, -6, 1, 0) }, { corner(11), stroke("Stroke", 1) })
+        local resultsScroll = make("ScrollingFrame", { Parent = listPanel, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { vlayout(4), pad(6) })
+        local detail = make("Frame", { Parent = body, BackgroundTransparency = 1, Position = UDim2.new(0.4, 6, 0, 0), Size = UDim2.new(0.6, -6, 1, 0) })
+        local code = codeView(detail)
+
+        local decompiled = keep({})      -- script -> source (cache, survives rescans)
+        local scanning, cancel = false, false
+
+        local function countOccur(hay, needle)
+            if needle == "" then return 0 end
+            local c, pos = 0, 1
+            while true do local s = hay:find(needle, pos, true); if not s then break end c += 1; pos = s + #needle end
+            return c
+        end
+        local function clearResults() for _, c in resultsScroll:GetChildren() do if c:IsA("TextButton") then c:Destroy() end end end
+        local function addResult(scr, path, matches, order)
+            local r = make("TextButton", { Parent = resultsScroll, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 40), LayoutOrder = order }, {
+                corner(8),
+                make("TextLabel", { Name = "Nm", BackgroundTransparency = 1, Font = FONT, TextSize = 13, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(10, 5), Size = UDim2.new(1, -64, 0, 15) }),
+                make("TextLabel", { Name = "Pt", BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 10, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(10, 22), Size = UDim2.new(1, -64, 0, 13) }),
+                make("Frame", { Name = "Cnt", BackgroundColor3 = "@Accent", BackgroundTransparency = matches > 0 and 0.78 or 1, BorderSizePixel = 0, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X }, {
+                    corner(9), make("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }),
+                    make("TextLabel", { BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 11, TextColor3 = "@Accent2", Text = matches > 0 and (matches .. "×") or "open", AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0) }),
+                }),
+            })
+            r.Nm.Text = scr.Name; r.Pt.Text = path
+            track(r.MouseEnter:Connect(function() r.BackgroundTransparency = 0 end))
+            track(r.MouseLeave:Connect(function() r.BackgroundTransparency = 1 end))
+            track(r.MouseButton1Click:Connect(function()
+                local src = decompiled[scr]
+                code.set((src and #src > 0) and src or ("-- " .. path .. "\n-- (no decompiled source — empty or protected)"))
+            end))
+        end
+        local function collectScripts()
+            local list, seen = {}, {}
+            local function add(v)
+                if typeof(v) ~= "Instance" or seen[v] then return end
+                local ok, isS = pcall(function() return v:IsA("LocalScript") or v:IsA("ModuleScript") or (v:IsA("Script") and v.RunContext == Enum.RunContext.Client) end)
+                if not (ok and isS) then return end
+                if v:IsDescendantOf(ScreenGui) then return end                 -- never scan ourselves
+                local okc = pcall(function() return v:IsDescendantOf(CoreGui) end)
+                if okc and v:IsDescendantOf(CoreGui) then return end
+                seen[v] = true; list[#list + 1] = v
+            end
+            for _, v in game:GetDescendants() do add(v) end
+            if getnilinstancesFn then pcall(function() for _, v in getnilinstancesFn() do add(v) end end) end
+            return list
+        end
+        local function doScan()
+            if scanning then cancel = true; scanLbl.Text = "Stopping…"; return end
+            scanning, cancel = true, false
+            scanLbl.Text = "Stop"
+            clearResults(); code.set("")
+            local raw = (search.Text or ""):lower()
+            local keywords = {}
+            for k in raw:gmatch("[^;]+") do k = k:gsub("^%s+", ""):gsub("%s+$", ""); if k ~= "" then keywords[#keywords + 1] = k end end
+            task.spawn(function()
+                local list = collectScripts()
+                local scanned, matched = 0, 0
+                for _, scr in list do
+                    if cancel then break end
+                    if decompiled[scr] == nil then decompiled[scr] = decompileScript(scr) or "" end
+                    scanned += 1
+                    local m = 0
+                    if #keywords > 0 then local low = decompiled[scr]:lower(); for _, k in keywords do m += countOccur(low, k) end end
+                    if #keywords == 0 or m > 0 then
+                        matched += 1
+                        if matched <= 400 then
+                            local path = scr.Name; pcall(function() path = scr:GetFullName() end)
+                            addResult(scr, path, m, -m)        -- negative order ⇒ most matches first
+                        end
+                    end
+                    prog.Text = ("scanned %d / %d  ·  %d match%s%s"):format(scanned, #list, matched, matched == 1 and "" or "es", matched > 400 and " (showing 400)" or "")
+                    if scanned % 6 == 0 then task.wait() end
+                end
+                scanning = false; scanLbl.Text = "Scan"
+                prog.Text = (cancel and "stopped — " or "done — ") .. prog.Text
+            end)
+        end
+        track(scanBtn.MouseButton1Click:Connect(doScan))
+    end
+end
+
 --==============================  Settings  ================================--
 
 do
@@ -2282,6 +2413,7 @@ track(RunService.RenderStepped:Connect(function()
 end))
 task.spawn(function()
     while task.wait(1) do
+        if not ScreenGui.Parent then break end   -- stop the per-second loop once the GUI is torn down
         table.remove(Stats.history, 1); Stats.history[60] = Stats.sec; Stats.perSec = Stats.sec; Stats.sec = 0
         if remotesView and not remotesView.paused then statusLbl.Text = "Capturing" end
         tsClock.Text = os.date("%H:%M:%S")
