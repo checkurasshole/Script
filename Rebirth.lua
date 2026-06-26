@@ -2173,7 +2173,7 @@ end
 -- A focused, spy-integrated instance explorer: lazy virtualized tree + live
 -- properties/attributes. The differentiator is cross-navigation — "Reveal in
 -- Explorer" from a spy row, and "Fire" a remote straight from the tree.
-do
+local function _buildExplorer()
     local page = newPage("Explorer")
     local PROPS = {
         "Name", "Value", "Enabled", "Disabled", "Visible", "Active", "RunContext",
@@ -2555,6 +2555,7 @@ do
         end)
     end))
 end
+_buildExplorer()
 
 --==============================  HTTP Spy (lite)  =========================--
 
