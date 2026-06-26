@@ -2267,18 +2267,20 @@ do
             if not ok or type(api) ~= "table" or not api.Classes then apiState = "fail"; if after then pcall(after) end return end
             local own, super = {}, {}
             for _, class in api.Classes do
-                super[class.Name] = class.Superclass
-                local list = {}
-                for _, m in (class.Members or {}) do
-                    if m.MemberType == "Property" then
-                        local skip = false
-                        for _, tg in (m.Tags or {}) do if tg == "Deprecated" or tg == "Hidden" then skip = true break end end
-                        local sec = m.Security; local rs = (type(sec) == "table" and sec.Read) or sec
-                        if rs and rs ~= "None" and rs ~= "PluginSecurity" and rs ~= "LocalUserSecurity" then skip = true end
-                        if not skip then list[#list + 1] = m.Name end
+                if type(class) == "table" and class.Name then
+                    super[class.Name] = class.Superclass
+                    local list = {}
+                    for _, m in (class.Members or {}) do
+                        if type(m) == "table" and m.MemberType == "Property" and m.Name then
+                            local skip = false
+                            for _, tg in (m.Tags or {}) do if tg == "Deprecated" or tg == "Hidden" then skip = true break end end
+                            local sec = m.Security; local rs = (type(sec) == "table" and sec.Read) or sec
+                            if rs and rs ~= "None" and rs ~= "PluginSecurity" and rs ~= "LocalUserSecurity" then skip = true end
+                            if not skip then list[#list + 1] = m.Name end
+                        end
                     end
+                    own[class.Name] = list
                 end
-                own[class.Name] = list
             end
             ApiProps = setmetatable({}, { __index = function(t, cls)   -- flatten with inheritance, cached per class
                 local out, seen = {}, {}
@@ -2797,11 +2799,18 @@ end
 --==============================  Runtime  =================================--
 
 local frameCount = 0
+local _tickErrShown = false
 track(RunService.RenderStepped:Connect(function()
     frameCount += 1
-    for _, v in AllViews do v.tick() end
-    if httpTick then httpTick() end
-    if explorerTick then explorerTick() end
+    -- guard the whole per-frame loop: if ANYTHING here ever throws, it's caught,
+    -- TAGGED as Rebirth, and reported once (so it can't spam the console or be
+    -- mistaken for another script's error).
+    local ok, err = pcall(function()
+        for _, v in AllViews do v.tick() end
+        if httpTick then httpTick() end
+        if explorerTick then explorerTick() end
+    end)
+    if not ok and not _tickErrShown then _tickErrShown = true; warn("[Rebirth] runtime error (caught, further suppressed): " .. tostring(err)) end
 end))
 task.spawn(function()
     while task.wait(1) do
@@ -2826,6 +2835,7 @@ task.defer(function() if activePage then selectPage(activePage) end end)  -- sna
 if dashRefresh then pcall(dashRefresh) end
 shared = shared or {}
 shared.__IxSpyRebirth = function() if ScreenGui and ScreenGui.Parent then Window.Visible = not Window.Visible end end
+print("[Rebirth] v" .. VERSION .. " loaded OK (GitHub chunk; all Rebirth errors are tagged '[Rebirth]'). If you see a '[string \"<number>\"]' error, that's a DIFFERENT script.")
 Notify("Rebirth v" .. VERSION .. " ready", HOOKS_AVAILABLE and (({ "Max", "Stealth", "Passive" })[Settings.Capture_mode] .. " capture · " .. Settings.Toggle_key .. " to toggle") or "Limited mode (no hooks)", "Accent", 5)
 
 
