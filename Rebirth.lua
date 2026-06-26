@@ -1203,14 +1203,6 @@ end
 
 local function clip(s) if setclipboard then setclipboard(s); Notify("Copied", "Sent to clipboard", "Good", 2) end end
 local function callerName(c) if typeof(c) == "Instance" then local ok, n = pcall(function() return c:GetFullName() end); return ok and n or c.Name elseif typeof(c) == "string" then return c end return nil end
-local function entryTag(e)
-    if e.framework ~= "Roblox" then return "Framework" end
-    if e.hidden then return "Hidden" end
-    if e.class == "RemoteFunction" or e.class == "BindableFunction" then return "RemoteFunc" end
-    if e.class == "UnreliableRemoteEvent" then return "Unreliable" end
-    if e.class == "BindableEvent" then return "Bindable" end
-    return "RemoteEvent"
-end
 -- method-based type label (matches the reference: FireServer / InvokeServer / InvokeClient / …)
 local function typeLabel(class, incoming)
     if class == "RemoteEvent" then return incoming and "RemoteEvent" or "FireServer"
@@ -1422,7 +1414,6 @@ local function createView(page, cfg)
     end
 
     --── detail rendering ──
-    local function chip(parent, text, colorKey) UI.chip(parent, text, colorKey, { order = #parent:GetChildren() }) end
     -- which call in a grouped entry's history we're viewing (nil = newest)
     local function pickedPacked(e)
         local n = e.history and #e.history or 0
@@ -2024,7 +2015,8 @@ task.spawn(function()
 end)
 track(UserInputService.InputBegan:Connect(function(i, gpe)
     if gpe then return end
-    if i.KeyCode == Enum.KeyCode[Settings.Toggle_key] then Window.Visible = not Window.Visible end
+    local ok, kc = pcall(function() return Enum.KeyCode[Settings.Toggle_key] end)
+    if ok and kc and i.KeyCode == kc then Window.Visible = not Window.Visible end
 end))
 
 installNamecall()
