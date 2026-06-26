@@ -757,7 +757,7 @@ shadow(Window, 64, 0.36)
 make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(14), grad(90, Color3.fromRGB(26, 24, 44), Theme.Bg) })
 
 local UIScaleObj = make("UIScale", { Parent = Window, Scale = 1 })
-local function applyScale() local v = viewport(); UIScaleObj.Scale = math.clamp(math.min(v.X / 1360, v.Y / 780), 0.5, 1.7) end
+local function applyScale() local v = viewport(); UIScaleObj.Scale = math.clamp(math.min(v.X / 1360, v.Y / 780), 0.5, 1.0) end
 applyScale()
 local function clampWindow()
     local v, s = viewport(), Window.AbsoluteSize
@@ -1290,17 +1290,8 @@ local function createView(page, cfg)
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Remote Path", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.path, 0), Size = UDim2.new(1, -COLS.path - 52, 0, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Count", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 0), Size = UDim2.fromOffset(46, 26) })
     make("Frame", { Parent = listHeader, BackgroundColor3 = "@Stroke", BorderSizePixel = 0, Position = UDim2.new(0, 8, 1, -1), Size = UDim2.new(1, -16, 0, 1) })
-    local listFooter = make("ScrollingFrame", { Parent = listPanel, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 38), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X, ScrollingDirection = Enum.ScrollingDirection.X }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }), pad(0, 0, 8, 8) })
-    local footerLabels = {}
-    local footerSet = (cfg.kind == "event") and { "Fire", "Invoke" } or { "RemoteEvent", "FireServer", "InvokeServer", "InvokeClient", "Unreliable" }
-    for i, lbl in footerSet do
-        local cell = make("Frame", { Parent = listFooter, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Size = UDim2.fromOffset(0, 26), AutomaticSize = Enum.AutomaticSize.X, LayoutOrder = i }, { corner(7), make("UIPadding", { PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 11) }), hlayout(6) })
-        make("Frame", { Parent = cell, BackgroundColor3 = typeColor(lbl), BorderSizePixel = 0, Size = UDim2.fromOffset(7, 7), LayoutOrder = 1 }, { corner(4) })
-        make("TextLabel", { Parent = cell, BackgroundTransparency = 1, Font = FONT, Text = lbl, TextColor3 = "@Sub", TextSize = 11, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 2 })
-        footerLabels[lbl] = make("TextLabel", { Parent = cell, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "0", TextColor3 = "@Text", TextSize = 12, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 3 })
-    end
-    function view.refreshFooter() for lbl, cl in footerLabels do cl.Text = commaize(view.typeCounts[lbl] or 0) end end
-    local listBody = make("Frame", { Parent = listPanel, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 28), Size = UDim2.new(1, 0, 1, -66) })
+    function view.refreshFooter() end  -- per-type footer chips removed (were clutter, mostly 0s)
+    local listBody = make("Frame", { Parent = listPanel, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 28), Size = UDim2.new(1, 0, 1, -28) })
 
     --── empty state ──
     local empty = make("Frame", { Parent = listBody, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, Padding = UDim.new(0, 8), HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center }) })
@@ -1344,14 +1335,14 @@ local function createView(page, cfg)
 
     --── detail panel ──
     -- compact boxless header (no separate panel/section — just name, type chips, path)
-    local headerCard = make("Frame", { Parent = detail, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 60) })
+    local headerCard = make("Frame", { Parent = detail, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 52) })
     local nameLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "", TextColor3 = "@Text", TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 20) })
     local chipRow = make("Frame", { Parent = headerCard, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 22), Size = UDim2.new(1, 0, 0, 18) }, { hlayout(6) })
     local pathLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(0, 44), Size = UDim2.new(1, 0, 0, 14) })
 
     -- tabs
-    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 68), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
-    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 100), Size = UDim2.new(1, 0, 1, -(100 + 42)) })
+    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 58), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
+    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 90), Size = UDim2.new(1, 0, 1, -(90 + 38)) })
     local scriptArea = make("Frame", { Parent = bodyArea, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) })
     local argsArea = make("ScrollingFrame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { corner(11), stroke("Stroke", 1), pad(10), vlayout(6) })
     local connArea = make("Frame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0) }, { corner(11), stroke("Stroke", 1) })
