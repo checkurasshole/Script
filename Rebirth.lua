@@ -1562,11 +1562,10 @@ local function createView(page, cfg)
         row.Typ.Text = shortType(e.typeLabel or e.class); row.Typ.TextColor3 = tc
         local p = (e.name ~= "" and e.name) or e.class or "?"
         row.Path.TextColor3 = Theme.Sub
-        if e.framework ~= "Roblox" then
-            row.Path.Text = ('<font color="%s">[%s]</font> '):format(fwHex(e.framework), e.framework) .. richEsc(p)
-        else
-            row.Path.Text = richEsc(p)
-        end
+        local prefix = ""
+        if e.framework ~= "Roblox" then prefix = ('<font color="%s">[%s]</font> '):format(fwHex(e.framework), e.framework) end
+        if e.hidden then prefix = prefix .. '<font color="#ff6894">[hidden]</font> ' end   -- not a descendant of game (nil-parented / non-replicated)
+        row.Path.Text = prefix .. richEsc(p)
         local cp, lbl = row.CountPill, row.CountPill.Lbl
         cp.Visible = true
         local txt, col = (e.count or 1) .. "x", Theme.Accent
