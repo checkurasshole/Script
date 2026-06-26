@@ -753,8 +753,9 @@ do
 end
 local function viewport() local c = workspace.CurrentCamera; return (c and c.ViewportSize) or Vector2.new(1280, 720) end
 
-local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12), stroke("StrokeS", 1, 0.2) })
--- (window drop-shadow removed)
+local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12), make("UIStroke", { Color = Theme.Accent, Thickness = 1.4, Transparency = 0.45, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }) })
+-- warm gold outer glow on the window edge
+make("ImageLabel", { Parent = Window, BackgroundTransparency = 1, ZIndex = 0, Image = "rbxassetid://6014261993", ImageColor3 = Color3.fromRGB(196, 142, 74), ImageTransparency = 0.28, ScaleType = Enum.ScaleType.Slice, SliceCenter = Rect.new(49, 49, 450, 450), Size = UDim2.new(1, 140, 1, 140), Position = UDim2.new(0, -70, 0, -64) })
 make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(12), grad(90, Color3.fromRGB(48, 36, 23), Theme.Bg) })
 
 local UIScaleObj = make("UIScale", { Parent = Window, Scale = 1 })
@@ -1225,6 +1226,10 @@ local function typeColor(label) return TYPE_COLOR[label] or Theme.Sub end
 -- short labels for the row "Type" column (RemoteEvent -> RE, etc.)
 local SHORT_TYPE = { RemoteEvent = "RE", FireServer = "FS", InvokeServer = "IS", InvokeClient = "IC", Unreliable = "UR", Fire = "Fire", Invoke = "Inv" }
 local function shortType(label) return SHORT_TYPE[label] or label end
+-- per-framework colors for the inline [framework] tag in each row (matches the reference)
+local FW_HEX = { ByteNet = "#7ab4ff", BridgeNet = "#9a7cff", BridgeNet2 = "#9a7cff", Blink = "#5fd0c0", Warp = "#ff9a6e", Red = "#ff6e6e", Zap = "#ffd166", Knit = "#c98cff", Aero = "#74b2ff", Buffer = "#9aa0b4", Obfuscated = "#ff8fb0" }
+local function fwHex(fw) return FW_HEX[fw] or "#d4a96e" end
+local function richEsc(s) return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) end
 local function commaize(n)
     local s = tostring(math.floor(n))
     local k = 1
@@ -1306,7 +1311,7 @@ local function createView(page, cfg)
             -- colored, rounded TYPE pill
             make("Frame", { Name = "TypePill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(32, 17), Size = UDim2.fromOffset(10, 16) }, { corner(5) }),
             make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(48, 0), Size = UDim2.fromOffset(30, 34) }),
-            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(82, 0), Size = UDim2.new(1, -130, 1, 0) }),
+            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, RichText = true, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(82, 0), Size = UDim2.new(1, -130, 1, 0) }),
             -- COUNT pill (right, tinted to the type color)
             make("Frame", { Name = "CountPill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", BackgroundTransparency = 0.8, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X }, {
                 corner(9), make("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }),
@@ -1325,7 +1330,12 @@ local function createView(page, cfg)
         row.TypePill.BackgroundColor3 = tc
         row.Typ.Text = shortType(e.typeLabel or e.class)
         row.Typ.TextColor3 = tc
-        row.Path.Text = (e.framework ~= "Roblox" and ("[" .. e.framework .. "] ") or "") .. (e.shortPath or e.fullName or e.name)
+        local p = e.shortPath or e.fullName or e.name
+        if e.framework ~= "Roblox" then
+            row.Path.Text = ('<font color="%s">[%s]</font> '):format(fwHex(e.framework), e.framework) .. richEsc(p)
+        else
+            row.Path.Text = richEsc(p)
+        end
         local cp, lbl = row.CountPill, row.CountPill.Lbl
         local txt, col = (e.count or 1) .. "x", Theme.Accent
         if view.spoofs[e.name] then txt, col = "SPOOF", Theme.Good elseif view.block[e.name] then txt, col = "BLOCK", Theme.Bad end
