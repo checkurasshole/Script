@@ -1254,6 +1254,7 @@ local NAV_ICON = {
     http      = "rbxassetid://10723404337",  -- globe
     settings  = "rbxassetid://10734950309",  -- settings
     scripts   = "rbxassetid://10723356507",  -- file-code
+    explorer  = "rbxassetid://10723387085",  -- folder-tree
 }
 local function addNav(name, kind, label)
     navOrder += 1
@@ -1440,6 +1441,7 @@ end
 --==============================  View factory  ============================--
 
 local AllViews = {}
+local ExplorerReveal   -- set by the Explorer page; lets a spy row jump to its instance in the tree
 
 local function createView(page, cfg)
     local view = {
@@ -1988,6 +1990,7 @@ local function createView(page, cfg)
         { text = "Ignore remote", icon = ACT_ICON.Ignore, onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; if view.selectedEntry == e then view.selectedEntry = nil; code.set(""); callBtn.Visible = false end view.dirtyFilter = true; Notify("Ignored", e.name, "Sub") end end },
         { text = "Unignore all",  onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end view.dirtyFilter = true; Notify("Unignored all", "", "Good") end },
         { text = "Pin / Unpin",   icon = ACT_ICON.Pin, onClick = function() local e = view.selectedEntry; if e then view.pins[e.name] = not view.pins[e.name]; view.dirtyFilter = true; Notify(view.pins[e.name] and "Pinned" or "Unpinned", e.name, "Warn") end end },
+        { text = "Reveal in Explorer", icon = "rbxassetid://10723387085", onClick = function() local e = view.selectedEntry; if e and typeof(e.remote) == "Instance" and ExplorerReveal then ExplorerReveal(e.remote) else Notify("Explorer", "No instance to reveal.", "Bad") end end },
     } })
     act("⤓  Decompile", { onClick = doDecompile })
     act("⇪  Export", { onClick = doExport })
@@ -2001,6 +2004,7 @@ end
 addNav("Dashboard", "dashboard", "Dashboard")
 addNav("Remotes", "remote", "Remote Spy")
 addNav("Events", "event", "Event Spy")
+addNav("Explorer", "explorer", "Explorer")
 addNav("Scripts", "scripts", "Scripts"); navBtns.Scripts.Visible = DECOMPILE_OK  -- capability-gated (Ketamine-style)
 addNav("Http", "http", "HTTP Spy"); navBtns.Http.Visible = Settings.Show_http
 addNav("Settings", "settings", "Settings")
@@ -2164,6 +2168,228 @@ do
     local page = newPage("Events")
     local view = createView(page, { kind = "event", directions = false, types = { "All", "BindableEvent", "BindableFunction" }, onStat = statBump, codegen = function(mode, e, meta) return Codegen.Generate(mode, e.remote, false, e.packed, meta) end })
     installEventHooks(view)
+end
+
+--==============================  Explorer  ===============================--
+-- A focused, spy-integrated instance explorer: lazy virtualized tree + live
+-- properties/attributes. The differentiator is cross-navigation — "Reveal in
+-- Explorer" from a spy row, and "Fire" a remote straight from the tree.
+do
+    local page = newPage("Explorer")
+    local PROPS = {
+        "Name", "Value", "Enabled", "Disabled", "Visible", "Active", "RunContext",
+        "Text", "RichText", "PlaceholderText", "TextScaled", "TextWrapped", "TextSize", "TextColor3", "TextTransparency", "Font",
+        "Image", "ImageColor3", "ImageTransparency", "ScaleType", "BackgroundColor3", "BackgroundTransparency", "BorderSizePixel", "ZIndex", "ClipsDescendants", "AutomaticSize",
+        "Position", "Size", "Rotation", "AnchorPoint",
+        "CFrame", "Orientation", "Anchored", "CanCollide", "CanTouch", "CanQuery", "Massless", "Transparency", "Reflectance", "Material", "Color", "BrickColor", "CastShadow", "CollisionGroup",
+        "AssemblyLinearVelocity", "Mass",
+        "Health", "MaxHealth", "WalkSpeed", "JumpPower", "JumpHeight", "HipHeight", "DisplayName", "AutoRotate",
+        "PrimaryPart", "WorldPivot", "Adornee",
+        "Brightness", "Range", "Shadows", "Texture", "SoundId", "Volume", "Playing", "Looped", "TimePosition", "PlaybackSpeed", "TimeLength",
+        "MaxActivationDistance", "ActionText", "ObjectText", "HoldDuration", "RequiresLineOfSight",
+        "Locked", "Archivable", "CanBeDropped",
+    }
+
+    local search = UI.input(page, "Search the tree (name / class)", nil, { size = UDim2.new(1, -104, 0, 30) })
+    search.Parent.Position = UDim2.fromOffset(0, 0)
+    local refreshBtn = UI.button(page, { text = "Refresh", autoX = false })
+    refreshBtn.AnchorPoint = Vector2.new(1, 0); refreshBtn.Position = UDim2.new(1, 0, 0, 0); refreshBtn.Size = UDim2.fromOffset(96, 30)
+
+    local body = make("Frame", { Parent = page, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 40), Size = UDim2.new(1, 0, 1, -40) })
+    local treePanel = make("Frame", { Parent = body, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(0.46, -6, 1, 0) }, { corner(11), stroke("Stroke", 1) })
+    local treeBody  = make("Frame", { Parent = treePanel, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 4), Size = UDim2.new(1, 0, 1, -8) })
+    local propPanel = make("Frame", { Parent = body, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Position = UDim2.new(0.46, 6, 0, 0), Size = UDim2.new(0.54, -6, 1, 0) }, { corner(11), stroke("Stroke", 1) })
+
+    -- property panel header (fixed) + scrolling body
+    local propHead = make("Frame", { Parent = propPanel, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 64) }, { pad(10, 4, 10, 10) })
+    local pName = make("TextLabel", { Parent = propHead, BackgroundTransparency = 1, RichText = true, Font = FONT_BOLD, Text = "Select an instance", TextColor3 = "@Text", TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 18) })
+    local pPath = make("TextButton", { Parent = propHead, AutoButtonColor = false, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Faint", TextSize = 10, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(0, 20), Size = UDim2.new(1, 0, 0, 14) })
+    local pBtns = make("Frame", { Parent = propHead, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 38), Size = UDim2.new(1, 0, 0, 22) }, { hlayout(6) })
+    local propScroll = make("ScrollingFrame", { Parent = propPanel, BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(0, 66), Size = UDim2.new(1, 0, 1, -66), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { vlayout(4), pad(10, 10, 10, 10) })
+
+    local expanded = {}                  -- inst -> true
+    local selectedInst = nil
+    local searchMatches = nil            -- flat list while searching
+    local rowMap = {}
+
+    local function childrenOf(inst) local ok, c = pcall(function() return inst:GetChildren() end); return ok and c or {} end
+    local function compactVal(v)
+        local ok, s = pcall(function() ToString.SetCompress(nil); return ToString.ToString(v, 0) end)
+        ToString.SetCompress(nil)
+        s = ok and s or ("<" .. typeof(v) .. ">")
+        s = s:gsub("%s*\n%s*", " ")
+        if #s > 140 then s = s:sub(1, 138) .. "…" end
+        return s
+    end
+
+    -- ── tree ──
+    local treeList, renderProps
+    local function flatten()
+        if searchMatches then return searchMatches end
+        local out = {}
+        local function walk(inst, depth)
+            local kids = childrenOf(inst)
+            out[#out + 1] = { inst = inst, depth = depth, hasKids = #kids > 0 }
+            if expanded[inst] and #kids > 0 then for _, c in kids do walk(c, depth + 1) end end
+        end
+        walk(game, 0)
+        return out
+    end
+    local function refreshTree() treeList.setItems(flatten()); treeList.tick() end
+    local function selectInst(inst) selectedInst = inst; renderProps(inst); if treeList then treeList.invalidate() end end
+
+    local function buildTreeRow()
+        local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 24) }, {
+            corner(6),
+            make("ImageButton", { Name = "Arrow", AutoButtonColor = false, BackgroundTransparency = 1, Image = "rbxassetid://10709791437", ImageColor3 = "@Sub", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(11, 11), Rotation = 0, Visible = false }),
+            make("TextLabel", { Name = "Nm", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, -40, 1, 0) }),
+            make("TextLabel", { Name = "Cls", BackgroundTransparency = 1, Font = FONT_REG, TextSize = 10, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 24), AutomaticSize = Enum.AutomaticSize.X }),
+        })
+        track(row.MouseEnter:Connect(function() if not row:GetAttribute("sel") then row.BackgroundTransparency = 0.7 end end))
+        track(row.MouseLeave:Connect(function() if not row:GetAttribute("sel") then row.BackgroundTransparency = 1 end end))
+        track(row.Arrow.MouseButton1Click:Connect(function()
+            local node = rowMap[row]; if not node or not node.hasKids then return end
+            expanded[node.inst] = (not expanded[node.inst]) or nil
+            refreshTree()
+        end))
+        return row
+    end
+    local function bindTreeRow(row, node)
+        rowMap[row] = node
+        local inst = node.inst
+        local x = node.search and 4 or (node.depth * 14 + 4)
+        row.Arrow.Position = UDim2.fromOffset(x + 5, 12)
+        row.Arrow.Visible = node.hasKids and not node.search
+        row.Arrow.Rotation = expanded[inst] and 90 or 0
+        local nx = node.search and 8 or (x + 16)
+        local okn, nm = pcall(function() return node.search and inst:GetFullName() or inst.Name end)
+        row.Nm.Position = UDim2.fromOffset(nx, 0); row.Nm.Size = UDim2.new(1, -nx - 70, 1, 0)
+        row.Nm.Text = okn and nm or "?"
+        row.Cls.Text = (pcall(function() return inst.ClassName end)) and inst.ClassName or "?"
+        local seld = (inst == selectedInst)
+        row:SetAttribute("sel", seld)
+        row.BackgroundColor3 = seld and Theme.Accent or Theme.Panel2
+        row.BackgroundTransparency = seld and 0.78 or 1
+        row.Nm.TextColor3 = seld and Theme.Accent2 or Theme.Text
+    end
+    treeList = VirtualList(treeBody, 26, buildTreeRow, bindTreeRow, function(node) selectInst(node.inst) end)
+
+    -- ── properties / attributes ──
+    local function valueRow(name, value, setter, order)
+        local t = typeof(value)
+        local rowf = make("Frame", { Parent = propScroll, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 26), LayoutOrder = order }, { corner(7), pad(0, 0, 9, 9) })
+        make("TextLabel", { Parent = rowf, BackgroundTransparency = 1, Font = FONT, Text = name, TextColor3 = "@Sub", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(0.42, 0, 1, 0) })
+        if setter and t == "boolean" then
+            local b = make("TextButton", { Parent = rowf, AutoButtonColor = false, BackgroundTransparency = 1, Font = FONT_BOLD, Text = tostring(value), TextColor3 = value and "@Good" or "@Bad", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.new(0.58, 0, 1, 0) })
+            local cur = value
+            b.MouseButton1Click:Connect(function() local nv = not cur; if setter(nv) then cur = nv; b.Text = tostring(nv); b.TextColor3 = nv and Theme.Good or Theme.Bad else Notify("Property", "Couldn't set " .. name, "Bad") end end)
+        elseif setter and (t == "number" or t == "string") then
+            local box = make("TextBox", { Parent = rowf, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Font = FONT_MONO, Text = tostring(value), TextColor3 = "@Text", TextSize = 12, ClearTextOnFocus = false, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.new(0.58, 0, 0, 20) }, { corner(5), pad(0, 0, 7, 7) })
+            box.FocusLost:Connect(function()
+                local nv = (t == "number") and tonumber(box.Text) or box.Text
+                if nv == nil then box.Text = tostring(value); return end
+                if not setter(nv) then box.Text = tostring(value); Notify("Property", "Couldn't set " .. name, "Bad") end
+            end)
+        else
+            local lbl = make("TextButton", { Parent = rowf, AutoButtonColor = false, BackgroundTransparency = 1, Font = FONT_MONO, Text = compactVal(value), TextColor3 = "@Text", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, TextTruncate = Enum.TextTruncate.AtEnd, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.new(0.58, 0, 1, 0) })
+            lbl.MouseButton1Click:Connect(function() clip(compactVal(value)) end)
+        end
+    end
+    local function sectionHeader(text, order)
+        make("TextLabel", { Parent = propScroll, BackgroundTransparency = 1, Font = FONT_BOLD, Text = text, TextColor3 = "@Accent2", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = order })
+    end
+    local function isRemote(inst) local ok, r = pcall(function() return inst:IsA("RemoteEvent") or inst:IsA("UnreliableRemoteEvent") or inst:IsA("RemoteFunction") or inst:IsA("BindableEvent") or inst:IsA("BindableFunction") end); return ok and r end
+    local function remoteTemplate(inst)
+        ToString.SetCompress(nil); local path = ToString.GetPath(inst); local cls = inst.ClassName
+        if cls == "RemoteEvent" or cls == "UnreliableRemoteEvent" then return path .. ":FireServer()"
+        elseif cls == "RemoteFunction" then return "local result = " .. path .. ":InvokeServer()\nprint(result)"
+        elseif cls == "BindableEvent" then return path .. ":Fire()"
+        elseif cls == "BindableFunction" then return "local result = " .. path .. ":Invoke()\nprint(result)" end
+        return path
+    end
+    function renderProps(inst)
+        for _, c in propScroll:GetChildren() do if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then c:Destroy() end end
+        for _, c in pBtns:GetChildren() do if c:IsA("TextButton") then c:Destroy() end end
+        if not inst then pName.Text = "Select an instance"; pPath.Text = ""; return end
+        local okn = pcall(function() pName.Text = richEsc(inst.Name) .. '   <font color="#7a6c59">' .. inst.ClassName .. '</font>' end)
+        if not okn then pName.Text = "?" end
+        ToString.SetCompress(nil)
+        local path = (pcall(function() return ToString.GetPath(inst) end)) and ToString.GetPath(inst) or inst.Name
+        pPath.Text = path
+        -- header buttons
+        UI.button(pBtns, { text = "Copy path", textSize = 11, order = 1, onClick = function() clip(path) end }).Size = UDim2.fromOffset(0, 22)
+        if isRemote(inst) then
+            UI.button(pBtns, { text = "Fire", primary = true, textSize = 11, order = 2, onClick = function() Runner.open("Fire · " .. inst.Name, "Edit the call and press Run.", remoteTemplate(inst)) end }).Size = UDim2.fromOffset(0, 22)
+        end
+        local ord = 0
+        -- attributes
+        local attrs = (pcall(function() return inst:GetAttributes() end)) and inst:GetAttributes() or {}
+        local anyAttr = false; for _ in attrs do anyAttr = true; break end
+        if anyAttr then
+            ord += 1; sectionHeader("ATTRIBUTES", ord)
+            for k, v in attrs do ord += 1; valueRow(k, v, function(nv) return (pcall(function() inst:SetAttribute(k, nv) end)) end, ord) end
+        end
+        -- properties (curated; read via pcall, simple types editable)
+        ord += 1; sectionHeader("PROPERTIES", ord)
+        local seen, shown = {}, 0
+        for _, p in PROPS do
+            if not seen[p] then
+                seen[p] = true
+                local ok, val = pcall(function() return inst[p] end)
+                if ok and val ~= nil and typeof(val) ~= "function" then
+                    shown += 1; ord += 1
+                    local vt = typeof(val)
+                    local setter = (vt == "boolean" or vt == "number" or vt == "string") and function(nv) return (pcall(function() inst[p] = nv end)) end or nil
+                    valueRow(p, val, setter, ord)
+                end
+            end
+        end
+        if shown == 0 then ord += 1; make("TextLabel", { Parent = propScroll, BackgroundTransparency = 1, Font = FONT_REG, Text = "(no common properties to show)", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = ord }) end
+    end
+
+    -- ── reveal (spy → explorer) ──
+    function ExplorerReveal(inst)
+        if typeof(inst) ~= "Instance" then return end
+        selectPage("Explorer")
+        searchMatches = nil
+        local okd = pcall(function() return inst:IsDescendantOf(game) end)
+        if not (okd and inst:IsDescendantOf(game)) then refreshTree(); selectInst(inst); Notify("Explorer", inst.Name .. " is nil-parented — properties only.", "Warn"); return end
+        local p = inst.Parent
+        while p do expanded[p] = true; if p == game then break end p = p.Parent end
+        local flat = flatten(); treeList.setItems(flat); treeList.tick()
+        selectInst(inst)
+        for i, node in flat do if node.inst == inst then treeList.scroll.CanvasPosition = Vector2.new(0, math.max(0, (i - 1) * 26 - 80)); treeList.invalidate(); break end end
+    end
+
+    -- ── init + search ──
+    expanded[game] = true
+    refreshTree(); renderProps(nil)
+    track(refreshBtn.MouseButton1Click:Connect(function() refreshTree(); if selectedInst then renderProps(selectedInst) end end))
+    local searchToken = 0
+    track(search:GetPropertyChangedSignal("Text"):Connect(function()
+        local q = search.Text
+        searchToken += 1; local my = searchToken
+        task.delay(0.28, function()
+            if my ~= searchToken then return end
+            if q == "" then searchMatches = nil; refreshTree(); return end
+            local ql = q:lower()
+            local matches, scanned = {}, 0
+            local function scan(inst)
+                if #matches >= 600 or my ~= searchToken then return end
+                for _, c in childrenOf(inst) do
+                    scanned += 1; if scanned % 2500 == 0 then task.wait() end
+                    if #matches >= 600 or my ~= searchToken then return end
+                    local okn2, nm = pcall(function() return c.Name end)
+                    local cls = (pcall(function() return c.ClassName end)) and c.ClassName or ""
+                    if okn2 and (nm:lower():find(ql, 1, true) or cls:lower():find(ql, 1, true)) then matches[#matches + 1] = { inst = c, depth = 0, hasKids = false, search = true } end
+                    scan(c)
+                end
+            end
+            scan(game)
+            if my ~= searchToken then return end
+            searchMatches = matches; refreshTree()
+        end)
+    end))
 end
 
 --==============================  HTTP Spy (lite)  =========================--
