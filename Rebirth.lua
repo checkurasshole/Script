@@ -731,15 +731,38 @@ do
     end
 end
 
--- Decompile a script: native `decompile` first, then the Konstant HTTP fallback.
--- Shared by the per-call Decompile action and the Script Scanner.
+-- base64 for bytecode — executor-native if present, else pure-Lua (from the Dex decompiler router)
+local _b64enc = fn("base64_encode") or fn("base64encode") or (typeof(getfenv().crypt) == "table" and rawget(getfenv().crypt, "base64encode"))
+local function b64(data)
+    if _b64enc then local ok, r = pcall(_b64enc, data); if ok and type(r) == "string" and #r > 0 then return r end end
+    local b = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    return ((data:gsub(".", function(x)
+        local r, byte = "", x:byte()
+        for i = 8, 1, -1 do r = r .. (byte % 2 ^ i - byte % 2 ^ (i - 1) > 0 and "1" or "0") end
+        return r
+    end) .. "0000"):gsub("%d%d%d?%d?%d?%d?", function(x)
+        if #x < 6 then return "" end
+        local c = 0
+        for i = 1, 6 do c = c + (x:sub(i, i) == "1" and 2 ^ (6 - i) or 0) end
+        return b:sub(c + 1, c + 1)
+    end) .. ({ "", "==", "=" })[#data % 3 + 1])
+end
+-- Decompile router: native `decompile` → bytecode→lua.expert → Konstant (matches DEX's router).
 local function decompileScript(scr)
     if decompile then local ok, s = pcall(decompile, scr); if ok and type(s) == "string" and #s > 0 then return s end end
     if getscriptbytecode and httpRequestFn then
         local okb, bc = pcall(getscriptbytecode, scr)
-        if okb and bc and #bc > 0 then
-            local okr, resp = pcall(httpRequestFn, { Url = "https://api.plusgiant5.com/konstant/decompile", Method = "POST", Body = bc, Headers = { ["Content-Type"] = "text/plain" } })
-            if okr and type(resp) == "table" and resp.Body and #resp.Body > 0 then return resp.Body end
+        if okb and type(bc) == "string" and #bc > 0 then
+            -- lua.expert (base64-encoded bytecode, JSON)
+            local okr, resp = pcall(httpRequestFn, { Url = "https://api.lua.expert/decompile", Method = "POST", Headers = { ["Content-Type"] = "application/json" }, Body = HttpService:JSONEncode({ script = b64(bc) }) })
+            if okr and type(resp) == "table" then
+                local status = resp.StatusCode or resp.Status or resp.status_code
+                local body = resp.Body or resp.body
+                if status and tonumber(status) == 200 and type(body) == "string" and #body > 0 then return body end
+            end
+            -- Konstant (raw bytecode, text)
+            local okr2, resp2 = pcall(httpRequestFn, { Url = "https://api.plusgiant5.com/konstant/decompile", Method = "POST", Body = bc, Headers = { ["Content-Type"] = "text/plain" } })
+            if okr2 and type(resp2) == "table" and resp2.Body and #resp2.Body > 0 then return resp2.Body end
         end
     end
     return nil
@@ -2004,7 +2027,6 @@ addNav("Dashboard", "dashboard", "Dashboard")
 addNav("Remotes", "remote", "Remote Spy")
 addNav("Events", "event", "Event Spy")
 addNav("Explorer", "explorer", "Explorer")
-addNav("Scripts", "scripts", "Scripts"); navBtns.Scripts.Visible = DECOMPILE_OK  -- capability-gated (Ketamine-style)
 addNav("Http", "http", "HTTP Spy"); navBtns.Http.Visible = Settings.Show_http
 addNav("Settings", "settings", "Settings")
 
@@ -2199,10 +2221,12 @@ local function _buildExplorer()
         Anchored = "Behavior", CanCollide = "Behavior", CanTouch = "Behavior", CanQuery = "Behavior", Massless = "Behavior", Locked = "Behavior", CollisionGroup = "Behavior", Active = "Behavior", CanBeDropped = "Behavior", AutomaticSize = "Behavior", ClipsDescendants = "Behavior",
     }
 
-    local search = UI.input(page, "Search the tree (name / class)", nil, { size = UDim2.new(1, -104, 0, 30) })
+    local search = UI.input(page, "Search tree (name/class) — or type, then Find code", nil, { size = UDim2.new(1, -190, 0, 30) })
     search.Parent.Position = UDim2.fromOffset(0, 0)
+    local codeBtn, codeLbl = UI.button(page, { text = "Find code", autoX = false })
+    codeBtn.AnchorPoint = Vector2.new(1, 0); codeBtn.Position = UDim2.new(1, -96, 0, 0); codeBtn.Size = UDim2.fromOffset(90, 30)
     local refreshBtn = UI.button(page, { text = "Refresh", autoX = false })
-    refreshBtn.AnchorPoint = Vector2.new(1, 0); refreshBtn.Position = UDim2.new(1, 0, 0, 0); refreshBtn.Size = UDim2.fromOffset(96, 30)
+    refreshBtn.AnchorPoint = Vector2.new(1, 0); refreshBtn.Position = UDim2.new(1, 0, 0, 0); refreshBtn.Size = UDim2.fromOffset(90, 30)
 
     local body = make("Frame", { Parent = page, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 40), Size = UDim2.new(1, 0, 1, -40) })
     local treePanel = make("Frame", { Parent = body, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(0.46, -6, 1, 0) }, { corner(11), stroke("Stroke", 1) })
@@ -2215,6 +2239,9 @@ local function _buildExplorer()
     local pPath = make("TextButton", { Parent = propHead, AutoButtonColor = false, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Faint", TextSize = 10, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(0, 20), Size = UDim2.new(1, 0, 0, 14) })
     local pBtns = make("Frame", { Parent = propHead, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 38), Size = UDim2.new(1, 0, 0, 22) }, { hlayout(6) })
     local propScroll = make("ScrollingFrame", { Parent = propPanel, BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(0, 66), Size = UDim2.new(1, 0, 1, -66), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { vlayout(4), pad(10, 10, 10, 10) })
+    -- decompiled-source view (shown instead of properties when a script is selected — the merged Scripts tab)
+    local scrFrame = make("Frame", { Parent = propPanel, BackgroundTransparency = 1, Visible = false, Position = UDim2.fromOffset(8, 68), Size = UDim2.new(1, -16, 1, -76) })
+    local scrView = codeView(scrFrame)
 
     local expanded = {}                  -- inst -> true
     local selectedInst = nil
@@ -2412,6 +2439,8 @@ local function _buildExplorer()
         make("TextLabel", { Parent = propScroll, BackgroundTransparency = 1, Font = FONT_BOLD, Text = text, TextColor3 = "@Accent2", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = order })
     end
     local function isRemote(inst) local ok, r = pcall(function() return inst:IsA("RemoteEvent") or inst:IsA("UnreliableRemoteEvent") or inst:IsA("RemoteFunction") or inst:IsA("BindableEvent") or inst:IsA("BindableFunction") end); return ok and r end
+    local function isScript(inst) local ok, r = pcall(function() return inst:IsA("LuaSourceContainer") end); return ok and r end
+    local decompiled = {}   -- script -> decompiled source (cache, shared by select + code-search)
     local function remoteTemplate(inst)
         ToString.SetCompress(nil); local path = ToString.GetPath(inst); local cls = inst.ClassName
         if cls == "RemoteEvent" or cls == "UnreliableRemoteEvent" then return path .. ":FireServer()"
@@ -2465,6 +2494,22 @@ local function _buildExplorer()
         pPath.Text = path
         -- header buttons
         UI.button(pBtns, { text = "Copy path", textSize = 11, order = 1, onClick = function() clip(path) end }).Size = UDim2.fromOffset(0, 22)
+        -- a SCRIPT shows its decompiled source instead of properties (the merged Scripts tab)
+        if isScript(inst) then
+            propScroll.Visible = false; scrFrame.Visible = true
+            UI.button(pBtns, { text = "Copy source", primary = true, textSize = 11, order = 2, onClick = function() if scrView.Raw and scrView.Raw ~= "" then clip(scrView.Raw) end end }).Size = UDim2.fromOffset(0, 22)
+            if decompiled[inst] then scrView.set(decompiled[inst])
+            else
+                scrView.set("-- decompiling " .. tostring(inst.Name) .. " …")
+                task.spawn(function()
+                    local src = decompileScript(inst) or "-- (no source — empty, native-only, or protected)"
+                    decompiled[inst] = src
+                    if selectedInst == inst then scrView.set(src) end
+                end)
+            end
+            return
+        end
+        scrFrame.Visible = false; propScroll.Visible = true
         if isRemote(inst) then
             UI.button(pBtns, { text = "Fire", primary = true, textSize = 11, order = 2, onClick = function() Runner.open("Fire · " .. inst.Name, "Edit the call and press Run.", remoteTemplate(inst)) end }).Size = UDim2.fromOffset(0, 22)
         end
@@ -2534,6 +2579,38 @@ local function _buildExplorer()
     refreshTree(); renderProps(nil); loadRMD()   -- fetch real Studio icon indices in the background
     explorerTick = function() pcall(function() treeList.tick() end) end   -- driven by the runtime loop so scrolling repaints the window
     track(refreshBtn.MouseButton1Click:Connect(function() refreshTree(); if selectedInst then pcall(renderProps, selectedInst) end end))
+    -- "Find code": decompile every client script and grep its source for the search text
+    -- (the merged Script Scanner). Matches show in the tree; click one to read its source.
+    local scanning = false
+    track(codeBtn.MouseButton1Click:Connect(function()
+        if scanning then scanning = false; codeLbl.Text = "Find code"; return end   -- click again = stop
+        local q = (search.Text or ""):lower()
+        scanning = true; codeLbl.Text = "Scanning…"
+        task.spawn(function()
+            local list, seen = {}, {}
+            local function add(v)
+                if typeof(v) ~= "Instance" or seen[v] or not isScript(v) then return end
+                if v:IsDescendantOf(ScreenGui) then return end
+                local okc = pcall(function() return v:IsDescendantOf(CoreGui) end); if okc and v:IsDescendantOf(CoreGui) then return end
+                seen[v] = true; list[#list + 1] = v
+            end
+            pcall(function() for _, v in game:GetDescendants() do add(v) end end)
+            if getnilinstancesFn then pcall(function() for _, v in getnilinstancesFn() do add(v) end end) end
+            local matches, done = {}, 0
+            for _, scr in list do
+                if not scanning or done >= 600 then break end
+                if decompiled[scr] == nil then decompiled[scr] = decompileScript(scr) or "" end
+                done += 1
+                if q == "" or decompiled[scr]:lower():find(q, 1, true) then matches[#matches + 1] = { inst = scr, depth = 0, hasKids = false, search = true } end
+                codeLbl.Text = done .. "/" .. #list
+                if #matches >= 400 then break end
+                task.wait()
+            end
+            searchMatches = matches; refreshTree()
+            local was = scanning; scanning = false; codeLbl.Text = "Find code"
+            Notify("Code search", #matches .. " script" .. (#matches == 1 and "" or "s") .. (q ~= "" and (" matched '" .. q .. "'") or " found") .. (was and "" or " (stopped)"), "Good")
+        end)
+    end))
     local searchToken = 0
     track(search:GetPropertyChangedSignal("Text"):Connect(function()
         local q = search.Text
@@ -2635,106 +2712,6 @@ do
         return old(self, ...)
     end, "HttpService." .. m) end) end end
     addNamecallRoute(function(self, M, ...) if self == HttpService then local a = { ... }; if M == "RequestAsync" and typeof(a[1]) == "table" then push(a[1].Url, a[1].Method or "GET", a[1].Headers, a[1].Body) elseif M == "GetAsync" then push(a[1], "GET") elseif M == "PostAsync" then push(a[1], "POST", nil, a[2]) end end return false end)
-end
-
---==============================  Script Scanner  =========================--
--- Decompile every client script and keyword-search across the whole game's source
--- (Ketamine-style). Blank query = list all scripts. Click a result to view its source.
-do
-    local page = newPage("Scripts")
-    make("TextLabel", { Parent = page, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Script Scanner", TextColor3 = "@Text", TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(2, 0), Size = UDim2.fromOffset(200, 28) })
-
-    if not DECOMPILE_OK then
-        make("TextLabel", { Parent = page, BackgroundTransparency = 1, Font = FONT, Text = "No decompiler available on this executor\n(needs `decompile`, or `getscriptbytecode` + `request`).", TextColor3 = "@Faint", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, Position = UDim2.fromOffset(0, 40), Size = UDim2.new(1, 0, 1, -40) })
-    else
-        local search = UI.input(page, "Keywords (use ;  ·  blank = list every script)", nil, { size = UDim2.new(1, -132, 0, 30) })
-        search.Parent.Position = UDim2.fromOffset(0, 34)
-        local scanBtn, scanLbl = UI.button(page, { text = "Scan", primary = true, autoX = false })
-        scanBtn.AnchorPoint = Vector2.new(1, 0); scanBtn.Position = UDim2.new(1, 0, 0, 34); scanBtn.Size = UDim2.fromOffset(120, 30)
-        local prog = make("TextLabel", { Parent = page, BackgroundTransparency = 1, Font = FONT_MONO, Text = "ready — enter keywords and press Scan", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(2, 70), Size = UDim2.new(1, -4, 0, 16) })
-
-        local body = make("Frame", { Parent = page, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 92), Size = UDim2.new(1, 0, 1, -92) })
-        local listPanel = make("Frame", { Parent = body, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(0.4, -6, 1, 0) }, { corner(11), stroke("Stroke", 1) })
-        local resultsScroll = make("ScrollingFrame", { Parent = listPanel, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { vlayout(4), pad(6) })
-        local detail = make("Frame", { Parent = body, BackgroundTransparency = 1, Position = UDim2.new(0.4, 6, 0, 0), Size = UDim2.new(0.6, -6, 1, 0) })
-        local code = codeView(detail)
-
-        local decompiled = keep({})      -- script -> source (cache, survives rescans)
-        local scanning, cancel = false, false
-
-        local function countOccur(hay, needle)
-            if needle == "" then return 0 end
-            local c, pos = 0, 1
-            while true do local s = hay:find(needle, pos, true); if not s then break end c += 1; pos = s + #needle end
-            return c
-        end
-        local function clearResults() for _, c in resultsScroll:GetChildren() do if c:IsA("TextButton") then c:Destroy() end end end
-        local function addResult(scr, path, matches, order)
-            local r = make("TextButton", { Parent = resultsScroll, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 40), LayoutOrder = order }, {
-                corner(8),
-                make("TextLabel", { Name = "Nm", BackgroundTransparency = 1, Font = FONT, TextSize = 13, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(10, 5), Size = UDim2.new(1, -64, 0, 15) }),
-                make("TextLabel", { Name = "Pt", BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 10, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(10, 22), Size = UDim2.new(1, -64, 0, 13) }),
-                make("Frame", { Name = "Cnt", BackgroundColor3 = "@Accent", BackgroundTransparency = matches > 0 and 0.78 or 1, BorderSizePixel = 0, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X }, {
-                    corner(9), make("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }),
-                    make("TextLabel", { BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 11, TextColor3 = "@Accent2", Text = matches > 0 and (matches .. "×") or "open", AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0) }),
-                }),
-            })
-            r.Nm.Text = scr.Name; r.Pt.Text = path
-            track(r.MouseEnter:Connect(function() r.BackgroundTransparency = 0 end))
-            track(r.MouseLeave:Connect(function() r.BackgroundTransparency = 1 end))
-            track(r.MouseButton1Click:Connect(function()
-                local src = decompiled[scr]
-                code.set((src and #src > 0) and src or ("-- " .. path .. "\n-- (no decompiled source — empty or protected)"))
-            end))
-        end
-        local function collectScripts()
-            local list, seen = {}, {}
-            local function add(v)
-                if typeof(v) ~= "Instance" or seen[v] then return end
-                local ok, isS = pcall(function() return v:IsA("LocalScript") or v:IsA("ModuleScript") or (v:IsA("Script") and v.RunContext == Enum.RunContext.Client) end)
-                if not (ok and isS) then return end
-                if v:IsDescendantOf(ScreenGui) then return end                 -- never scan ourselves
-                local okc = pcall(function() return v:IsDescendantOf(CoreGui) end)
-                if okc and v:IsDescendantOf(CoreGui) then return end
-                seen[v] = true; list[#list + 1] = v
-            end
-            for _, v in game:GetDescendants() do add(v) end
-            if getnilinstancesFn then pcall(function() for _, v in getnilinstancesFn() do add(v) end end) end
-            return list
-        end
-        local function doScan()
-            if scanning then cancel = true; scanLbl.Text = "Stopping…"; return end
-            scanning, cancel = true, false
-            scanLbl.Text = "Stop"
-            clearResults(); code.set("")
-            local raw = (search.Text or ""):lower()
-            local keywords = {}
-            for k in raw:gmatch("[^;]+") do k = k:gsub("^%s+", ""):gsub("%s+$", ""); if k ~= "" then keywords[#keywords + 1] = k end end
-            task.spawn(function()
-                local list = collectScripts()
-                local scanned, matched = 0, 0
-                for _, scr in list do
-                    if cancel then break end
-                    if decompiled[scr] == nil then decompiled[scr] = decompileScript(scr) or "" end
-                    scanned += 1
-                    local m = 0
-                    if #keywords > 0 then local low = decompiled[scr]:lower(); for _, k in keywords do m += countOccur(low, k) end end
-                    if #keywords == 0 or m > 0 then
-                        matched += 1
-                        if matched <= 400 then
-                            local path = scr.Name; pcall(function() path = scr:GetFullName() end)
-                            addResult(scr, path, m, -m)        -- negative order ⇒ most matches first
-                        end
-                    end
-                    prog.Text = ("scanned %d / %d  ·  %d match%s%s"):format(scanned, #list, matched, matched == 1 and "" or "es", matched > 400 and " (showing 400)" or "")
-                    if scanned % 6 == 0 then task.wait() end
-                end
-                scanning = false; scanLbl.Text = "Scan"
-                prog.Text = (cancel and "stopped — " or "done — ") .. prog.Text
-            end)
-        end
-        track(scanBtn.MouseButton1Click:Connect(doScan))
-    end
 end
 
 --==============================  Settings  ================================--
