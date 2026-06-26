@@ -296,7 +296,13 @@ do
         end
         local path = ""
         while obj.Parent do
-            if (obj.Parent == game or obj.Parent == workspace.Parent) and not dontGetService and pcall(game.GetService, game, obj.ClassName) and game:GetService(obj.ClassName) then
+            -- Portable anchors first: the local player & character resolve by REFERENCE,
+            -- not by username, so a generated script runs for anyone (SimpleSpy-style).
+            if obj == LocalPlayer then
+                path = "game:GetService(\"Players\").LocalPlayer" .. path; break
+            elseif LocalPlayer and obj == LocalPlayer.Character then
+                path = "game:GetService(\"Players\").LocalPlayer.Character" .. path; break
+            elseif (obj.Parent == game or obj.Parent == workspace.Parent) and not dontGetService and pcall(game.GetService, game, obj.ClassName) and game:GetService(obj.ClassName) then
                 path = "game:GetService(\"" .. obj.ClassName:gsub(" ", "") .. "\")" .. path; break
             elseif (obj.Parent == game or obj.Parent == workspace.Parent) and obj == workspace or obj == game:GetService("Workspace") then
                 path = "workspace" .. path; break
@@ -313,7 +319,12 @@ do
             end
             obj = obj.Parent
         end
-        if not obj.Parent then path = "game" .. path end
+        if not obj.Parent and obj ~= game and obj ~= workspace.Parent then
+            -- Walked up to a DETACHED (nil-parented) ancestor that isn't the DataModel:
+            -- resolve that ancestor via getnilinstances rather than a wrong "game" prefix.
+            if not normalNil and NIL_FN_NAME then path = ("getNil(\"%s\", \"%s\")"):format(normalize(obj.Name), obj.ClassName) .. path
+            else path = "(nil)[\"" .. normalize(obj.Name) .. "\"]" .. path end
+        elseif not obj.Parent then path = "game" .. path end
         return (path:gsub("game:GetService%(\"Workspace\"%)", "workspace"))
     end
     local tostr
