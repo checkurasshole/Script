@@ -1408,12 +1408,14 @@ local function createView(page, cfg)
     view.vlist = vlist
 
     --── detail panel ──
-    -- compact boxless header (no separate panel/section — just name, type chips, path)
-    -- detail header (name/chips/path) removed — that info is already in the generated code
+    -- clean boxless header: remote name, type/framework/direction chips, full path
+    local nameLbl = make("TextLabel", { Parent = detail, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "", TextColor3 = "@Text", TextSize = 17, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(2, 0), Size = UDim2.new(1, -4, 0, 22) })
+    local chipRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(2, 26), Size = UDim2.new(1, -4, 0, 18) }, { hlayout(6) })
+    local pathLbl = make("TextLabel", { Parent = detail, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(2, 46), Size = UDim2.new(1, -4, 0, 14) })
 
     -- tabs
-    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 2), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
-    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 34), Size = UDim2.new(1, 0, 1, -(34 + 38)) })
+    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 66), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
+    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 98), Size = UDim2.new(1, 0, 1, -(98 + 38)) })
     local scriptArea = make("Frame", { Parent = bodyArea, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) })
     local argsArea = make("ScrollingFrame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { corner(11), stroke("Stroke", 1), pad(10), vlayout(6) })
     local connArea = make("Frame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0) }, { corner(11), stroke("Stroke", 1) })
@@ -1507,6 +1509,12 @@ local function createView(page, cfg)
     end
     view._refreshMeta = function(e) view.refreshCallPicker(e) end
     function view.renderDetail(e)
+        nameLbl.Text = e.name
+        for _, c in chipRow:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
+        UI.chip(chipRow, e.typeLabel or e.class, "Sub", { order = 1 })
+        if e.framework ~= "Roblox" then UI.chip(chipRow, e.framework, "Accent", { order = 2 }) end
+        UI.chip(chipRow, e.incoming and "incoming" or "outgoing", "Sub", { order = 3 })
+        pathLbl.Text = e.path or ToString.GetPath(e.remote)
         view.refreshCallPicker(e)
         local packed = pickedPacked(e)
         local meta = { framework = e.framework, size = e.size, time = e.time }
@@ -1696,7 +1704,7 @@ local function createView(page, cfg)
     track(clearBtn.MouseButton1Click:Connect(function()
         view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.typeCounts = {}
         vlist.setItems(view.visible); countPill.Text = "0 logs"; empty.Visible = true; view.refreshFooter()
-        code.set(""); callBtn.Visible = false
+        nameLbl.Text = ""; for _, c in chipRow:GetChildren() do if c:IsA("Frame") then c:Destroy() end end; pathLbl.Text = ""; code.set(""); callBtn.Visible = false
     end))
 
     --── toolbar actions ──
