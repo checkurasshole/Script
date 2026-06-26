@@ -1355,9 +1355,9 @@ local function createView(page, cfg)
     end
 
     --── log table: column header · body · per-type footer ──
-    local COLS = { typ = 48, path = 82 }
+    local COLS = { typ = 62, path = 96 }
     local listHeader = make("Frame", { Parent = listPanel, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26) })
-    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "#", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(4, 0), Size = UDim2.fromOffset(22, 26) })
+    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "#", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(20, 0), Size = UDim2.fromOffset(20, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Type", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.typ, 0), Size = UDim2.fromOffset(84, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Remote", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.path, 0), Size = UDim2.new(1, -COLS.path - 52, 0, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Count", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 0), Size = UDim2.fromOffset(46, 26) })
@@ -1371,16 +1371,17 @@ local function createView(page, cfg)
     make("TextLabel", { Parent = empty, BackgroundTransparency = 1, Font = FONT, Text = "Waiting for traffic...", TextColor3 = "@Faint", TextSize = 13, Size = UDim2.fromOffset(200, 18) })
 
     --── virtualized columnar rows (Time · Type · Remote Path) ──
+    view.expanded = view.expanded or {}   -- entries whose call-history arrow is open
+    local rowMap = {}                      -- pooled row -> its current display item (for the arrow)
     local function buildRow()
         local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 34) }, {
             corner(7),
-            -- row index number (1, 2, 3 …)
-            make("TextLabel", { Name = "Num", BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 11, TextColor3 = "@Accent", TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(4, 0), Size = UDim2.fromOffset(22, 34) }),
-            -- colored, rounded TYPE pill
-            make("Frame", { Name = "TypePill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(32, 17), Size = UDim2.fromOffset(10, 16) }, { corner(5) }),
-            make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(48, 0), Size = UDim2.fromOffset(30, 34) }),
-            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, RichText = true, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(82, 0), Size = UDim2.new(1, -130, 1, 0) }),
-            -- COUNT pill (right, tinted to the type color)
+            -- expand arrow (only shown on grouped rows fired more than once)
+            make("ImageButton", { Name = "Arrow", AutoButtonColor = false, BackgroundTransparency = 1, Image = "rbxassetid://10709791437", ImageColor3 = "@Sub", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromOffset(11, 17), Size = UDim2.fromOffset(12, 12), Rotation = 0, Visible = false }),
+            make("TextLabel", { Name = "Num", BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 11, TextColor3 = "@Accent", TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(20, 0), Size = UDim2.fromOffset(20, 34) }),
+            make("Frame", { Name = "TypePill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(46, 17), Size = UDim2.fromOffset(10, 16) }, { corner(5) }),
+            make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(62, 0), Size = UDim2.fromOffset(30, 34) }),
+            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, RichText = true, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(96, 0), Size = UDim2.new(1, -144, 1, 0) }),
             make("Frame", { Name = "CountPill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", BackgroundTransparency = 0.8, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X }, {
                 corner(9), make("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }),
                 make("TextLabel", { Name = "Lbl", BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 11, TextColor3 = "@Accent2", Text = "", AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0) }),
@@ -1388,31 +1389,73 @@ local function createView(page, cfg)
         })
         track(row.MouseEnter:Connect(function() if not row:GetAttribute("sel") then TweenService:Create(row, EASE_F, { BackgroundTransparency = 0.6 }):Play() end end))
         track(row.MouseLeave:Connect(function() if not row:GetAttribute("sel") then TweenService:Create(row, EASE_F, { BackgroundTransparency = 1 }):Play() end end))
+        track(row.Arrow.MouseButton1Click:Connect(function()
+            local item = rowMap[row]; if not item or item.__call then return end
+            local e = item.entry; if not (e.history and #e.history > 1) then return end
+            view.expanded[e] = (not view.expanded[e]) or nil
+            view.refreshDisplay()
+        end))
         return row
     end
-    local function bindRow(row, e, i)
+    local function bindRow(row, item)
+        rowMap[row] = item
+        local e = item.entry
+        if item.__call then
+            -- sub-row: one individual fire of the grouped remote
+            row.Arrow.Visible = false; row.Num.Text = ""; row.TypePill.Visible = false; row.Typ.Text = ""; row.CountPill.Visible = false
+            local c, idx = item.call, item.idx
+            local nargs = (c.packed and (c.packed.n or #c.packed)) or 0
+            row.Path.Text = "    ·   #" .. idx .. "   ·   " .. (c.time or "") .. "   ·   " .. nargs .. " arg" .. (nargs == 1 and "" or "s")
+            row.Path.TextColor3 = Theme.Faint
+            row:SetAttribute("sel", false)
+            row.BackgroundTransparency = (view.selectedEntry == e and view.callIdx == idx) and 0.45 or 1
+            return
+        end
+        -- normal grouped/entry row
         local sel = (e == view.selectedEntry)
         row:SetAttribute("sel", sel)
         local tc = typeColor(e.typeLabel)
-        row.Num.Text = tostring(i or "")
-        row.TypePill.BackgroundColor3 = tc
-        row.Typ.Text = shortType(e.typeLabel or e.class)
-        row.Typ.TextColor3 = tc
-        -- show the remote NAME (what matters at a glance) — full path lives in the detail/code
+        local expandable = e.history and #e.history > 1
+        row.Arrow.Visible = expandable; row.Arrow.Rotation = view.expanded[e] and 90 or 0
+        row.Num.Text = tostring(item.num or "")
+        row.TypePill.Visible = true; row.TypePill.BackgroundColor3 = tc
+        row.Typ.Text = shortType(e.typeLabel or e.class); row.Typ.TextColor3 = tc
         local p = (e.name ~= "" and e.name) or e.class or "?"
+        row.Path.TextColor3 = Theme.Sub
         if e.framework ~= "Roblox" then
             row.Path.Text = ('<font color="%s">[%s]</font> '):format(fwHex(e.framework), e.framework) .. richEsc(p)
         else
             row.Path.Text = richEsc(p)
         end
         local cp, lbl = row.CountPill, row.CountPill.Lbl
+        cp.Visible = true
         local txt, col = (e.count or 1) .. "x", Theme.Accent
         if view.spoofs[e.name] then txt, col = "SPOOF", Theme.Good elseif view.block[e.name] then txt, col = "BLOCK", Theme.Bad end
         lbl.Text = txt; lbl.TextColor3 = col; cp.BackgroundColor3 = col
         row.BackgroundTransparency = sel and 0.5 or 1
     end
-    local vlist = VirtualList(listBody, 38, buildRow, bindRow, function(e) view.select(e) end)
+    local vlist = VirtualList(listBody, 38, buildRow, bindRow, function(item)
+        view.select(item.entry)                         -- selects entry (resets callIdx to latest)
+        if item.__call then                             -- a sub-row: jump straight to that specific fire
+            view.callIdx = item.idx
+            view.renderDetail(item.entry)
+            if view.vlist then view.vlist.invalidate() end
+        end
+    end)
     view.vlist = vlist
+    -- flatten visible entries; expand any open arrow into newest-first per-call sub-rows
+    function view.display()
+        local out, n = {}, 0
+        for _, e in ipairs(view.visible or {}) do
+            n += 1
+            out[#out + 1] = { entry = e, num = n }
+            if view.expanded[e] and e.history and #e.history > 1 then
+                for j = #e.history, 1, -1 do out[#out + 1] = { __call = true, entry = e, idx = j, call = e.history[j] } end
+            end
+        end
+        return out
+    end
+    function view.refreshDisplay() vlist.setItems(view.display()) end
 
     --── detail panel ──
     -- (detail header removed — tabs + code only)
@@ -1669,7 +1712,7 @@ local function createView(page, cfg)
         for i = #E, 1, -1 do local e = E[i]; if view.passes(e) then if view.pins[e.name] then pinned[#pinned + 1] = e else out[#out + 1] = e end end end
         if #pinned > 0 then local m = {}; for _, e in pinned do m[#m + 1] = e end; for _, e in out do m[#m + 1] = e end; out = m end
         view.visible = out
-        vlist.setItems(out)
+        view.refreshDisplay()
         countPill.Text = (#out == #E) and (commaize(#E) .. " logs") or (commaize(#out) .. " of " .. commaize(#E))
         empty.Visible = (#E == 0)
     end
@@ -1679,7 +1722,7 @@ local function createView(page, cfg)
             local atTop = vlist.atTop()
             view.dirtyFilter = false; view.rebuild()
             if atTop then vlist.toTop() end
-        elseif added then vlist.invalidate() end
+        elseif added then if next(view.expanded) then view.refreshDisplay() else vlist.invalidate() end end
         vlist.tick()
         if view.typeDirty then view.typeDirty = false; view.refreshFooter() end
         if view.selectedEntry and view.selectedEntry.count ~= view._lastSelCount then
@@ -1698,8 +1741,8 @@ local function createView(page, cfg)
         statusLbl.Text = view.paused and "Paused" or "Capturing"
     end))
     track(clearBtn.MouseButton1Click:Connect(function()
-        view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.typeCounts = {}
-        vlist.setItems(view.visible); countPill.Text = "0 logs"; empty.Visible = true; view.refreshFooter()
+        view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.typeCounts = {}; view.expanded = {}
+        view.refreshDisplay(); countPill.Text = "0 logs"; empty.Visible = true; view.refreshFooter()
         code.set(""); callBtn.Visible = false
     end))
 
