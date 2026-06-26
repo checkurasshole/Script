@@ -1070,19 +1070,37 @@ local function selectPage(name)
     for n, b in navBtns do
         local on = n == name
         TweenService:Create(b, EASE_F, { BackgroundTransparency = on and 0 or 1 }):Play()
-        b.Glyph.TextColor3 = on and Theme.Text or Theme.Sub
         b.Lbl.TextColor3 = on and Theme.Text or Theme.Sub
         if on then TweenService:Create(railIndicator, EASE, { Position = UDim2.fromOffset(0, b.AbsolutePosition.Y - rail.AbsolutePosition.Y + 7) }):Play() end
     end
 end
 local navOrder = 0
-local function addNav(name, glyph, label)
+-- minimal vector nav icons drawn from UI frames (Roblox's font has no icon glyphs)
+local function navIcon(parent, kind, color)
+    local ic = make("Frame", { Name = "Icon", Parent = parent, BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 0), Size = UDim2.fromOffset(18, 38) })
+    local box = make("Frame", { Parent = ic, BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(16, 16) })
+    local function px(x, y, w, h, r) make("Frame", { Parent = box, BorderSizePixel = 0, BackgroundColor3 = color, Position = UDim2.fromOffset(x, y), Size = UDim2.fromOffset(w, h) }, { corner(r or 2) }) end
+    if kind == "dashboard" then
+        px(0, 0, 7, 7, 2); px(9, 0, 7, 7, 2); px(0, 9, 7, 7, 2); px(9, 9, 7, 7, 2)
+    elseif kind == "remote" then
+        px(0, 2, 16, 3, 2); px(0, 7, 11, 3, 2); px(0, 12, 15, 3, 2)
+    elseif kind == "event" then
+        px(6, 0, 4, 16, 2); px(0, 6, 16, 4, 2)            -- spark / plus
+    elseif kind == "http" then
+        px(0, 3, 12, 3, 2); px(4, 10, 12, 3, 2)           -- offset bars = exchange
+    elseif kind == "settings" then
+        px(0, 2, 16, 2, 1); px(0, 8, 16, 2, 1); px(0, 14, 16, 2, 1)
+        px(10, 0, 4, 4, 2); px(3, 6, 4, 4, 2); px(11, 12, 4, 4, 2)  -- slider knobs
+    end
+    return ic
+end
+local function addNav(name, kind, label)
     navOrder += 1
     local b = make("TextButton", { Name = name, Parent = railInner, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel3", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 38), Text = "", LayoutOrder = navOrder }, {
         corner(8),
-        make("TextLabel", { Name = "Glyph", BackgroundTransparency = 1, Font = FONT_BOLD, Text = "", TextColor3 = "@Sub", TextSize = 15, Position = UDim2.fromOffset(11, 0), Size = UDim2.fromOffset(22, 36) }),
-        make("TextLabel", { Name = "Lbl", BackgroundTransparency = 1, Font = FONT, Text = label, TextColor3 = "@Sub", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(14, 0), Size = UDim2.new(1, -22, 1, 0) }),
+        make("TextLabel", { Name = "Lbl", BackgroundTransparency = 1, Font = FONT, Text = label, TextColor3 = "@Sub", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(38, 0), Size = UDim2.new(1, -46, 1, 0) }),
     })
+    navIcon(b, kind, Theme.Accent)
     track(b.MouseEnter:Connect(function() if activePage ~= name then TweenService:Create(b, EASE_F, { BackgroundTransparency = 0.9 }):Play() end end))
     track(b.MouseLeave:Connect(function() if activePage ~= name then TweenService:Create(b, EASE_F, { BackgroundTransparency = 1 }):Play() end end))
     track(b.MouseButton1Click:Connect(function() selectPage(name) end))
@@ -1738,11 +1756,11 @@ end
 
 --==============================  Nav + pages  =============================--
 
-addNav("Dashboard", "▦", "Dashboard")
-addNav("Remotes", "⇅", "Remote Spy")
-addNav("Events", "⚡", "Event Spy")
-addNav("Http", "⇄", "HTTP Spy"); navBtns.Http.Visible = Settings.Show_http
-addNav("Settings", "⚙", "Settings")
+addNav("Dashboard", "dashboard", "Dashboard")
+addNav("Remotes", "remote", "Remote Spy")
+addNav("Events", "event", "Event Spy")
+addNav("Http", "http", "HTTP Spy"); navBtns.Http.Visible = Settings.Show_http
+addNav("Settings", "settings", "Settings")
 
 --==============================  Dashboard  ===============================--
 
