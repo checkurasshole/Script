@@ -960,12 +960,19 @@ end
 --==============================  Topbar  ==================================--
 
 local Topbar = make("Frame", { Name = "Topbar", Parent = Window, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 50) })
-local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(18, 12) }, {
+-- macOS-style traffic-light window controls (red = close, yellow = minimize, green = restore)
+local function tlDot(color, x)
+    return make("TextButton", { Parent = Topbar, AutoButtonColor = true, BorderSizePixel = 0, BackgroundColor3 = color, Position = UDim2.fromOffset(x, 19), Size = UDim2.fromOffset(12, 12), Text = "" }, { corner(6) })
+end
+local trafficR = tlDot(Color3.fromRGB(237, 106, 94), 16)
+local trafficY = tlDot(Color3.fromRGB(245, 191, 79), 34)
+local trafficG = tlDot(Color3.fromRGB(98, 197, 84), 52)
+local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(76, 12) }, {
     corner(13), grad(40, Theme.Accent, Theme.Accent2),
     make("TextLabel", { BackgroundTransparency = 1, Font = FONT_BOLD, Text = "R", TextColor3 = Color3.fromRGB(34, 26, 15), TextSize = 16, Size = UDim2.new(1, 0, 1, 0) }),
 })
-make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Rebirth", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(54, 0), Size = UDim2.fromOffset(90, 50) })
-make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT, Text = "v" .. VERSION, TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(128, 1), Size = UDim2.fromOffset(50, 50) })
+make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Rebirth", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(112, 0), Size = UDim2.fromOffset(90, 50) })
+make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT, Text = "v" .. VERSION, TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(186, 1), Size = UDim2.fromOffset(50, 50) })
 
 -- live "Capturing" badge (top-right, green, with an animated signal/equalizer icon — matches the v2.0 layout)
 local statusPill = make("Frame", { Parent = Topbar, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -90, 0.5, 0), BackgroundColor3 = "@Good", BackgroundTransparency = 0.82, BorderSizePixel = 0, Size = UDim2.fromOffset(0, 26), AutomaticSize = Enum.AutomaticSize.X }, { corner(13), stroke("Good", 1, 0.5), make("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 12) }), hlayout(7) })
@@ -1028,12 +1035,13 @@ local sbFps = sbItem("FPS: —", 3, "Sub")
 local sbPing = sbItem("Ping: — ms", 4, "Sub")
 
 local minimized = false
-track(minBtn.MouseButton1Click:Connect(function()
+local function doMinimize()
     minimized = not minimized
     contentArea.Visible = not minimized
     statusBar.Visible = not minimized
     TweenService:Create(Window, EASE, { Size = minimized and UDim2.fromOffset(800, 50) or UDim2.fromOffset(800, 540) }):Play()
-end))
+end
+track(minBtn.MouseButton1Click:Connect(doMinimize))
 
 -- resize grip
 do
@@ -1102,6 +1110,15 @@ local function teardown()
     if shared then shared.__IxSpyRebirth = nil end
 end
 track(closeBtn.MouseButton1Click:Connect(teardown))
+-- traffic-light controls: red = close, yellow = minimize, green = restore/center
+track(trafficR.MouseButton1Click:Connect(teardown))
+track(trafficY.MouseButton1Click:Connect(doMinimize))
+track(trafficG.MouseButton1Click:Connect(function()
+    minimized = false; contentArea.Visible = true; statusBar.Visible = true
+    local sc, v = UIScaleObj.Scale, viewport()
+    Window.Size = UDim2.fromOffset(800, 540)
+    Window.Position = UDim2.fromOffset(math.floor((v.X - 800 * sc) / 2), math.floor((v.Y - 540 * sc) / 2))
+end))
 
 --==============================  Highlighter  =============================--
 
