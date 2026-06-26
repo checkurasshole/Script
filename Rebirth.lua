@@ -1499,7 +1499,7 @@ local function createView(page, cfg)
     --── empty state ──
     local empty = make("Frame", { Parent = listBody, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, Padding = UDim.new(0, 8), HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center }) })
     make("Frame", { Parent = empty, BackgroundTransparency = 1, Size = UDim2.fromOffset(34, 34) }, { corner(17), stroke("Faint", 2, 0.2) })
-    make("TextLabel", { Parent = empty, BackgroundTransparency = 1, Font = FONT, Text = "Waiting for traffic...", TextColor3 = "@Faint", TextSize = 13, Size = UDim2.fromOffset(200, 18) })
+    local emptyLbl = make("TextLabel", { Parent = empty, BackgroundTransparency = 1, Font = FONT, Text = "Waiting for traffic...", TextColor3 = "@Faint", TextSize = 13, Size = UDim2.fromOffset(220, 18) })
 
     --── virtualized columnar rows (Time · Type · Remote Path) ──
     view.expanded = view.expanded or {}   -- entries whose call-history arrow is open
@@ -1854,7 +1854,9 @@ local function createView(page, cfg)
         view.visible = out
         view.refreshDisplay()
         countPill.Text = (#out == #E) and (commaize(#E) .. " logs") or (commaize(#out) .. " of " .. commaize(#E))
-        empty.Visible = (#E == 0)
+        -- show the empty state whenever nothing is visible, with the RIGHT reason
+        empty.Visible = (#out == 0)
+        if #out == 0 then emptyLbl.Text = (#E == 0) and "Waiting for traffic..." or "No matches for this filter" end
     end
     function view.tick()
         local added = view.drain()
@@ -2058,7 +2060,7 @@ local function installRemoteHooks(view)
             elseif inst:IsA("RemoteFunction") and getcallbackvalue and USE_FUNCTION_HOOKS then
                 local ok, cb = pcall(getcallbackvalue, inst, "OnClientInvoke")
                 if ok and typeof(cb) == "function" then pcall(function() Hooks.HookFunction(cb, function(old, ...)
-                    if Settings.Log_which_calls <= 2 then local got = keep({}); view.addRaw(cloneref(inst), true, table.pack(...), nil, got); got[1] = keep(table.pack(old(...))); return table.unpack(got[1], 1, got[1].n) end
+                    if Settings.Log_which_calls <= 2 then local got = {}; view.addRaw(cloneref(inst), true, table.pack(...), nil, got); got[1] = table.pack(old(...)); return table.unpack(got[1], 1, got[1].n) end
                     return old(...)
                 end) end) end
             end
@@ -2092,11 +2094,11 @@ local function installRemoteHooks(view)
             if typeof(self) ~= "Instance" or self.ClassName ~= "RemoteFunction" then return old(self, ...) end
             local args = table.pack(...)
             local spoof = view.spoofs[self] or view.spoofs[self.Name]
-            if spoof then if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), keep(spoof)) end return table.unpack(spoof, 1, spoof.n or #spoof) end
+            if spoof then if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), spoof) end return table.unpack(spoof, 1, spoof.n or #spoof) end
             if not view.block[self] and not view.block[self.Name] then
-                local got = keep({})
+                local got = {}
                 if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), got) end
-                got[1] = keep(table.pack(old(self, table.unpack(args, 1, args.n)))); return table.unpack(got[1], 1, got[1].n)
+                got[1] = table.pack(old(self, table.unpack(args, 1, args.n))); return table.unpack(got[1], 1, got[1].n)
             elseif view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), nil) end
         end, "RemoteFunction.InvokeServer")
         addNamecallRoute(function(self, M, ...)
@@ -2137,11 +2139,11 @@ local function installEventHooks(view)
         if typeof(self) ~= "Instance" or self.ClassName ~= "BindableFunction" then return old(self, ...) end
         local args = table.pack(...)
         local spoof = view.spoofs[self] or view.spoofs[self.Name]
-        if spoof then if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), keep(spoof)) end return table.unpack(spoof, 1, spoof.n or #spoof) end
+        if spoof then if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), spoof) end return table.unpack(spoof, 1, spoof.n or #spoof) end
         if not view.block[self] and not view.block[self.Name] then
-            local got = keep({})
+            local got = {}
             if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), got) end
-            got[1] = keep(table.pack(old(self, table.unpack(args, 1, args.n)))); return table.unpack(got[1], 1, got[1].n)
+            got[1] = table.pack(old(self, table.unpack(args, 1, args.n))); return table.unpack(got[1], 1, got[1].n)
         elseif view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), nil) end
     end, "BindableFunction.Invoke")
     addNamecallRoute(function(self, M, ...)
