@@ -1291,7 +1291,7 @@ local function createView(page, cfg)
     local listHeader = make("Frame", { Parent = listPanel, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "#", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(4, 0), Size = UDim2.fromOffset(22, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Type", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.typ, 0), Size = UDim2.fromOffset(84, 26) })
-    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Remote Path", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.path, 0), Size = UDim2.new(1, -COLS.path - 52, 0, 26) })
+    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Remote", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.path, 0), Size = UDim2.new(1, -COLS.path - 52, 0, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Count", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 0), Size = UDim2.fromOffset(46, 26) })
     make("Frame", { Parent = listHeader, BackgroundColor3 = "@Stroke", BorderSizePixel = 0, Position = UDim2.new(0, 8, 1, -1), Size = UDim2.new(1, -16, 0, 1) })
     function view.refreshFooter() end  -- per-type footer chips removed (were clutter, mostly 0s)
@@ -1330,7 +1330,8 @@ local function createView(page, cfg)
         row.TypePill.BackgroundColor3 = tc
         row.Typ.Text = shortType(e.typeLabel or e.class)
         row.Typ.TextColor3 = tc
-        local p = e.shortPath or e.fullName or e.name
+        -- show the remote NAME (what matters at a glance) — full path lives in the detail/code
+        local p = (e.name ~= "" and e.name) or e.class or "?"
         if e.framework ~= "Roblox" then
             row.Path.Text = ('<font color="%s">[%s]</font> '):format(fwHex(e.framework), e.framework) .. richEsc(p)
         else
