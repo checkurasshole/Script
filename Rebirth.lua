@@ -2255,16 +2255,16 @@ do
         return false
     end
     local function loadApiDump(after)
-        if apiState == "ready" then if after then after() end return end
+        if apiState == "ready" then if after then pcall(after) end return end
         if apiState == "loading" then return end
         apiState = "loading"
         task.spawn(function()
-            local ver = httpGetText("http://setup.roblox.com/versionQTStudio")
+            local ver = httpGetText("https://setup.roblox.com/versionQTStudio")
             local raw
-            if ver then ver = ver:gsub("%s+", ""); raw = httpGetText("http://setup.roblox.com/" .. ver .. "-API-Dump.json") end
+            if ver then ver = ver:gsub("%s+", ""); raw = httpGetText("https://setup.roblox.com/" .. ver .. "-API-Dump.json") end
             raw = raw or httpGetText("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json")
             local ok, api = pcall(function() return HttpService:JSONDecode(raw or "") end)
-            if not ok or type(api) ~= "table" or not api.Classes then apiState = "fail"; if after then after() end return end
+            if not ok or type(api) ~= "table" or not api.Classes then apiState = "fail"; if after then pcall(after) end return end
             local own, super = {}, {}
             for _, class in api.Classes do
                 super[class.Name] = class.Superclass
@@ -2286,7 +2286,7 @@ do
                 while c do for _, nm in (own[c] or {}) do if not seen[nm] then seen[nm] = true; out[#out + 1] = nm end end c = super[c] end
                 rawset(t, cls, out); return out
             end })
-            apiState = "ready"; if after then after() end
+            apiState = "ready"; if after then pcall(after) end
         end)
     end
 
@@ -2338,7 +2338,7 @@ do
         return out
     end
     local function refreshTree() treeList.setItems(flatten()); treeList.tick() end
-    local function selectInst(inst) selectedInst = inst; renderProps(inst); if treeList then treeList.invalidate() end end
+    local function selectInst(inst) selectedInst = inst; pcall(renderProps, inst); if treeList then treeList.invalidate() end end
 
     local function buildTreeRow()
         local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 24) }, {
@@ -2357,7 +2357,7 @@ do
         end))
         track(row.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton2 then
-                local node = rowMap[row]; if node and contextFor then contextFor(node.inst, input.Position) end
+                local node = rowMap[row]; if node and contextFor then pcall(contextFor, node.inst, input.Position) end
             end
         end))
         return row
@@ -2525,8 +2525,8 @@ do
     -- ── init + search ──
     expanded[game] = true
     refreshTree(); renderProps(nil); loadRMD()   -- fetch real Studio icon indices in the background
-    explorerTick = function() treeList.tick() end   -- driven by the runtime loop so scrolling repaints the window
-    track(refreshBtn.MouseButton1Click:Connect(function() refreshTree(); if selectedInst then renderProps(selectedInst) end end))
+    explorerTick = function() pcall(function() treeList.tick() end) end   -- driven by the runtime loop so scrolling repaints the window
+    track(refreshBtn.MouseButton1Click:Connect(function() refreshTree(); if selectedInst then pcall(renderProps, selectedInst) end end))
     local searchToken = 0
     track(search:GetPropertyChangedSignal("Text"):Connect(function()
         local q = search.Text
