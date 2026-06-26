@@ -1113,32 +1113,26 @@ end
 
 --==============================  Topbar  ==================================--
 
--- title strip (top tier) holds the macOS traffic-light controls
-local titleStrip = make("Frame", { Name = "TitleStrip", Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 26) }, { make("Frame", { BackgroundColor3 = "@Stroke", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 1) }) })
--- header row (second tier): R logo + brand on the left, capturing/controls on the right
-local Topbar = make("Frame", { Name = "Topbar", Parent = Window, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 48) })
-local function tlDot(color, x)
-    return make("TextButton", { Parent = titleStrip, AutoButtonColor = true, BorderSizePixel = 0, BackgroundColor3 = color, Position = UDim2.fromOffset(x, 7), Size = UDim2.fromOffset(12, 12), Text = "" }, { corner(6) })
-end
-local trafficR = tlDot(Color3.fromRGB(237, 106, 94), 16)
-local trafficY = tlDot(Color3.fromRGB(245, 191, 79), 34)
-local trafficG = tlDot(Color3.fromRGB(98, 197, 84), 52)
--- title strip: live clock (center) + FPS/Ping (right)
-local tsClock = make("TextLabel", { Parent = titleStrip, BackgroundTransparency = 1, Font = FONT_MONO, Text = "00:00:00", TextColor3 = "@Sub", TextSize = 11, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.fromOffset(90, 26) })
-local tsStat = make("Frame", { Parent = titleStrip, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 14), HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }) })
-local tsFps = make("TextLabel", { Parent = tsStat, BackgroundTransparency = 1, Font = FONT_MONO, Text = "FPS: —", TextColor3 = "@Faint", TextSize = 11, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 1 })
-local tsPing = make("TextLabel", { Parent = tsStat, BackgroundTransparency = 1, Font = FONT_MONO, Text = "Ping: — ms", TextColor3 = "@Faint", TextSize = 11, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 2 })
-local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, ClipsDescendants = true, Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(18, 11) }, {
-    corner(13), grad(55, Theme.Accent, Theme.Accent2),
-    -- glossy top highlight (shine) — clipped to the badge's rounded shape
-    make("Frame", { Name = "Gloss", BackgroundColor3 = Color3.fromRGB(255, 250, 235), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0.55, 0) }, { make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1) }) }) }),
-    make("TextLabel", { BackgroundTransparency = 1, Font = FONT_BOLD, Text = "R", TextColor3 = Color3.fromRGB(34, 26, 15), TextSize = 16, Size = UDim2.new(1, 0, 1, 0) }),
+-- ONE clean header bar — R logo + brand on the left; live metadata · Capturing · window
+-- controls on the right, auto-laid-out with even gaps so nothing feels crammed.
+local Topbar = make("Frame", { Name = "Topbar", Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 50) }, {
+    make("Frame", { BackgroundColor3 = "@Stroke", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 1) }),
 })
-make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Rebirth", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(54, 0), Size = UDim2.fromOffset(90, 48) })
-make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT, Text = "v" .. VERSION, TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(128, 0), Size = UDim2.fromOffset(50, 48) })
+local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, ClipsDescendants = true, AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromOffset(28, 28), Position = UDim2.new(0, 18, 0.5, 0) }, {
+    corner(14), grad(55, Theme.Accent, Theme.Accent2),
+    make("Frame", { Name = "Gloss", BackgroundColor3 = Color3.fromRGB(255, 250, 235), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0.55, 0) }, { make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1) }) }) }),
+    make("TextLabel", { BackgroundTransparency = 1, Font = FONT_BOLD, Text = "R", TextColor3 = Color3.fromRGB(34, 26, 15), TextSize = 17, Size = UDim2.new(1, 0, 1, 0) }),
+})
+make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Rebirth", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 56, 0.5, 0), Size = UDim2.fromOffset(82, 24) })
+make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT, Text = "v" .. VERSION, TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 132, 0.5, 0), Size = UDim2.fromOffset(50, 20) })
 
--- live "Capturing" badge (top-right, green, with an animated signal/equalizer icon — matches the v2.0 layout)
-local statusPill = make("Frame", { Parent = Topbar, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -90, 0.5, 0), BackgroundColor3 = "@Good", BackgroundTransparency = 0.82, BorderSizePixel = 0, Size = UDim2.fromOffset(0, 26), AutomaticSize = Enum.AutomaticSize.X }, { corner(13), stroke("Good", 1, 0.5), make("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 12) }), hlayout(7) })
+local rightCluster = make("Frame", { Parent = Topbar, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -14, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 0, 30) }, {
+    make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 16), HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }),
+})
+local tsMeta = make("TextLabel", { Parent = rightCluster, BackgroundTransparency = 1, Font = FONT_MONO, Text = "—", TextColor3 = "@Faint", TextSize = 11, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 1 })
+
+-- live "Capturing" badge with an animated equalizer
+local statusPill = make("Frame", { Parent = rightCluster, BackgroundColor3 = "@Good", BackgroundTransparency = 0.82, BorderSizePixel = 0, Size = UDim2.fromOffset(0, 26), AutomaticSize = Enum.AutomaticSize.X, LayoutOrder = 2 }, { corner(13), stroke("Good", 1, 0.5), make("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 12) }), hlayout(7) })
 local statusWave = make("Frame", { Parent = statusPill, BackgroundTransparency = 1, Size = UDim2.fromOffset(15, 14), LayoutOrder = 1 }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 2), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }) })
 local waveBars = {}
 for i = 1, 4 do waveBars[i] = make("Frame", { Parent = statusWave, BackgroundColor3 = "@Good", BorderSizePixel = 0, Size = UDim2.fromOffset(2, ({ 6, 11, 7, 13 })[i]), LayoutOrder = i }, { corner(1) }) end
@@ -1161,14 +1155,15 @@ do  -- equalizer animation (reads as a live capture feed)
     end)
 end
 
-local function topCtl(glyph, colorKey, x)
-    local b = make("TextButton", { Parent = Topbar, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel3", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, x, 0.5, 0), Size = UDim2.fromOffset(30, 30), Text = glyph, Font = FONT_BOLD, TextSize = 15, TextColor3 = "@" .. colorKey }, { corner(8) })
+-- window controls (minimize / close) — in the cluster, evenly spaced
+local function topCtl(glyph, colorKey, order)
+    local b = make("TextButton", { Parent = rightCluster, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel3", BackgroundTransparency = 1, Size = UDim2.fromOffset(28, 28), Text = glyph, Font = FONT_BOLD, TextSize = 15, TextColor3 = "@" .. colorKey, LayoutOrder = order }, { corner(8) })
     track(b.MouseEnter:Connect(function() TweenService:Create(b, EASE_F, { BackgroundTransparency = 0, BackgroundColor3 = Theme.Hover }):Play() end))
     track(b.MouseLeave:Connect(function() TweenService:Create(b, EASE_F, { BackgroundTransparency = 1 }):Play() end))
     return b
 end
-local closeBtn = topCtl("X", "Bad", -12)
-local minBtn = topCtl("-", "Sub", -46)
+local minBtn = topCtl("-", "Sub", 3)
+local closeBtn = topCtl("X", "Bad", 4)
 
 -- drag — snapshot the window's ACTUAL pixel position (AbsolutePosition) at grab time.
 -- The window starts centered with scale components (0.5,…); reading .Offset alone
@@ -1188,7 +1183,7 @@ do
     end))
 end
 
-local contentArea = make("Frame", { Name = "Content", Parent = Window, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 74), Size = UDim2.new(1, 0, 1, -98) })
+local contentArea = make("Frame", { Name = "Content", Parent = Window, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, 0, 1, -74) })
 
 -- status bar (bottom)
 local statusBar = make("Frame", { Name = "StatusBar", Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 24) }, { make("Frame", { BackgroundColor3 = "@Stroke", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 1) }) })
@@ -1293,15 +1288,6 @@ local function teardown()
     if shared then shared.__IxSpyRebirth = nil end
 end
 track(closeBtn.MouseButton1Click:Connect(teardown))
--- traffic-light controls: red = close, yellow = minimize, green = restore/center
-track(trafficR.MouseButton1Click:Connect(teardown))
-track(trafficY.MouseButton1Click:Connect(doMinimize))
-track(trafficG.MouseButton1Click:Connect(function()
-    minimized = false; contentArea.Visible = true; statusBar.Visible = true
-    local sc, v = UIScaleObj.Scale, viewport()
-    Window.Size = UDim2.fromOffset(800, 540)
-    Window.Position = UDim2.fromOffset(math.floor((v.X - 800 * sc) / 2), math.floor((v.Y - 540 * sc) / 2))
-end))
 
 --==============================  Highlighter  =============================--
 
@@ -2822,10 +2808,9 @@ task.spawn(function()
         if not ScreenGui.Parent then break end   -- stop the per-second loop once the GUI is torn down
         table.remove(Stats.history, 1); Stats.history[60] = Stats.sec; Stats.perSec = Stats.sec; Stats.sec = 0
         if remotesView and not remotesView.paused then statusLbl.Text = "Capturing" end
-        tsClock.Text = os.date("%H:%M:%S")
-        tsFps.Text = "FPS: " .. frameCount; frameCount = 0
         local okp, ping = pcall(function() return LocalPlayer:GetNetworkPing() * 1000 end)
-        tsPing.Text = (okp and ping) and ("Ping: " .. math.floor(ping) .. " ms") or "Ping: — ms"
+        tsMeta.Text = os.date("%H:%M:%S") .. "   ·   " .. frameCount .. " FPS   ·   " .. ((okp and ping) and (math.floor(ping) .. " ms") or "— ms")
+        frameCount = 0
         if activePage == "Dashboard" and dashRefresh then pcall(dashRefresh) end
     end
 end)
