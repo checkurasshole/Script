@@ -757,7 +757,10 @@ shadow(Window, 64, 0.36)
 make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(14), grad(90, Color3.fromRGB(26, 24, 44), Theme.Bg) })
 
 local UIScaleObj = make("UIScale", { Parent = Window, Scale = 1 })
-local function applyScale() local v = viewport(); UIScaleObj.Scale = math.clamp(math.min(v.X / 1360, v.Y / 780), 0.5, 1.0) end
+-- DENSITY: render the whole window smaller (text + spacing + elements shrink together,
+-- like Sigma Spy). Lower DENSITY = smaller/denser. Tweak this single number to taste.
+local DENSITY = 0.78
+local function applyScale() local v = viewport(); UIScaleObj.Scale = math.clamp(math.min(v.X / 1360, v.Y / 780), 0.45, 1.0) * DENSITY end
 applyScale()
 local function clampWindow()
     local v, s = viewport(), Window.AbsoluteSize
