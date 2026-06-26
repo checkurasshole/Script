@@ -1624,9 +1624,9 @@ local function createView(page, cfg)
             local h = e.history[i]
             local nargs = (h.packed and (h.packed.n or #h.packed)) or 0
             local o = make("TextButton", { Parent = sc, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26), Text = "#" .. i .. "   " .. (h.time or "") .. "   (" .. nargs .. " args)", Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 81 }, { corner(6), pad(0, 0, 9, 9) })
-            track(o.MouseEnter:Connect(function() o.BackgroundTransparency = 0; o.BackgroundColor3 = Theme.Hover end))
-            track(o.MouseLeave:Connect(function() o.BackgroundTransparency = 1 end))
-            track(o.MouseButton1Click:Connect(function() view.callIdx = i; closeCallPop(); view.renderDetail(e) end))
+            o.MouseEnter:Connect(function() o.BackgroundTransparency = 0; o.BackgroundColor3 = Theme.Hover end)
+            o.MouseLeave:Connect(function() o.BackgroundTransparency = 1 end)
+            o.MouseButton1Click:Connect(function() view.callIdx = i; closeCallPop(); view.renderDetail(e) end)
         end
     end))
 
@@ -1712,7 +1712,7 @@ local function createView(page, cfg)
                 local rowf = make("Frame", { Parent = argsArea, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = i }, { corner(8), pad(8) })
                 make("TextLabel", { Parent = rowf, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "[" .. i .. "]  " .. typeof(val), TextColor3 = "@Accent2", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, -50, 0, 14) })
                 local cp = make("TextButton", { Parent = rowf, AutoButtonColor = false, BorderSizePixel = 0, BackgroundTransparency = 1, Text = "copy", Font = FONT, TextSize = 10, TextColor3 = "@Sub", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 0, 0, 0), Size = UDim2.fromOffset(40, 14) })
-                track(cp.MouseButton1Click:Connect(function() clip(s) end))
+                cp.MouseButton1Click:Connect(function() clip(s) end)   -- transient (re-rendered): auto-disconnects on Destroy
                 make("TextLabel", { Parent = rowf, BackgroundTransparency = 1, Font = FONT_MONO, RichText = true, Text = highlight(#s > 1200 and (s:sub(1, 1200) .. "  …") or s), TextColor3 = "@Text", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true, Position = UDim2.fromOffset(0, 18), Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y })
             end
         end
@@ -1745,7 +1745,7 @@ local function createView(page, cfg)
             make("TextLabel", { Parent = rowf, BackgroundTransparency = 1, Font = FONT_MONO, Text = "#" .. i .. "  " .. tostring(src) .. (line and line ~= -1 and (":" .. line) or ""), TextColor3 = "@Text", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, -150, 0, 14) })
             local st = make("TextLabel", { Parent = rowf, BackgroundTransparency = 1, Font = FONT, Text = enabled and "enabled" or "disabled", TextColor3 = enabled and "@Good" or "@Bad", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(0, 18), Size = UDim2.new(0, 80, 0, 14) })
             local brow = make("Frame", { Parent = rowf, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, 0, 1, 0), Size = UDim2.new(0, 140, 0, 18) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 4), HorizontalAlignment = Enum.HorizontalAlignment.Right }) })
-            local function mb(txt, ck, cb) local b = make("TextButton", { Parent = brow, AutoButtonColor = true, BorderSizePixel = 0, BackgroundColor3 = "@Panel3", Size = UDim2.fromOffset(58, 18), Text = txt, Font = FONT, TextSize = 10, TextColor3 = "@" .. ck }, { corner(5) }); track(b.MouseButton1Click:Connect(cb)) end
+            local function mb(txt, ck, cb) local b = make("TextButton", { Parent = brow, AutoButtonColor = true, BorderSizePixel = 0, BackgroundColor3 = "@Panel3", Size = UDim2.fromOffset(58, 18), Text = txt, Font = FONT, TextSize = 10, TextColor3 = "@" .. ck }, { corner(5) }); b.MouseButton1Click:Connect(cb) end
             mb("Toggle", "Text", function() local okk = pcall(function() if enabled then (con.Disable or con.disable)(con) else (con.Enable or con.enable)(con) end end); if okk then enabled = not enabled; st.Text = enabled and "enabled" or "disabled"; st.TextColor3 = enabled and Theme.Good or Theme.Bad else Notify("Connections", "Toggle unsupported", "Bad") end end)
             mb("Fire", "Accent", function() local a = e.packed or table.pack(); local okk = pcall(function() (con.Fire or con.fire)(con, table.unpack(a, 1, a.n or #a)) end); Notify(okk and "Fired" or "Fire failed", e.name, okk and "Good" or "Bad", 2) end)
         end
