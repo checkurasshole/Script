@@ -1343,17 +1343,17 @@ local function createView(page, cfg)
     view.vlist = vlist
 
     --── detail panel ──
-    local headerCard = make("Frame", { Parent = detail, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 112) }, { corner(11), stroke("Stroke", 1), pad(12) })
+    local headerCard = make("Frame", { Parent = detail, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 84) }, { corner(11), stroke("Stroke", 1), pad(12) })
     local nameLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 22) })
     local chipRow = make("Frame", { Parent = headerCard, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 20) }, { hlayout(6) })
     local pathLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, -26, 0, 14) })
     local copyPath = UI.iconBtn(headerCard, "Copy", { flat = true, sz = 40, color = "Sub", textSize = 11 })
     copyPath.AnchorPoint = Vector2.new(1, 0); copyPath.Position = UDim2.new(1, 0, 0, 48)
-    local metaLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true, Position = UDim2.fromOffset(0, 68), Size = UDim2.new(1, 0, 0, 30) })
+    -- (cryptic caller/thread/size meta line removed — was clutter)
 
     -- tabs
-    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 120), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
-    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 152), Size = UDim2.new(1, 0, 1, -(152 + 42)) })
+    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 92), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
+    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 124), Size = UDim2.new(1, 0, 1, -(124 + 42)) })
     local scriptArea = make("Frame", { Parent = bodyArea, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) })
     local argsArea = make("ScrollingFrame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { corner(11), stroke("Stroke", 1), pad(10), vlayout(6) })
     local connArea = make("Frame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0) }, { corner(11), stroke("Stroke", 1) })
@@ -1361,6 +1361,29 @@ local function createView(page, cfg)
     -- script tab content
     local modeDD = UI.dropdown(scriptArea, Codegen.Modes, view.codeMode, function(v) view.codeMode = v; if view.selectedEntry then view.renderDetail(view.selectedEntry) end end, 120)
     modeDD.Position = UDim2.fromOffset(0, 0)
+
+    -- call-history picker: when a remote was fired multiple times, pick which call to view
+    local callBtn = make("TextButton", { Parent = scriptArea, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", Position = UDim2.fromOffset(128, 0), Size = UDim2.fromOffset(146, 30), Text = "", Visible = false }, { corner(8), stroke("Stroke", 1, 0.4) })
+    local callLbl = make("TextLabel", { Parent = callBtn, BackgroundTransparency = 1, Font = FONT, TextSize = 12, Text = "", TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(11, 0), Size = UDim2.new(1, -28, 1, 0) })
+    make("TextLabel", { Parent = callBtn, BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 11, Text = "v", TextColor3 = "@Sub", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(12, 12) })
+    local callPop
+    local function closeCallPop() if callPop then callPop:Destroy(); callPop = nil end end
+    track(callBtn.MouseButton1Click:Connect(function()
+        if callPop then closeCallPop(); return end
+        local e = view.selectedEntry; if not (e and e.history and #e.history > 1) then return end
+        local abs, sz = callBtn.AbsolutePosition, callBtn.AbsoluteSize
+        callPop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 5), Size = UDim2.fromOffset(sz.X, math.min(#e.history, 8) * 28 + 8), ZIndex = 80, ClipsDescendants = true }, { corner(8), stroke("StrokeS", 1), pad(4) })
+        local sc = make("ScrollingFrame", { Parent = callPop, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 80 }, { vlayout(2) })
+        for i = #e.history, 1, -1 do
+            local h = e.history[i]
+            local nargs = (h.packed and (h.packed.n or #h.packed)) or 0
+            local o = make("TextButton", { Parent = sc, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26), Text = "#" .. i .. "   " .. (h.time or "") .. "   (" .. nargs .. " args)", Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 81 }, { corner(6), pad(0, 0, 9, 9) })
+            track(o.MouseEnter:Connect(function() o.BackgroundTransparency = 0; o.BackgroundColor3 = Theme.Hover end))
+            track(o.MouseLeave:Connect(function() o.BackgroundTransparency = 1 end))
+            track(o.MouseButton1Click:Connect(function() view.callIdx = i; closeCallPop(); view.renderDetail(e) end))
+        end
+    end))
+
     local code = codeView(make("Frame", { Parent = scriptArea, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 36), Size = UDim2.new(1, 0, 1, -36) }))
     view.code = code
 
@@ -1400,10 +1423,19 @@ local function createView(page, cfg)
 
     --── detail rendering ──
     local function chip(parent, text, colorKey) UI.chip(parent, text, colorKey, { order = #parent:GetChildren() }) end
-    function view._refreshMeta(e)
-        metaLbl.Text = string.format("caller: %s   ·   %s   ·   %d arg%s   ·   ~%db   ·   ×%d   ·   %s",
-            e.callerName or "—", (e.thread or "?"):gsub("^.-: ", ""), e.packed.n or #e.packed, (e.packed.n or #e.packed) == 1 and "" or "s", e.size, e.count, e.time or "—")
+    -- which call in a grouped entry's history we're viewing (nil = newest)
+    local function pickedPacked(e)
+        local n = e.history and #e.history or 0
+        if n == 0 then return e.packed end
+        local idx = math.clamp(view.callIdx or n, 1, n)
+        return (e.history[idx] and e.history[idx].packed) or e.packed
     end
+    function view.refreshCallPicker(e)
+        local n = (e and e.history and #e.history) or 1
+        callBtn.Visible = n > 1
+        callLbl.Text = "Call " .. math.clamp(view.callIdx or n, 1, n) .. " / " .. n
+    end
+    view._refreshMeta = function(e) view.refreshCallPicker(e) end
     function view.renderDetail(e)
         nameLbl.Text = e.name
         for _, c in chipRow:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
@@ -1412,16 +1444,19 @@ local function createView(page, cfg)
         chip(chipRow, e.incoming and "incoming" or "outgoing", "Sub")
         if e.hidden then chip(chipRow, "hidden", "Hidden") end
         pathLbl.Text = e.path or ToString.GetPath(e.remote)
-        view._refreshMeta(e)
+        view.refreshCallPicker(e)
+        local packed = pickedPacked(e)
         local meta = { framework = e.framework, size = e.size, time = e.time }
+        local savedP = e.packed; e.packed = packed
         code.set(cfg.codegen(view.codeMode, e, meta))
+        e.packed = savedP
         -- args tab
         for _, c in argsArea:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
-        local n = e.packed.n or #e.packed
+        local n = packed.n or #packed
         if n == 0 then make("TextLabel", { Parent = argsArea, BackgroundTransparency = 1, Font = FONT, Text = "(no arguments)", TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 18) })
         else
             for i = 1, n do
-                local val = e.packed[i]
+                local val = packed[i]
                 local ok, s = pcall(function() ToString.SetCompress(nil); return ToString.ToString(val, 1) end)
                 ToString.SetCompress(nil)
                 s = ok and s or ("<" .. typeof(val) .. ">")
@@ -1475,7 +1510,7 @@ local function createView(page, cfg)
     track(copyPath.MouseButton1Click:Connect(function() if view.selectedEntry then clip(view.selectedEntry.path or ToString.GetPath(view.selectedEntry.remote)) end end))
 
     function view.select(e)
-        view.selectedEntry = e; view._lastSelCount = e.count
+        view.selectedEntry = e; view._lastSelCount = e.count; view.callIdx = nil
         view.renderDetail(e)
         if connArea.Visible then view.renderConns(e) end
         vlist.invalidate()
@@ -1509,7 +1544,10 @@ local function createView(page, cfg)
         local existing = Settings.Group_calls and view.groupMap[gkey]
         if existing then
             existing.count += 1; existing.packed = packed; existing.got = got; existing.remote = remote; existing.clk = clk; existing.time = os.date("%H:%M:%S")
-            if view.selectedEntry == existing then view._lastSelCount = -1 end  -- force meta refresh next tick
+            existing.history = existing.history or {}
+            existing.history[#existing.history + 1] = keep({ packed = packed, time = existing.time })
+            if #existing.history > 30 then table.remove(existing.history, 1) end
+            if view.selectedEntry == existing then view._lastSelCount = -1 end  -- refresh call picker next tick
         else
             nextId += 1
             local fwk = detectFramework(remote, packed)
@@ -1524,6 +1562,7 @@ local function createView(page, cfg)
                 typeLabel = lbl, fullName = full, shortPath = short,
             }
             e.search = (nm .. " " .. fwk .. " " .. full):lower()
+            e.history = { keep({ packed = packed, time = e.time }) }
             view.entries[#view.entries + 1] = e
             view.byId[e.id] = e
             if Settings.Group_calls then view.groupMap[gkey] = e end
@@ -1595,7 +1634,7 @@ local function createView(page, cfg)
     track(clearBtn.MouseButton1Click:Connect(function()
         view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.typeCounts = {}
         vlist.setItems(view.visible); countPill.Text = "0 logs"; empty.Visible = true; view.refreshFooter()
-        nameLbl.Text = ""; code.set(""); for _, c in chipRow:GetChildren() do if c:IsA("Frame") then c:Destroy() end end; pathLbl.Text = ""; metaLbl.Text = ""
+        nameLbl.Text = ""; code.set(""); for _, c in chipRow:GetChildren() do if c:IsA("Frame") then c:Destroy() end end; pathLbl.Text = ""; callBtn.Visible = false
     end))
 
     --── toolbar actions ──
