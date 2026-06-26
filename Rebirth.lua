@@ -448,6 +448,38 @@ local GETNIL = "local function getNil(name, class)\n    for _, v in getnilinstan
 
 --======================  Networking framework detection  ====================--
 
+-- Obfuscation is a HEURISTIC, never a certainty. We only flag a name when at least
+-- two independent *structural* signals agree — each is a measured property of the
+-- actual string (not a guess about meaning), which keeps false positives low.
+local function looksObfuscated(name)
+    local n = #name
+    if n < 6 then return false end                 -- too short to judge by shape
+    if name:find("%s") then return false end       -- real labels have spaces; gibberish doesn't
+    local lower = name:lower()
+    local vowels, consonants, digits, upper, switches, maxRun, run = 0, 0, 0, 0, 0, 0, 0
+    local prevClass
+    for i = 1, n do
+        local lc  = lower:sub(i, i)
+        local raw = name:sub(i, i)
+        local class
+        if lc:match("[aeiou]") then vowels += 1; class = "v"; run = 0
+        elseif lc:match("%a") then consonants += 1; class = "c"; run += 1; if run > maxRun then maxRun = run end
+        elseif lc:match("%d") then digits += 1; class = "d"; run = 0
+        else class = "s"; run = 0 end
+        if raw:match("%u") then upper += 1 end
+        if prevClass and class ~= prevClass then switches += 1 end
+        prevClass = class
+    end
+    local letters = vowels + consonants
+    local signals = 0
+    if letters > 0 and (vowels / letters) < 0.18 then signals += 1 end          -- almost no vowels (e.g. "qZkXwT")
+    if maxRun >= 5 then signals += 1 end                                         -- 5+ consonants with no vowel between
+    if (digits / n) >= 0.30 then signals += 1 end                               -- heavy digit mixing (hash/ID-like)
+    if upper >= 3 and upper < letters and (switches / n) > 0.55 then signals += 1 end  -- erratic case/class flipping
+    if n >= 18 and (switches / n) > 0.5 then signals += 1 end                    -- long AND choppy
+    return signals >= 2
+end
+
 local function detectFramework(remote, packed)
     local name = remote.Name or ""
     local lname = name:lower()
@@ -464,8 +496,7 @@ local function detectFramework(remote, packed)
     elseif has("knit") or has("/re/") or has("/rf/") or has("knitremotes") then return "Knit"
     elseif has("aeroremote") or has("aero/") then return "Aero" end
     for i = 1, (packed.n or #packed) do if typeof(packed[i]) == "buffer" then return "Buffer" end end
-    if #name >= 16 and not lname:match("[aeiou][aeiou]") then return "Obfuscated" end
-    if #name <= 2 then return "Obfuscated" end
+    if looksObfuscated(name) then return "Obfuscated" end
     return "Roblox"
 end
 
@@ -756,13 +787,13 @@ local function viewport() local c = workspace.CurrentCamera; return (c and c.Vie
 local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12) })
 -- animated shiny-gold border: a bright streak slowly travels around the window edge
 -- WHITE stroke base so the gradient shows at FULL intensity (a colored base multiplies/darkens it)
-local winStroke = make("UIStroke", { Parent = Window, Color = Color3.fromRGB(255, 255, 255), Thickness = 2, Transparency = 0.12, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
+local winStroke = make("UIStroke", { Parent = Window, Color = Color3.fromRGB(255, 255, 255), Thickness = 2, Transparency = 0.06, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
 local winShine = make("UIGradient", { Parent = winStroke, Rotation = 0, Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0,    Color3.fromRGB(150, 112, 56)),
-    ColorSequenceKeypoint.new(0.42, Color3.fromRGB(201, 156, 88)),
-    ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(255, 246, 214)),
-    ColorSequenceKeypoint.new(0.58, Color3.fromRGB(201, 156, 88)),
-    ColorSequenceKeypoint.new(1,    Color3.fromRGB(150, 112, 56)),
+    ColorSequenceKeypoint.new(0,    Color3.fromRGB(178, 135, 70)),
+    ColorSequenceKeypoint.new(0.42, Color3.fromRGB(214, 168, 96)),
+    ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(255, 248, 222)),
+    ColorSequenceKeypoint.new(0.58, Color3.fromRGB(214, 168, 96)),
+    ColorSequenceKeypoint.new(1,    Color3.fromRGB(178, 135, 70)),
 }) })
 do  -- smooth per-frame shine traveling around the edge + gentle breathe
     local t = 0
@@ -770,7 +801,7 @@ do  -- smooth per-frame shine traveling around the edge + gentle breathe
         if not winShine.Parent then return end
         t += dt
         winShine.Rotation = (t * 70) % 360
-        winStroke.Transparency = 0.12 + math.sin(t * 2.5) * 0.08
+        winStroke.Transparency = 0.06 + math.sin(t * 2.5) * 0.05   -- floor ~0.01, so the whole edge stays gold
     end))
 end
 make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(12), grad(90, Color3.fromRGB(48, 36, 23), Theme.Bg) })
@@ -1404,14 +1435,17 @@ local function createView(page, cfg)
             -- sub-row: one individual fire of the grouped remote
             row.Arrow.Visible = false; row.Num.Text = ""; row.TypePill.Visible = false; row.Typ.Text = ""; row.CountPill.Visible = false
             local c, idx = item.call, item.idx
+            local subSel = (view.selectedEntry == e and view.callIdx == idx)
             local nargs = (c.packed and (c.packed.n or #c.packed)) or 0
             row.Path.Text = "    ·   #" .. idx .. "   ·   " .. (c.time or "") .. "   ·   " .. nargs .. " arg" .. (nargs == 1 and "" or "s")
-            row.Path.TextColor3 = Theme.Faint
-            row:SetAttribute("sel", false)
-            row.BackgroundTransparency = (view.selectedEntry == e and view.callIdx == idx) and 0.45 or 1
+            row.Path.TextColor3 = subSel and Theme.Accent2 or Theme.Faint
+            row:SetAttribute("sel", subSel)                       -- so hover/leave doesn't wipe the selection
+            row.BackgroundColor3 = subSel and Theme.Accent or Theme.Panel2
+            row.BackgroundTransparency = subSel and 0.8 or 1      -- selected call gets a warm gold wash
             return
         end
         -- normal grouped/entry row
+        row.BackgroundColor3 = Theme.Panel2                       -- reset (pooled row may have been a gold sub-row)
         local sel = (e == view.selectedEntry)
         row:SetAttribute("sel", sel)
         local tc = typeColor(e.typeLabel)
