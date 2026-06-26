@@ -1144,9 +1144,9 @@ end
 local function codeView(parent)
     local frame = make("Frame", { Parent = parent, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ClipsDescendants = true }, { corner(10), stroke("Stroke", 1) })
     local gutBg = make("Frame", { Parent = frame, BackgroundColor3 = "@Panel", BorderSizePixel = 0, Size = UDim2.new(0, 44, 1, 0), ClipsDescendants = true })
-    local gutter = make("TextLabel", { Parent = gutBg, BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 13, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Right, TextYAlignment = Enum.TextYAlignment.Top, Text = "1", Position = UDim2.fromOffset(0, 12), Size = UDim2.new(1, -9, 0, 0), AutomaticSize = Enum.AutomaticSize.Y })
+    local gutter = make("TextLabel", { Parent = gutBg, BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 14, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Right, TextYAlignment = Enum.TextYAlignment.Top, Text = "1", Position = UDim2.fromOffset(0, 12), Size = UDim2.new(1, -9, 0, 0), AutomaticSize = Enum.AutomaticSize.Y })
     local scroll = make("ScrollingFrame", { Parent = frame, BackgroundTransparency = 1, BorderSizePixel = 0, Position = UDim2.fromOffset(50, 0), Size = UDim2.new(1, -50, 1, 0), ScrollBarThickness = 5, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.XY, ScrollingDirection = Enum.ScrollingDirection.XY, ClipsDescendants = true })
-    local box = make("TextBox", { Parent = scroll, BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.XY, Size = UDim2.fromOffset(0, 0), Font = FONT_MONO, TextSize = 13, RichText = true, TextEditable = false, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, ClearTextOnFocus = false, MultiLine = true, TextWrapped = false, Text = "" }, { pad(12, 12, 8, 12) })
+    local box = make("TextLabel", { Parent = scroll, BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.XY, Size = UDim2.fromOffset(0, 0), Font = FONT_MONO, TextSize = 14, RichText = true, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = false, Text = "" }, { pad(12, 12, 8, 12) })
     track(scroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function() gutter.Position = UDim2.fromOffset(0, 12 - scroll.CanvasPosition.Y) end))
     local api = { Raw = "" }
     function api.set(raw)
@@ -1406,10 +1406,14 @@ local function createView(page, cfg)
         o = o or {}; o.text = text; o.order = #actionBar:GetChildren(); o.textSize = o.textSize or 12
         local b, lbl = UI.button(actionBar, o)
         b.Size = UDim2.new(0, 0, 1, 0)
+        -- Keep buttons neutral; only the destructive "Bad" (Block) tint stays colored, so the
+        -- action row reads clean instead of rainbow-colored.
         if o.tint and not o.primary then
             local col = (type(o.tint) == "string") and Theme[o.tint] or o.tint
-            lbl.TextColor3 = col
-            local s = b:FindFirstChildOfClass("UIStroke"); if s then s.Color = col; s.Transparency = 0.25 end
+            if col == Theme.Bad then
+                lbl.TextColor3 = col
+                local s = b:FindFirstChildOfClass("UIStroke"); if s then s.Color = col; s.Transparency = 0.25 end
+            end
         end
         return b
     end
