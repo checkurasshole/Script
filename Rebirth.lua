@@ -755,20 +755,24 @@ local function viewport() local c = workspace.CurrentCamera; return (c and c.Vie
 
 local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12) })
 -- animated shiny-gold border: a bright streak slowly travels around the window edge
-local winStroke = make("UIStroke", { Parent = Window, Color = Color3.fromRGB(150, 116, 64), Thickness = 2, Transparency = 0.05, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
+-- WHITE stroke base so the gradient shows at FULL intensity (a colored base multiplies/darkens it)
+local winStroke = make("UIStroke", { Parent = Window, Color = Color3.fromRGB(255, 255, 255), Thickness = 2, Transparency = 0.12, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
 local winShine = make("UIGradient", { Parent = winStroke, Rotation = 0, Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0,    Color3.fromRGB(116, 88, 48)),
-    ColorSequenceKeypoint.new(0.46, Color3.fromRGB(150, 116, 64)),
-    ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(255, 247, 216)),
-    ColorSequenceKeypoint.new(0.54, Color3.fromRGB(150, 116, 64)),
-    ColorSequenceKeypoint.new(1,    Color3.fromRGB(116, 88, 48)),
+    ColorSequenceKeypoint.new(0,    Color3.fromRGB(150, 112, 56)),
+    ColorSequenceKeypoint.new(0.42, Color3.fromRGB(201, 156, 88)),
+    ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(255, 246, 214)),
+    ColorSequenceKeypoint.new(0.58, Color3.fromRGB(201, 156, 88)),
+    ColorSequenceKeypoint.new(1,    Color3.fromRGB(150, 112, 56)),
 }) })
-task.spawn(function()
-    while winShine and winShine.Parent do
-        winShine.Rotation = (winShine.Rotation + 3) % 360
-        task.wait(0.03)
-    end
-end)
+do  -- smooth per-frame shine traveling around the edge + gentle breathe
+    local t = 0
+    track(RunService.Heartbeat:Connect(function(dt)
+        if not winShine.Parent then return end
+        t += dt
+        winShine.Rotation = (t * 70) % 360
+        winStroke.Transparency = 0.12 + math.sin(t * 2.5) * 0.08
+    end))
+end
 make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(12), grad(90, Color3.fromRGB(48, 36, 23), Theme.Bg) })
 
 local UIScaleObj = make("UIScale", { Parent = Window, Scale = 1 })
@@ -1088,10 +1092,10 @@ end
 --==============================  Nav rail  ================================--
 
 -- top horizontal nav strip (replaces the left rail) — frees the full width for the spy
-local navStrip = make("Frame", { Name = "NavStrip", Parent = contentArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Position = UDim2.fromOffset(12, 4), Size = UDim2.new(1, -24, 0, 40), ClipsDescendants = true }, { corner(12), stroke("Stroke", 1, 0.5) })
+local navStrip = make("Frame", { Name = "NavStrip", Parent = contentArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Position = UDim2.fromOffset(12, 4), Size = UDim2.new(1, -24, 0, 34), ClipsDescendants = true }, { corner(10), stroke("Stroke", 1, 0.5) })
 local navRow = make("Frame", { Parent = navStrip, BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 0), Size = UDim2.new(1, -190, 1, 0) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 4), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }) })
 local railIndicator = make("Frame", { Parent = navStrip, BackgroundColor3 = "@Accent", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Size = UDim2.fromOffset(40, 3), Position = UDim2.new(0, 12, 1, -1), ZIndex = 3 }, { corner(2), grad(0, Theme.Accent, Theme.Accent2) })
-local PageHolder = make("Frame", { Name = "Pages", Parent = contentArea, BackgroundColor3 = "@Panel", BorderSizePixel = 0, Position = UDim2.fromOffset(12, 50), Size = UDim2.new(1, -24, 1, -58) }, { corner(12), stroke("Stroke", 1, 0.5) })
+local PageHolder = make("Frame", { Name = "Pages", Parent = contentArea, BackgroundColor3 = "@Panel", BorderSizePixel = 0, Position = UDim2.fromOffset(12, 44), Size = UDim2.new(1, -24, 1, -52) }, { corner(12), stroke("Stroke", 1, 0.5) })
 
 local Pages, navBtns, activePage = {}, {}, nil
 local function selectPage(name)
@@ -1126,8 +1130,8 @@ local function addNav(name, kind, label)
         corner(8),
         make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 7), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }),
         make("UIPadding", { PaddingLeft = UDim.new(0, 11), PaddingRight = UDim.new(0, 12) }),
-        make("ImageLabel", { Name = "Icon", BackgroundTransparency = 1, Image = NAV_ICON[kind] or "", ImageColor3 = Theme.Accent, Size = UDim2.fromOffset(17, 17), LayoutOrder = 1 }),
-        make("TextLabel", { Name = "Lbl", BackgroundTransparency = 1, Font = FONT, Text = label, TextColor3 = "@Sub", TextSize = 13, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 2 }),
+        make("ImageLabel", { Name = "Icon", BackgroundTransparency = 1, Image = NAV_ICON[kind] or "", ImageColor3 = Theme.Accent, Size = UDim2.fromOffset(15, 15), LayoutOrder = 1 }),
+        make("TextLabel", { Name = "Lbl", BackgroundTransparency = 1, Font = FONT, Text = label, TextColor3 = "@Sub", TextSize = 12, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 2 }),
     })
     track(b.MouseEnter:Connect(function() if activePage ~= name then TweenService:Create(b, EASE_F, { BackgroundTransparency = 0.9 }):Play() end end))
     track(b.MouseLeave:Connect(function() if activePage ~= name then TweenService:Create(b, EASE_F, { BackgroundTransparency = 1 }):Play() end end))
