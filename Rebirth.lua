@@ -755,17 +755,17 @@ local function viewport() local c = workspace.CurrentCamera; return (c and c.Vie
 
 local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12) })
 -- animated shiny-gold border: a bright streak slowly travels around the window edge
-local winStroke = make("UIStroke", { Parent = Window, Color = Theme.Accent, Thickness = 1.6, Transparency = 0.2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
+local winStroke = make("UIStroke", { Parent = Window, Color = Color3.fromRGB(150, 116, 64), Thickness = 2, Transparency = 0.05, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
 local winShine = make("UIGradient", { Parent = winStroke, Rotation = 0, Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Theme.Accent),
-    ColorSequenceKeypoint.new(0.42, Theme.Accent),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 241, 204)),
-    ColorSequenceKeypoint.new(0.58, Theme.Accent),
-    ColorSequenceKeypoint.new(1, Theme.Accent),
+    ColorSequenceKeypoint.new(0,    Color3.fromRGB(116, 88, 48)),
+    ColorSequenceKeypoint.new(0.46, Color3.fromRGB(150, 116, 64)),
+    ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(255, 247, 216)),
+    ColorSequenceKeypoint.new(0.54, Color3.fromRGB(150, 116, 64)),
+    ColorSequenceKeypoint.new(1,    Color3.fromRGB(116, 88, 48)),
 }) })
 task.spawn(function()
     while winShine and winShine.Parent do
-        winShine.Rotation = (winShine.Rotation + 2) % 360
+        winShine.Rotation = (winShine.Rotation + 3) % 360
         task.wait(0.03)
     end
 end)
@@ -982,22 +982,24 @@ end
 
 --==============================  Topbar  ==================================--
 
-local Topbar = make("Frame", { Name = "Topbar", Parent = Window, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 50) })
--- macOS-style traffic-light window controls (red = close, yellow = minimize, green = restore)
+-- title strip (top tier) holds the macOS traffic-light controls
+local titleStrip = make("Frame", { Name = "TitleStrip", Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 26) }, { make("Frame", { BackgroundColor3 = "@Stroke", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 1) }) })
+-- header row (second tier): R logo + brand on the left, capturing/controls on the right
+local Topbar = make("Frame", { Name = "Topbar", Parent = Window, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 48) })
 local function tlDot(color, x)
-    return make("TextButton", { Parent = Topbar, AutoButtonColor = true, BorderSizePixel = 0, BackgroundColor3 = color, Position = UDim2.fromOffset(x, 19), Size = UDim2.fromOffset(12, 12), Text = "" }, { corner(6) })
+    return make("TextButton", { Parent = titleStrip, AutoButtonColor = true, BorderSizePixel = 0, BackgroundColor3 = color, Position = UDim2.fromOffset(x, 7), Size = UDim2.fromOffset(12, 12), Text = "" }, { corner(6) })
 end
 local trafficR = tlDot(Color3.fromRGB(237, 106, 94), 16)
 local trafficY = tlDot(Color3.fromRGB(245, 191, 79), 34)
 local trafficG = tlDot(Color3.fromRGB(98, 197, 84), 52)
-local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, ClipsDescendants = true, Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(76, 12) }, {
+local brandDot = make("Frame", { Parent = Topbar, BackgroundColor3 = "@Accent", BorderSizePixel = 0, ClipsDescendants = true, Size = UDim2.fromOffset(26, 26), Position = UDim2.fromOffset(18, 11) }, {
     corner(13), grad(55, Theme.Accent, Theme.Accent2),
     -- glossy top highlight (shine) — clipped to the badge's rounded shape
     make("Frame", { Name = "Gloss", BackgroundColor3 = Color3.fromRGB(255, 250, 235), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0.55, 0) }, { make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1) }) }) }),
     make("TextLabel", { BackgroundTransparency = 1, Font = FONT_BOLD, Text = "R", TextColor3 = Color3.fromRGB(34, 26, 15), TextSize = 16, Size = UDim2.new(1, 0, 1, 0) }),
 })
-make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Rebirth", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(112, 0), Size = UDim2.fromOffset(90, 50) })
-make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT, Text = "v" .. VERSION, TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(186, 1), Size = UDim2.fromOffset(50, 50) })
+make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Rebirth", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(54, 0), Size = UDim2.fromOffset(90, 48) })
+make("TextLabel", { Parent = Topbar, BackgroundTransparency = 1, Font = FONT, Text = "v" .. VERSION, TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(128, 0), Size = UDim2.fromOffset(50, 48) })
 
 -- live "Capturing" badge (top-right, green, with an animated signal/equalizer icon — matches the v2.0 layout)
 local statusPill = make("Frame", { Parent = Topbar, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -90, 0.5, 0), BackgroundColor3 = "@Good", BackgroundTransparency = 0.82, BorderSizePixel = 0, Size = UDim2.fromOffset(0, 26), AutomaticSize = Enum.AutomaticSize.X }, { corner(13), stroke("Good", 1, 0.5), make("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 12) }), hlayout(7) })
@@ -1048,7 +1050,7 @@ do
     end))
 end
 
-local contentArea = make("Frame", { Name = "Content", Parent = Window, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, 0, 1, -74) })
+local contentArea = make("Frame", { Name = "Content", Parent = Window, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 74), Size = UDim2.new(1, 0, 1, -98) })
 
 -- status bar (bottom)
 local statusBar = make("Frame", { Name = "StatusBar", Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 24) }, { make("Frame", { BackgroundColor3 = "@Stroke", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 1) }) })
