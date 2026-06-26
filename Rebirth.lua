@@ -136,6 +136,7 @@ local Settings = keep({
     Group_calls        = true,
     Ignore_spammy_logs = false,
     Maximum_log_amount = 3000,
+    Calls_per_remote   = 200,    -- per-grouped-remote call history kept (expandable sub-rows / call picker)
     Log_which_calls    = 1,      -- 1 game · 2 all · 3 executor
     Highlight_syntax   = true,
     Codegen_mode       = "Readable",
@@ -1442,6 +1443,7 @@ end
 
 local AllViews = {}
 local ExplorerReveal   -- set by the Explorer page; lets a spy row jump to its instance in the tree
+local explorerTick     -- set by the Explorer page; renders its virtualized tree each frame (so scrolling repaints)
 
 local function createView(page, cfg)
     local view = {
@@ -1542,7 +1544,7 @@ local function createView(page, cfg)
             local c, idx = item.call, item.idx
             local subSel = (view.selectedEntry == e and view.callIdx == idx)
             local nargs = (c.packed and (c.packed.n or #c.packed)) or 0
-            row.Path.Text = "    ·   #" .. idx .. "   ·   " .. (c.time or "") .. "   ·   " .. nargs .. " arg" .. (nargs == 1 and "" or "s")
+            row.Path.Text = "    ·   #" .. (c.n or idx) .. "   ·   " .. (c.time or "") .. "   ·   " .. nargs .. " arg" .. (nargs == 1 and "" or "s")
             row.Path.TextColor3 = subSel and Theme.Accent2 or Theme.Faint
             row:SetAttribute("sel", subSel)                       -- so hover/leave doesn't wipe the selection
             row.BackgroundColor3 = subSel and Theme.Accent or Theme.Panel2
@@ -1625,7 +1627,7 @@ local function createView(page, cfg)
         for i = #e.history, 1, -1 do
             local h = e.history[i]
             local nargs = (h.packed and (h.packed.n or #h.packed)) or 0
-            local o = make("TextButton", { Parent = sc, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26), Text = "#" .. i .. "   " .. (h.time or "") .. "   (" .. nargs .. " args)", Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 81 }, { corner(6), pad(0, 0, 9, 9) })
+            local o = make("TextButton", { Parent = sc, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26), Text = "#" .. (h.n or i) .. "   " .. (h.time or "") .. "   (" .. nargs .. " args)", Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 81 }, { corner(6), pad(0, 0, 9, 9) })
             o.MouseEnter:Connect(function() o.BackgroundTransparency = 0; o.BackgroundColor3 = Theme.Hover end)
             o.MouseLeave:Connect(function() o.BackgroundTransparency = 1 end)
             o.MouseButton1Click:Connect(function() view.callIdx = i; closeCallPop(); view.renderDetail(e) end)
@@ -1691,7 +1693,9 @@ local function createView(page, cfg)
     function view.refreshCallPicker(e)
         local n = (e and e.history and #e.history) or 1
         callBtn.Visible = n > 1
-        callLbl.Text = "Call " .. math.clamp(view.callIdx or n, 1, n) .. " / " .. n
+        local sel = math.clamp(view.callIdx or n, 1, n)
+        local trueN = (e and e.history and e.history[sel] and e.history[sel].n) or sel
+        callLbl.Text = "Call #" .. trueN .. " / " .. ((e and e.count) or n)
     end
     view._refreshMeta = function(e) view.refreshCallPicker(e) end
     function view.renderDetail(e, keepScroll)
@@ -1795,8 +1799,12 @@ local function createView(page, cfg)
         if existing then
             existing.count += 1; existing.packed = packed; existing.got = got; existing.remote = remote; existing.clk = clk; existing.time = os.date("%H:%M:%S")
             existing.history = existing.history or {}
-            existing.history[#existing.history + 1] = { packed = packed, time = existing.time }
-            if #existing.history > 30 then table.remove(existing.history, 1) end
+            existing.history[#existing.history + 1] = { packed = packed, time = existing.time, n = existing.count }  -- n = TRUE call number
+            if #existing.history > math.max(Settings.Calls_per_remote, 5) then
+                table.remove(existing.history, 1)
+                -- the array just shifted down by one — keep a selected sub-row pointing at the SAME call
+                if view.selectedEntry == existing and view.callIdx then view.callIdx = math.max(1, view.callIdx - 1) end
+            end
             if view.selectedEntry == existing then view._lastSelCount = -1 end  -- refresh call picker next tick
         else
             nextId += 1
@@ -1812,7 +1820,7 @@ local function createView(page, cfg)
                 typeLabel = lbl, fullName = full, shortPath = short,
             }
             e.search = (nm .. " " .. fwk .. " " .. full):lower()
-            e.history = { { packed = packed, time = e.time } }
+            e.history = { { packed = packed, time = e.time, n = 1 } }
             view.entries[#view.entries + 1] = e
             view.byId[e.id] = e
             if Settings.Group_calls then view.groupMap[gkey] = e end
@@ -1836,6 +1844,11 @@ local function createView(page, cfg)
             view.groupMap = {}; view.byId = {}
             for i = from, #E do local e = E[i]; newE[#newE + 1] = e; view.byId[e.id] = e; if Settings.Group_calls then view.groupMap[e.gkey] = e end end
             view.entries = newE; view.dirtyFilter = true
+            -- drop expanded refs for trimmed entries (else next(view.expanded) stays truthy → re-render every frame)
+            if view.expanded and next(view.expanded) then
+                local surv = {}; for _, e in newE do surv[e] = true end
+                for e in pairs(view.expanded) do if not surv[e] then view.expanded[e] = nil end end
+            end
         end
         return true
     end
@@ -2526,6 +2539,7 @@ do
     -- ── init + search ──
     expanded[game] = true
     refreshTree(); renderProps(nil); loadRMD()   -- fetch real Studio icon indices in the background
+    explorerTick = function() treeList.tick() end   -- driven by the runtime loop so scrolling repaints the window
     track(refreshBtn.MouseButton1Click:Connect(function() refreshTree(); if selectedInst then renderProps(selectedInst) end end))
     local searchToken = 0
     track(search:GetPropertyChangedSignal("Text"):Connect(function()
@@ -2759,6 +2773,7 @@ do
     tog("Group identical calls", "Collapse repeats into one row with ×count.", "Group_calls")
     tog("Ignore spammy logs", "Auto-ignore remotes firing >80/s.", "Ignore_spammy_logs")
     num("Maximum logs", "Entries kept in memory.", "Maximum_log_amount", 100, 50000)
+    num("Calls per remote", "How many fires to keep per grouped remote (expand arrow / call picker).", "Calls_per_remote", 20, 5000)
     tog("Syntax highlighting", "Color generated code.", "Highlight_syntax")
     ch("Default codegen", "Inspector code style.", "Codegen_mode", Codegen.Modes)
     ch("Log which calls", "Filter captures by caller.", "Log_which_calls", { "Game only", "All calls", "Executor only" }, { "Game only", "All calls", "Executor only" })
@@ -2800,6 +2815,7 @@ track(RunService.RenderStepped:Connect(function()
     frameCount += 1
     for _, v in AllViews do v.tick() end
     if httpTick then httpTick() end
+    if explorerTick then explorerTick() end
 end))
 task.spawn(function()
     while task.wait(1) do
