@@ -1291,8 +1291,9 @@ local function createView(page, cfg)
     end
 
     --── log table: column header · body · per-type footer ──
-    local COLS = { typ = 24, path = 64 }
+    local COLS = { typ = 48, path = 82 }
     local listHeader = make("Frame", { Parent = listPanel, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26) })
+    make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "#", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(4, 0), Size = UDim2.fromOffset(22, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Type", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.typ, 0), Size = UDim2.fromOffset(84, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Remote Path", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.path, 0), Size = UDim2.new(1, -COLS.path - 52, 0, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Count", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 0), Size = UDim2.fromOffset(46, 26) })
@@ -1309,10 +1310,12 @@ local function createView(page, cfg)
     local function buildRow()
         local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 34) }, {
             corner(7),
-            -- colored, rounded TYPE pill on the left (the target uses a color block, not a dot)
-            make("Frame", { Name = "TypePill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(8, 17), Size = UDim2.fromOffset(10, 16) }, { corner(5) }),
-            make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(24, 0), Size = UDim2.fromOffset(34, 34) }),
-            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(64, 0), Size = UDim2.new(1, -112, 1, 0) }),
+            -- row index number (1, 2, 3 …)
+            make("TextLabel", { Name = "Num", BackgroundTransparency = 1, Font = FONT_MONO, TextSize = 11, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromOffset(4, 0), Size = UDim2.fromOffset(22, 34) }),
+            -- colored, rounded TYPE pill
+            make("Frame", { Name = "TypePill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(32, 17), Size = UDim2.fromOffset(10, 16) }, { corner(5) }),
+            make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(48, 0), Size = UDim2.fromOffset(30, 34) }),
+            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(82, 0), Size = UDim2.new(1, -130, 1, 0) }),
             -- COUNT pill (right, tinted to the type color)
             make("Frame", { Name = "CountPill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", BackgroundTransparency = 0.8, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X }, {
                 corner(9), make("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }),
@@ -1323,10 +1326,11 @@ local function createView(page, cfg)
         track(row.MouseLeave:Connect(function() if not row:GetAttribute("sel") then TweenService:Create(row, EASE_F, { BackgroundTransparency = 1 }):Play() end end))
         return row
     end
-    local function bindRow(row, e)
+    local function bindRow(row, e, i)
         local sel = (e == view.selectedEntry)
         row:SetAttribute("sel", sel)
         local tc = typeColor(e.typeLabel)
+        row.Num.Text = tostring(i or "")
         row.TypePill.BackgroundColor3 = tc
         row.Typ.Text = shortType(e.typeLabel or e.class)
         row.Typ.TextColor3 = tc
