@@ -776,6 +776,7 @@ local Notify
 do
     local holder = make("Frame", { Name = "Toasts", Parent = ScreenGui, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -16), Size = UDim2.fromOffset(320, 500), BackgroundTransparency = 1, ZIndex = 60 }, {
         make("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, VerticalAlignment = Enum.VerticalAlignment.Bottom, HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim.new(0, 9) }),
+        make("UIScale", { Scale = UIScaleObj.Scale }),
     })
     function Notify(title, text, colorKey, dur)
         colorKey, dur = colorKey or "Accent", dur or 4
@@ -864,7 +865,7 @@ function UI.dropdown(parent, opts, current, onPick, width)
     track(btn.MouseButton1Click:Connect(function()
         if pop then close(); return end
         local abs, sz = btn.AbsolutePosition, btn.AbsoluteSize
-        pop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 5), Size = UDim2.fromOffset(sz.X, math.min(#opts, 9) * 28 + 8), ZIndex = 80, ClipsDescendants = true }, { corner(8), stroke("StrokeS", 1), pad(4) })
+        pop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 5), Size = UDim2.fromOffset(width or 130, math.min(#opts, 9) * 28 + 8), ZIndex = 80, ClipsDescendants = true }, { corner(8), stroke("StrokeS", 1), pad(4), make("UIScale", { Scale = UIScaleObj.Scale }) })
         local sc = make("ScrollingFrame", { Parent = pop, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 80 }, { vlayout(2) })
         for _, opt in opts do
             local o = make("TextButton", { Parent = sc, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26), Text = tostring(opt), Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 81 }, { corner(6), pad(0, 0, 9, 9) })
@@ -1166,7 +1167,7 @@ end
 local Runner
 do
     local dim = make("Frame", { Name = "RunnerDim", Parent = ScreenGui, BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 90 })
-    local panel = make("Frame", { Parent = dim, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), BackgroundColor3 = "@Panel", BorderSizePixel = 0, Size = UDim2.fromOffset(560, 380), ZIndex = 91 }, { corner(12), stroke("StrokeS", 1) })
+    local panel = make("Frame", { Parent = dim, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), BackgroundColor3 = "@Panel", BorderSizePixel = 0, Size = UDim2.fromOffset(560, 380), ZIndex = 91 }, { corner(12), stroke("StrokeS", 1), make("UIScale", { Scale = UIScaleObj.Scale }) })
     shadow(panel, 50, 0.4)
     local title = make("TextLabel", { Parent = panel, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Runner", TextColor3 = "@Text", TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(16, 12), Size = UDim2.new(1, -120, 0, 22), ZIndex = 92 })
     local sub = make("TextLabel", { Parent = panel, BackgroundTransparency = 1, Font = FONT_REG, Text = "", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(16, 32), Size = UDim2.new(1, -120, 0, 16), ZIndex = 92 })
@@ -1371,7 +1372,7 @@ local function createView(page, cfg)
         if callPop then closeCallPop(); return end
         local e = view.selectedEntry; if not (e and e.history and #e.history > 1) then return end
         local abs, sz = callBtn.AbsolutePosition, callBtn.AbsoluteSize
-        callPop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 5), Size = UDim2.fromOffset(sz.X, math.min(#e.history, 8) * 28 + 8), ZIndex = 80, ClipsDescendants = true }, { corner(8), stroke("StrokeS", 1), pad(4) })
+        callPop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 5), Size = UDim2.fromOffset(146, math.min(#e.history, 8) * 28 + 8), ZIndex = 80, ClipsDescendants = true }, { corner(8), stroke("StrokeS", 1), pad(4), make("UIScale", { Scale = UIScaleObj.Scale }) })
         local sc = make("ScrollingFrame", { Parent = callPop, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 80 }, { vlayout(2) })
         for i = #e.history, 1, -1 do
             local h = e.history[i]
@@ -1539,7 +1540,7 @@ local function createView(page, cfg)
         if existing then
             existing.count += 1; existing.packed = packed; existing.got = got; existing.remote = remote; existing.clk = clk; existing.time = os.date("%H:%M:%S")
             existing.history = existing.history or {}
-            existing.history[#existing.history + 1] = keep({ packed = packed, time = existing.time })
+            existing.history[#existing.history + 1] = { packed = packed, time = existing.time }
             if #existing.history > 30 then table.remove(existing.history, 1) end
             if view.selectedEntry == existing then view._lastSelCount = -1 end  -- refresh call picker next tick
         else
@@ -1556,7 +1557,7 @@ local function createView(page, cfg)
                 typeLabel = lbl, fullName = full, shortPath = short,
             }
             e.search = (nm .. " " .. fwk .. " " .. full):lower()
-            e.history = { keep({ packed = packed, time = e.time }) }
+            e.history = { { packed = packed, time = e.time } }
             view.entries[#view.entries + 1] = e
             view.byId[e.id] = e
             if Settings.Group_calls then view.groupMap[gkey] = e end
