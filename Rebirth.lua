@@ -1230,6 +1230,9 @@ local TYPE_COLOR = {
     Invoke       = Color3.fromRGB(152, 140, 255),
 }
 local function typeColor(label) return TYPE_COLOR[label] or Theme.Sub end
+-- short labels for the row "Type" column (RemoteEvent -> RE, etc.)
+local SHORT_TYPE = { RemoteEvent = "RE", FireServer = "FS", InvokeServer = "IS", InvokeClient = "IC", Unreliable = "UR", Fire = "Fire", Invoke = "Inv" }
+local function shortType(label) return SHORT_TYPE[label] or label end
 local function commaize(n)
     local s = tostring(math.floor(n))
     local k = 1
@@ -1287,7 +1290,7 @@ local function createView(page, cfg)
     end
 
     --── log table: column header · body · per-type footer ──
-    local COLS = { typ = 26, path = 112 }
+    local COLS = { typ = 24, path = 64 }
     local listHeader = make("Frame", { Parent = listPanel, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Type", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.typ, 0), Size = UDim2.fromOffset(84, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Remote Path", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.path, 0), Size = UDim2.new(1, -COLS.path - 52, 0, 26) })
@@ -1307,8 +1310,8 @@ local function createView(page, cfg)
             corner(7),
             -- colored, rounded TYPE pill on the left (the target uses a color block, not a dot)
             make("Frame", { Name = "TypePill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(8, 17), Size = UDim2.fromOffset(10, 16) }, { corner(5) }),
-            make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(26, 0), Size = UDim2.fromOffset(80, 34) }),
-            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(112, 0), Size = UDim2.new(1, -160, 1, 0) }),
+            make("TextLabel", { Name = "Typ", BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(24, 0), Size = UDim2.fromOffset(34, 34) }),
+            make("TextLabel", { Name = "Path", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Sub", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(64, 0), Size = UDim2.new(1, -112, 1, 0) }),
             -- COUNT pill (right, tinted to the type color)
             make("Frame", { Name = "CountPill", BorderSizePixel = 0, BackgroundColor3 = "@Accent", BackgroundTransparency = 0.8, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X }, {
                 corner(9), make("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }),
@@ -1324,7 +1327,7 @@ local function createView(page, cfg)
         row:SetAttribute("sel", sel)
         local tc = typeColor(e.typeLabel)
         row.TypePill.BackgroundColor3 = tc
-        row.Typ.Text = e.typeLabel or e.class
+        row.Typ.Text = shortType(e.typeLabel or e.class)
         row.Typ.TextColor3 = tc
         row.Path.Text = (e.framework ~= "Roblox" and ("[" .. e.framework .. "] ") or "") .. (e.shortPath or e.fullName or e.name)
         local cp, lbl = row.CountPill, row.CountPill.Lbl
@@ -1338,14 +1341,11 @@ local function createView(page, cfg)
 
     --── detail panel ──
     -- compact boxless header (no separate panel/section — just name, type chips, path)
-    local headerCard = make("Frame", { Parent = detail, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 52) })
-    local nameLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "", TextColor3 = "@Text", TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 20) })
-    local chipRow = make("Frame", { Parent = headerCard, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 22), Size = UDim2.new(1, 0, 0, 18) }, { hlayout(6) })
-    local pathLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(0, 44), Size = UDim2.new(1, 0, 0, 14) })
+    -- detail header (name/chips/path) removed — that info is already in the generated code
 
     -- tabs
-    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 58), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
-    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 90), Size = UDim2.new(1, 0, 1, -(90 + 38)) })
+    local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 2), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
+    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 34), Size = UDim2.new(1, 0, 1, -(34 + 38)) })
     local scriptArea = make("Frame", { Parent = bodyArea, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) })
     local argsArea = make("ScrollingFrame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { corner(11), stroke("Stroke", 1), pad(10), vlayout(6) })
     local connArea = make("Frame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0) }, { corner(11), stroke("Stroke", 1) })
@@ -1395,7 +1395,7 @@ local function createView(page, cfg)
         b.BackgroundTransparency = 1; b.Lbl.TextColor3 = Theme.Sub
         tabBtns[id] = b
     end
-    addTab("script", "Script"); addTab("args", "Arguments"); addTab("conns", "Connections")
+    addTab("script", "Script"); addTab("args", "Args"); addTab("conns", "Conns")
 
     -- action bar (per-capture) — single horizontal row, scrolls sideways if it overflows
     local actionBar = make("ScrollingFrame", { Parent = detail, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 32), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X, ScrollingDirection = Enum.ScrollingDirection.X }, {
@@ -1429,13 +1429,6 @@ local function createView(page, cfg)
     end
     view._refreshMeta = function(e) view.refreshCallPicker(e) end
     function view.renderDetail(e)
-        nameLbl.Text = e.name
-        for _, c in chipRow:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
-        chip(chipRow, e.class, entryTag(e))
-        if e.framework ~= "Roblox" then chip(chipRow, e.framework, "Framework") end
-        chip(chipRow, e.incoming and "incoming" or "outgoing", "Sub")
-        if e.hidden then chip(chipRow, "hidden", "Hidden") end
-        pathLbl.Text = e.path or ToString.GetPath(e.remote)
         view.refreshCallPicker(e)
         local packed = pickedPacked(e)
         local meta = { framework = e.framework, size = e.size, time = e.time }
@@ -1625,7 +1618,7 @@ local function createView(page, cfg)
     track(clearBtn.MouseButton1Click:Connect(function()
         view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.typeCounts = {}
         vlist.setItems(view.visible); countPill.Text = "0 logs"; empty.Visible = true; view.refreshFooter()
-        nameLbl.Text = ""; code.set(""); for _, c in chipRow:GetChildren() do if c:IsA("Frame") then c:Destroy() end end; pathLbl.Text = ""; callBtn.Visible = false
+        code.set(""); callBtn.Visible = false
     end))
 
     --── toolbar actions ──
