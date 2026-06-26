@@ -2326,7 +2326,7 @@ do
     end
 
     -- ── tree ──
-    local treeList, renderProps
+    local treeList, renderProps, contextFor
     local function flatten()
         if searchMatches then return searchMatches end
         local out = {}
@@ -2355,6 +2355,11 @@ do
             local node = rowMap[row]; if not node or not node.hasKids then return end
             expanded[node.inst] = (not expanded[node.inst]) or nil
             refreshTree()
+        end))
+        track(row.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton2 then
+                local node = rowMap[row]; if node and contextFor then contextFor(node.inst, input.Position) end
+            end
         end))
         return row
     end
@@ -2413,6 +2418,40 @@ do
         elseif cls == "BindableEvent" then return path .. ":Fire()"
         elseif cls == "BindableFunction" then return "local result = " .. path .. ":Invoke()\nprint(result)" end
         return path
+    end
+
+    -- ── right-click context menu (Dex-style) ──
+    local ctxMenu, ctxBackdrop
+    local function closeCtx() if ctxBackdrop then ctxBackdrop:Destroy(); ctxBackdrop = nil end if ctxMenu then ctxMenu:Destroy(); ctxMenu = nil end end
+    local function expandAll(inst, depth)
+        expanded[inst] = true
+        if (depth or 0) >= 6 then return end
+        for _, c in childrenOf(inst) do if #childrenOf(c) > 0 then expandAll(c, (depth or 0) + 1) end end
+    end
+    contextFor = function(inst, pos)
+        closeCtx()
+        ToString.SetCompress(nil)
+        local path = (pcall(function() return ToString.GetPath(inst) end)) and ToString.GetPath(inst) or inst.Name
+        local items = {
+            { text = "Select & inspect", onClick = function() selectInst(inst) end },
+            { text = "Copy Path", onClick = function() clip(path) end },
+            { text = "Copy Reference", onClick = function() clip("local inst = " .. path) end },
+            { text = "Fire / Invoke", remote = true, onClick = function() Runner.open("Fire · " .. inst.Name, "Edit the call and press Run.", remoteTemplate(inst)) end },
+            { text = "Expand descendants", onClick = function() expandAll(inst, 0); refreshTree() end },
+            { text = "Collapse", onClick = function() expanded[inst] = nil; refreshTree() end },
+            { text = "Destroy", tint = "Bad", onClick = function() local ok = pcall(function() inst:Destroy() end); if selectedInst == inst then selectInst(nil) end refreshTree(); Notify("Explorer", ok and ("Destroyed " .. (path:match("[%w_]+$") or "")) or "Couldn't destroy", ok and "Good" or "Bad") end },
+        }
+        local shown = {}
+        for _, it in items do if not (it.remote and not isRemote(inst)) then shown[#shown + 1] = it end end
+        ctxBackdrop = make("TextButton", { Parent = ScreenGui, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, Size = UDim2.fromScale(1, 1), ZIndex = 95 })
+        ctxBackdrop.MouseButton1Click:Connect(closeCtx); ctxBackdrop.MouseButton2Click:Connect(closeCtx)
+        ctxMenu = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(pos.X, pos.Y), Size = UDim2.fromOffset(186, #shown * 28 + 6), ZIndex = 96 }, { corner(8), stroke("StrokeS", 1), pad(3, 3, 3, 3), make("UIScale", { Scale = UIScaleObj.Scale }), vlayout(2) })
+        for _, it in shown do
+            local b = make("TextButton", { Parent = ctxMenu, AutoButtonColor = false, BackgroundColor3 = "@Hover", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26), Text = "", ZIndex = 97 }, { corner(6) })
+            make("TextLabel", { Parent = b, BackgroundTransparency = 1, Font = FONT, TextSize = 13, Text = it.text, TextColor3 = it.tint == "Bad" and "@Bad" or "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(11, 0), Size = UDim2.new(1, -18, 1, 0), ZIndex = 97 })
+            b.MouseEnter:Connect(function() b.BackgroundTransparency = 0 end); b.MouseLeave:Connect(function() b.BackgroundTransparency = 1 end)
+            b.MouseButton1Click:Connect(function() closeCtx(); if it.onClick then it.onClick() end end)
+        end
     end
     function renderProps(inst)
         for _, c in propScroll:GetChildren() do if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then c:Destroy() end end
