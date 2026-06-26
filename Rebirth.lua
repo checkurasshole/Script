@@ -1344,7 +1344,7 @@ local function createView(page, cfg)
 
     --── detail panel ──
     local headerCard = make("Frame", { Parent = detail, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 112) }, { corner(11), stroke("Stroke", 1), pad(12) })
-    local nameLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Select a capture", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 22) })
+    local nameLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "", TextColor3 = "@Text", TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 22) })
     local chipRow = make("Frame", { Parent = headerCard, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 20) }, { hlayout(6) })
     local pathLbl = make("TextLabel", { Parent = headerCard, BackgroundTransparency = 1, Font = FONT_MONO, Text = "", TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, -26, 0, 14) })
     local copyPath = UI.iconBtn(headerCard, "Copy", { flat = true, sz = 40, color = "Sub", textSize = 11 })
@@ -1353,7 +1353,7 @@ local function createView(page, cfg)
 
     -- tabs
     local tabRow = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 120), Size = UDim2.new(1, 0, 0, 26) }, { hlayout(6) })
-    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 152), Size = UDim2.new(1, 0, 1, -(152 + 70)) })
+    local bodyArea = make("Frame", { Parent = detail, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 152), Size = UDim2.new(1, 0, 1, -(152 + 42)) })
     local scriptArea = make("Frame", { Parent = bodyArea, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) })
     local argsArea = make("ScrollingFrame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { corner(11), stroke("Stroke", 1), pad(10), vlayout(6) })
     local connArea = make("Frame", { Parent = bodyArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Visible = false, Size = UDim2.new(1, 0, 1, 0) }, { corner(11), stroke("Stroke", 1) })
@@ -1382,15 +1382,14 @@ local function createView(page, cfg)
     end
     addTab("script", "Script"); addTab("args", "Arguments"); addTab("conns", "Connections")
 
-    -- action bar (per-capture) — uniform buttons wrapped into tidy rows (2 visible, quiet vertical scroll for overflow)
-    local actionBar = make("ScrollingFrame", { Parent = detail, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 66), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y }, {
-        make("UIGridLayout", { CellSize = UDim2.fromOffset(80, 28), CellPadding = UDim2.fromOffset(6, 6), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Left, VerticalAlignment = Enum.VerticalAlignment.Top }),
+    -- action bar (per-capture) — single horizontal row, scrolls sideways if it overflows
+    local actionBar = make("ScrollingFrame", { Parent = detail, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 32), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X, ScrollingDirection = Enum.ScrollingDirection.X }, {
+        make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }),
     })
     local function act(text, o)
-        o = o or {}; o.text = text; o.order = #actionBar:GetChildren(); o.autoX = false; o.textSize = o.textSize or 11
+        o = o or {}; o.text = text; o.order = #actionBar:GetChildren(); o.textSize = o.textSize or 12
         local b, lbl = UI.button(actionBar, o)
-        lbl.TextXAlignment = Enum.TextXAlignment.Center
-        local p = lbl:FindFirstChildOfClass("UIPadding"); if p then p.PaddingLeft = UDim.new(0, 6); p.PaddingRight = UDim.new(0, 6) end
+        b.Size = UDim2.new(0, 0, 1, 0)
         if o.tint and not o.primary then
             local col = (type(o.tint) == "string") and Theme[o.tint] or o.tint
             lbl.TextColor3 = col
@@ -1596,7 +1595,7 @@ local function createView(page, cfg)
     track(clearBtn.MouseButton1Click:Connect(function()
         view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.typeCounts = {}
         vlist.setItems(view.visible); countPill.Text = "0 logs"; empty.Visible = true; view.refreshFooter()
-        nameLbl.Text = "Select a capture"; code.set(""); for _, c in chipRow:GetChildren() do if c:IsA("Frame") then c:Destroy() end end; pathLbl.Text = ""; metaLbl.Text = ""
+        nameLbl.Text = ""; code.set(""); for _, c in chipRow:GetChildren() do if c:IsA("Frame") then c:Destroy() end end; pathLbl.Text = ""; metaLbl.Text = ""
     end))
 
     --── toolbar actions ──
