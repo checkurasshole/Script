@@ -92,6 +92,7 @@ local Settings = keep({
     Highlight_syntax   = true,
     Codegen_mode       = "Readable",
     Toggle_key         = "RightControl",
+    Show_http          = false,   -- HTTP Spy tab hidden until enabled in Settings
 })
 local CFG_DIR = "IxSpy"
 local SETTINGS_PATH = CFG_DIR .. "/Settings.json"
@@ -685,8 +686,8 @@ local Theme = {
     Panel2   = Color3.fromRGB(27, 30, 39),
     Panel3   = Color3.fromRGB(38, 42, 54),
     Hover    = Color3.fromRGB(50, 55, 70),
-    Accent   = Color3.fromRGB(96, 140, 255),
-    Accent2  = Color3.fromRGB(132, 188, 255),
+    Accent   = Color3.fromRGB(201, 156, 88),
+    Accent2  = Color3.fromRGB(238, 201, 134),
     Text     = Color3.fromRGB(241, 243, 250),
     Sub      = Color3.fromRGB(150, 156, 176),
     Faint    = Color3.fromRGB(98, 103, 122),
@@ -753,7 +754,7 @@ end
 local function viewport() local c = workspace.CurrentCamera; return (c and c.ViewportSize) or Vector2.new(1280, 720) end
 
 local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12), stroke("StrokeS", 1, 0.2) })
-shadow(Window, 64, 0.36)
+-- (window drop-shadow removed)
 make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(14), grad(90, Color3.fromRGB(26, 24, 44), Theme.Bg) })
 
 local UIScaleObj = make("UIScale", { Parent = Window, Scale = 1 })
@@ -1713,7 +1714,7 @@ end
 addNav("Dashboard", "▦", "Dashboard")
 addNav("Remotes", "⇅", "Remote Spy")
 addNav("Events", "⚡", "Event Spy")
-addNav("Http", "⇄", "HTTP Spy")
+addNav("Http", "⇄", "HTTP Spy"); navBtns.Http.Visible = Settings.Show_http
 addNav("Settings", "⚙", "Settings")
 
 --==============================  Dashboard  ===============================--
@@ -1985,6 +1986,14 @@ do
     tog("Syntax highlighting", "Color generated code.", "Highlight_syntax")
     ch("Default codegen", "Inspector code style.", "Codegen_mode", Codegen.Modes)
     ch("Log which calls", "Filter captures by caller.", "Log_which_calls", { "Game only", "All calls", "Executor only" }, { "Game only", "All calls", "Executor only" })
+    do
+        local c = rowCard("Show HTTP Spy", "Adds the HTTP Spy tab to the sidebar.")
+        local sw = UI.toggle(c, Settings.Show_http, function(v)
+            Settings.Show_http = v; saveSettings()
+            if navBtns.Http then navBtns.Http.Visible = v end
+        end)
+        sw.AnchorPoint = Vector2.new(1, 0.5); sw.Position = UDim2.new(1, 0, 0.5, 0)
+    end
     make("TextLabel", { Parent = scroll, BackgroundTransparency = 1, Font = FONT_REG, Text = "Rebirth v" .. VERSION .. "  ·  premium GUI over the IxSpy engine", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 20), LayoutOrder = 999 })
 end
 
