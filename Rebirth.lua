@@ -820,7 +820,16 @@ local UI = {}
 function UI.button(parent, o)
     local b = make("TextButton", { Parent = parent, AutoButtonColor = false, BorderSizePixel = 0, Text = "", BackgroundColor3 = o.primary and "@Accent" or "@Panel3", Size = o.size or UDim2.new(0, 0, 0, 30), AutomaticSize = o.autoX ~= false and Enum.AutomaticSize.X or Enum.AutomaticSize.None, LayoutOrder = o.order or 0 }, { corner(o.radius or 8) })
     if o.primary then grad(96, Theme.Accent, Theme.Accent2).Parent = b else stroke("Stroke", 1, 0.35).Parent = b end
-    local lbl = make("TextLabel", { Name = "Lbl", Parent = b, BackgroundTransparency = 1, Font = FONT, TextSize = o.textSize or 13, Text = ((o.text or ""):gsub("^[^%w%s]+%s*", "")), TextColor3 = o.primary and Color3.new(1, 1, 1) or ("@" .. (o.color or "Text")), Size = UDim2.new(1, 0, 1, 0) }, { make("UIPadding", { PaddingLeft = UDim.new(0, 11), PaddingRight = UDim.new(0, 11) }) })
+    local txtCol = o.primary and Color3.new(1, 1, 1) or ("@" .. (o.color or "Text"))
+    local clean = ((o.text or ""):gsub("^[^%w%s]+%s*", ""))
+    local lbl
+    if o.icon then
+        local row = make("Frame", { Parent = b, BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }), make("UIPadding", { PaddingLeft = UDim.new(0, 11), PaddingRight = UDim.new(0, 11) }) })
+        make("ImageLabel", { Name = "Ico", Parent = row, BackgroundTransparency = 1, Image = o.icon, ImageColor3 = o.primary and Color3.new(1, 1, 1) or (Theme[o.color or "Text"] or Theme.Text), Size = UDim2.fromOffset(14, 14), LayoutOrder = 1 })
+        lbl = make("TextLabel", { Name = "Lbl", Parent = row, BackgroundTransparency = 1, Font = FONT, TextSize = o.textSize or 13, Text = clean, TextColor3 = txtCol, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 2 })
+    else
+        lbl = make("TextLabel", { Name = "Lbl", Parent = b, BackgroundTransparency = 1, Font = FONT, TextSize = o.textSize or 13, Text = clean, TextColor3 = txtCol, Size = UDim2.new(1, 0, 1, 0) }, { make("UIPadding", { PaddingLeft = UDim.new(0, 11), PaddingRight = UDim.new(0, 11) }) })
+    end
     track(b.MouseEnter:Connect(function() TweenService:Create(b, EASE_F, { BackgroundColor3 = o.primary and Theme.Accent or Theme.Hover }):Play() end))
     track(b.MouseLeave:Connect(function() TweenService:Create(b, EASE_F, { BackgroundColor3 = o.primary and Theme.Accent or Theme.Panel3 }):Play() end))
     if o.onClick then track(b.MouseButton1Click:Connect(o.onClick)) end
@@ -893,7 +902,8 @@ end
 function UI.input(parent, placeholder, onChange, o)
     o = o or {}
     local wrap = make("Frame", { Parent = parent, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Size = o.size or UDim2.new(1, 0, 0, 30), LayoutOrder = o.order or 0 }, { corner(8), stroke("Stroke", 1, 0.4) })
-    local box = make("TextBox", { Parent = wrap, BackgroundTransparency = 1, Font = FONT, TextSize = 13, PlaceholderText = placeholder or "", Text = "", TextColor3 = "@Text", PlaceholderColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Position = UDim2.fromOffset(11, 0), Size = UDim2.new(1, -20, 1, 0) })
+    make("ImageLabel", { Parent = wrap, BackgroundTransparency = 1, Image = "rbxassetid://10734943674", ImageColor3 = Theme.Faint, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 9, 0.5, 0), Size = UDim2.fromOffset(14, 14) })
+    local box = make("TextBox", { Parent = wrap, BackgroundTransparency = 1, Font = FONT, TextSize = 13, PlaceholderText = placeholder or "", Text = "", TextColor3 = "@Text", PlaceholderColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Position = UDim2.fromOffset(28, 0), Size = UDim2.new(1, -36, 1, 0) })
     local s = wrap:FindFirstChildOfClass("UIStroke")
     track(box.Focused:Connect(function() if s then TweenService:Create(s, EASE_F, { Color = Theme.Accent, Transparency = 0 }):Play() end end))
     track(box.FocusLost:Connect(function() if s then TweenService:Create(s, EASE_F, { Color = Theme.Stroke, Transparency = 0.4 }):Play() end end))
@@ -1307,8 +1317,8 @@ local function createView(page, cfg)
     local header = make("Frame", { Parent = page, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 66) })
     local row1 = make("Frame", { Parent = header, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 30) })
     local actC = make("Frame", { Parent = row1, BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 0, 30) }, { hlayout(8) })
-    local pauseBtn = UI.button(actC, { text = "⏸  Pause", order = 1, onClick = function() end })
-    local clearBtn = UI.button(actC, { text = "🗑  Clear", color = "Bad", order = 2, onClick = function() end })
+    local pauseBtn = UI.button(actC, { text = "Pause", icon = "rbxassetid://10734919336", order = 1, onClick = function() end })
+    local clearBtn = UI.button(actC, { text = "Clear", icon = "rbxassetid://10747362241", color = "Bad", order = 2, onClick = function() end })
     local rightC = make("Frame", { Parent = row1, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 0, 30) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8), HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }) })
     local search = UI.input(rightC, "Filter", function(t) view.filterText = t:lower(); view.dirtyFilter = true end, { size = UDim2.fromOffset(200, 30), order = 1 })
     local countPill = make("TextLabel", { Parent = rightC, BackgroundColor3 = "@Panel2", Font = FONT_MONO, Text = "0 logs", TextColor3 = "@Sub", TextSize = 12, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 0, 30), LayoutOrder = 2 }, { corner(8), stroke("Stroke", 1, 0.5), make("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }) })
@@ -1457,17 +1467,24 @@ local function createView(page, cfg)
     local actionBar = make("ScrollingFrame", { Parent = detail, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 32), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X, ScrollingDirection = Enum.ScrollingDirection.X }, {
         make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }),
     })
+    local ACT_ICON = {
+        Copy = "rbxassetid://10709812159", Run = "rbxassetid://10734923549", Repeat = "rbxassetid://10734933966",
+        Spoof = "rbxassetid://10734966248", Return = "rbxassetid://10709813185", Clear = "rbxassetid://10747362241",
+        Block = "rbxassetid://10734951684", Unblock = "rbxassetid://10734951847", Pin = "rbxassetid://10734922324",
+        Decompile = "rbxassetid://10723356507", Ignore = "rbxassetid://10734965702",
+    }
     local function act(text, o)
         o = o or {}; o.text = text; o.order = #actionBar:GetChildren(); o.textSize = o.textSize or 12
+        o.icon = o.icon or ACT_ICON[(text:gsub("^[^%w%s]+%s*", ""))]
         local b, lbl = UI.button(actionBar, o)
         b.Size = UDim2.new(0, 0, 1, 0)
-        -- Keep buttons neutral; only the destructive "Bad" (Block) tint stays colored, so the
-        -- action row reads clean instead of rainbow-colored.
+        -- only the destructive Block keeps a colored tint (text + icon); everything else stays neutral
         if o.tint and not o.primary then
             local col = (type(o.tint) == "string") and Theme[o.tint] or o.tint
             if col == Theme.Bad then
                 lbl.TextColor3 = col
                 local s = b:FindFirstChildOfClass("UIStroke"); if s then s.Color = col; s.Transparency = 0.25 end
+                local img = b:FindFirstChild("Ico", true); if img then img.ImageColor3 = col end
             end
         end
         return b
