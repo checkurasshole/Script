@@ -448,38 +448,6 @@ local GETNIL = "local function getNil(name, class)\n    for _, v in getnilinstan
 
 --======================  Networking framework detection  ====================--
 
--- Obfuscation is a HEURISTIC, never a certainty. We only flag a name when at least
--- two independent *structural* signals agree — each is a measured property of the
--- actual string (not a guess about meaning), which keeps false positives low.
-local function looksObfuscated(name)
-    local n = #name
-    if n < 6 then return false end                 -- too short to judge by shape
-    if name:find("%s") then return false end       -- real labels have spaces; gibberish doesn't
-    local lower = name:lower()
-    local vowels, consonants, digits, upper, switches, maxRun, run = 0, 0, 0, 0, 0, 0, 0
-    local prevClass
-    for i = 1, n do
-        local lc  = lower:sub(i, i)
-        local raw = name:sub(i, i)
-        local class
-        if lc:match("[aeiou]") then vowels += 1; class = "v"; run = 0
-        elseif lc:match("%a") then consonants += 1; class = "c"; run += 1; if run > maxRun then maxRun = run end
-        elseif lc:match("%d") then digits += 1; class = "d"; run = 0
-        else class = "s"; run = 0 end
-        if raw:match("%u") then upper += 1 end
-        if prevClass and class ~= prevClass then switches += 1 end
-        prevClass = class
-    end
-    local letters = vowels + consonants
-    local signals = 0
-    if letters > 0 and (vowels / letters) < 0.18 then signals += 1 end          -- almost no vowels (e.g. "qZkXwT")
-    if maxRun >= 5 then signals += 1 end                                         -- 5+ consonants with no vowel between
-    if (digits / n) >= 0.30 then signals += 1 end                               -- heavy digit mixing (hash/ID-like)
-    if upper >= 3 and upper < letters and (switches / n) > 0.55 then signals += 1 end  -- erratic case/class flipping
-    if n >= 18 and (switches / n) > 0.5 then signals += 1 end                    -- long AND choppy
-    return signals >= 2
-end
-
 local function detectFramework(remote, packed)
     local name = remote.Name or ""
     local lname = name:lower()
@@ -496,7 +464,6 @@ local function detectFramework(remote, packed)
     elseif has("knit") or has("/re/") or has("/rf/") or has("knitremotes") then return "Knit"
     elseif has("aeroremote") or has("aero/") then return "Aero" end
     for i = 1, (packed.n or #packed) do if typeof(packed[i]) == "buffer" then return "Buffer" end end
-    if looksObfuscated(name) then return "Obfuscated" end
     return "Roblox"
 end
 
@@ -1326,7 +1293,7 @@ local function typeColor(label) return TYPE_COLOR[label] or Theme.Sub end
 local SHORT_TYPE = { RemoteEvent = "RE", FireServer = "FS", InvokeServer = "IS", InvokeClient = "IC", Unreliable = "UR", Fire = "Fire", Invoke = "Inv" }
 local function shortType(label) return SHORT_TYPE[label] or label end
 -- per-framework colors for the inline [framework] tag in each row (matches the reference)
-local FW_HEX = { ByteNet = "#7ab4ff", BridgeNet = "#9a7cff", BridgeNet2 = "#9a7cff", Blink = "#5fd0c0", Warp = "#ff9a6e", Red = "#ff6e6e", Zap = "#ffd166", Knit = "#c98cff", Aero = "#74b2ff", Buffer = "#9aa0b4", Obfuscated = "#ff8fb0" }
+local FW_HEX = { ByteNet = "#7ab4ff", BridgeNet = "#9a7cff", BridgeNet2 = "#9a7cff", Blink = "#5fd0c0", Warp = "#ff9a6e", Red = "#ff6e6e", Zap = "#ffd166", Knit = "#c98cff", Aero = "#74b2ff", Buffer = "#9aa0b4" }
 local function fwHex(fw) return FW_HEX[fw] or "#d4a96e" end
 local function richEsc(s) return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) end
 local function commaize(n)
@@ -1367,7 +1334,7 @@ local function createView(page, cfg)
     local filtC = make("Frame", { Parent = row2, BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 0, 28) }, { hlayout(8) })
     if cfg.directions then local s = UI.segmented(filtC, { "All", "Out", "In" }, "All", function(v) view.filterDir = v; view.dirtyFilter = true end); s.LayoutOrder = 1 end
     if cfg.types then local d = UI.dropdown(filtC, cfg.types, "All", function(v) view.filterType = v; view.dirtyFilter = true end, 150); d.LayoutOrder = 2; d.Size = UDim2.fromOffset(150, 28) end
-    do local d = UI.dropdown(filtC, { "All", "Roblox", "ByteNet", "BridgeNet", "BridgeNet2", "Blink", "Warp", "Red", "Zap", "Knit", "Aero", "Buffer", "Obfuscated" }, "All", function(v) view.filterFw = v; view.dirtyFilter = true end, 124); d.LayoutOrder = 3; d.Size = UDim2.fromOffset(124, 28) end
+    do local d = UI.dropdown(filtC, { "All", "Roblox", "ByteNet", "BridgeNet", "BridgeNet2", "Blink", "Warp", "Red", "Zap", "Knit", "Aero", "Buffer" }, "All", function(v) view.filterFw = v; view.dirtyFilter = true end, 124); d.LayoutOrder = 3; d.Size = UDim2.fromOffset(124, 28) end
 
     --── body: list | divider | detail ──
     local split = 0.44
