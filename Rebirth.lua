@@ -1087,10 +1087,11 @@ end
 
 --==============================  Nav rail  ================================--
 
-local rail = make("Frame", { Name = "Rail", Parent = contentArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(0, 150, 1, -14), Position = UDim2.fromOffset(12, 4) }, { corner(12), stroke("Stroke", 1, 0.5) })
-local railInner = make("Frame", { Parent = rail, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, -66) }, { pad(10), vlayout(5) })
-local railIndicator = make("Frame", { Parent = rail, BackgroundColor3 = "@Accent", BorderSizePixel = 0, Size = UDim2.fromOffset(3, 22), Position = UDim2.fromOffset(0, 16), ZIndex = 3 }, { corner(2), grad(90, Theme.Accent, Theme.Accent2) })
-local PageHolder = make("Frame", { Name = "Pages", Parent = contentArea, BackgroundColor3 = "@Panel", BorderSizePixel = 0, Position = UDim2.fromOffset(172, 4), Size = UDim2.new(1, -184, 1, -14) }, { corner(12), stroke("Stroke", 1, 0.5) })
+-- top horizontal nav strip (replaces the left rail) — frees the full width for the spy
+local navStrip = make("Frame", { Name = "NavStrip", Parent = contentArea, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Position = UDim2.fromOffset(12, 4), Size = UDim2.new(1, -24, 0, 40), ClipsDescendants = true }, { corner(12), stroke("Stroke", 1, 0.5) })
+local navRow = make("Frame", { Parent = navStrip, BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 0), Size = UDim2.new(1, -190, 1, 0) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 4), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }) })
+local railIndicator = make("Frame", { Parent = navStrip, BackgroundColor3 = "@Accent", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Size = UDim2.fromOffset(40, 3), Position = UDim2.new(0, 12, 1, -1), ZIndex = 3 }, { corner(2), grad(0, Theme.Accent, Theme.Accent2) })
+local PageHolder = make("Frame", { Name = "Pages", Parent = contentArea, BackgroundColor3 = "@Panel", BorderSizePixel = 0, Position = UDim2.fromOffset(12, 50), Size = UDim2.new(1, -24, 1, -58) }, { corner(12), stroke("Stroke", 1, 0.5) })
 
 local Pages, navBtns, activePage = {}, {}, nil
 local function selectPage(name)
@@ -1100,7 +1101,14 @@ local function selectPage(name)
         local on = n == name
         TweenService:Create(b, EASE_F, { BackgroundTransparency = on and 0 or 1 }):Play()
         b.Lbl.TextColor3 = on and Theme.Text or Theme.Sub
-        if on then TweenService:Create(railIndicator, EASE, { Position = UDim2.fromOffset(0, b.AbsolutePosition.Y - rail.AbsolutePosition.Y + 7) }):Play() end
+        if on then
+            task.defer(function()
+                local sc = math.max(UIScaleObj.Scale, 0.01)
+                local x = (b.AbsolutePosition.X - navStrip.AbsolutePosition.X) / sc
+                local w = b.AbsoluteSize.X / sc
+                TweenService:Create(railIndicator, EASE, { Position = UDim2.new(0, x, 1, -1), Size = UDim2.fromOffset(w, 3) }):Play()
+            end)
+        end
     end
 end
 local navOrder = 0
@@ -1112,16 +1120,15 @@ local NAV_ICON = {
     http      = "rbxassetid://10723404337",  -- globe
     settings  = "rbxassetid://10734950309",  -- settings
 }
-local function navIcon(parent, kind, color)
-    return make("ImageLabel", { Name = "Icon", Parent = parent, BackgroundTransparency = 1, Image = NAV_ICON[kind] or "", ImageColor3 = color, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 0), Size = UDim2.fromOffset(19, 19), ScaleType = Enum.ScaleType.Fit })
-end
 local function addNav(name, kind, label)
     navOrder += 1
-    local b = make("TextButton", { Name = name, Parent = railInner, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel3", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 38), Text = "", LayoutOrder = navOrder }, {
+    local b = make("TextButton", { Name = name, Parent = navRow, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel3", BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, -8), Text = "", LayoutOrder = navOrder }, {
         corner(8),
-        make("TextLabel", { Name = "Lbl", BackgroundTransparency = 1, Font = FONT, Text = label, TextColor3 = "@Sub", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(38, 0), Size = UDim2.new(1, -46, 1, 0) }),
+        make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 7), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }),
+        make("UIPadding", { PaddingLeft = UDim.new(0, 11), PaddingRight = UDim.new(0, 12) }),
+        make("ImageLabel", { Name = "Icon", BackgroundTransparency = 1, Image = NAV_ICON[kind] or "", ImageColor3 = Theme.Accent, Size = UDim2.fromOffset(17, 17), LayoutOrder = 1 }),
+        make("TextLabel", { Name = "Lbl", BackgroundTransparency = 1, Font = FONT, Text = label, TextColor3 = "@Sub", TextSize = 13, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 2 }),
     })
-    navIcon(b, kind, Theme.Accent)
     track(b.MouseEnter:Connect(function() if activePage ~= name then TweenService:Create(b, EASE_F, { BackgroundTransparency = 0.9 }):Play() end end))
     track(b.MouseLeave:Connect(function() if activePage ~= name then TweenService:Create(b, EASE_F, { BackgroundTransparency = 1 }):Play() end end))
     track(b.MouseButton1Click:Connect(function() selectPage(name) end))
@@ -1133,19 +1140,13 @@ local function newPage(name)
     Pages[name] = p
     return p
 end
--- profile card (pinned to rail bottom)
+-- profile (right side of the nav strip): avatar + blurred name
 do
-    local profile = make("Frame", { Parent = rail, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -8), Size = UDim2.new(1, -16, 0, 52) }, { corner(10), stroke("Stroke", 1, 0.5) })
-    local av = make("ImageLabel", { Parent = profile, BackgroundColor3 = "@Panel3", BorderSizePixel = 0, Position = UDim2.fromOffset(8, 8), Size = UDim2.fromOffset(36, 36), Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=48&h=48", ScaleType = Enum.ScaleType.Crop }, { corner(9) })
-    make("TextLabel", { Parent = profile, BackgroundTransparency = 1, Font = FONT_BOLD, Text = LocalPlayer.DisplayName, TextColor3 = "@Text", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(52, 9), Size = UDim2.new(1, -60, 0, 16) })
-    make("Frame", { Parent = profile, BackgroundColor3 = "@Good", BorderSizePixel = 0, Position = UDim2.fromOffset(53, 31), Size = UDim2.fromOffset(7, 7) }, { corner(4) })
-    make("TextLabel", { Parent = profile, BackgroundTransparency = 1, Font = FONT, Text = "@" .. LocalPlayer.Name, TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Position = UDim2.fromOffset(66, 27), Size = UDim2.new(1, -74, 0, 14) })
-    -- privacy: frosted overlay blurs out the name/username (face/avatar stays visible)
-    do
-        local fog = make("Frame", { Parent = profile, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(50, 7), Size = UDim2.new(1, -58, 0, 38), ZIndex = 5 }, { corner(7) })
-        make("Frame", { Parent = fog, BackgroundColor3 = "@Panel3", BackgroundTransparency = 0.35, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ZIndex = 5 }, { corner(7) })
-        fog.BackgroundTransparency = 0.12
-    end
+    local profile = make("Frame", { Parent = navStrip, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(150, 30) })
+    make("ImageLabel", { Parent = profile, BackgroundColor3 = "@Panel3", BorderSizePixel = 0, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.fromOffset(26, 26), Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=48&h=48", ScaleType = Enum.ScaleType.Crop }, { corner(8) })
+    make("TextLabel", { Parent = profile, BackgroundTransparency = 1, Font = FONT_BOLD, Text = LocalPlayer.DisplayName, TextColor3 = "@Sub", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Right, TextTruncate = Enum.TextTruncate.AtEnd, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -34, 0.5, 0), Size = UDim2.fromOffset(110, 16) })
+    -- privacy: frosted overlay blurs the name (avatar/face stays visible)
+    make("Frame", { Parent = profile, BackgroundColor3 = "@Bg2", BackgroundTransparency = 0.12, BorderSizePixel = 0, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -34, 0.5, 0), Size = UDim2.fromOffset(112, 18), ZIndex = 5 }, { corner(5) })
 end
 
 local function teardown()
