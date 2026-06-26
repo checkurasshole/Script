@@ -1348,13 +1348,14 @@ local function codeView(parent)
     local box = make("TextLabel", { Parent = scroll, BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.XY, Size = UDim2.fromOffset(0, 0), Font = FONT_MONO, TextSize = 16, RichText = true, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = false, Text = "" }, { pad(12, 12, 8, 12) })
     track(scroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function() gutter.Position = UDim2.fromOffset(0, 12 - scroll.CanvasPosition.Y) end))
     local api = { Raw = "" }
-    function api.set(raw)
+    function api.set(raw, keepScroll)
+        if keepScroll and raw == api.Raw then return end   -- live refresh, content unchanged: don't touch scroll
         api.Raw = raw or ""
         box.Text = highlight(api.Raw)
         local lines = select(2, api.Raw:gsub("\n", "\n")) + 1
         local t = table.create(lines); for i = 1, lines do t[i] = i end
         gutter.Text = table.concat(t, "\n")
-        scroll.CanvasPosition = Vector2.new(0, 0)
+        if not keepScroll then scroll.CanvasPosition = Vector2.new(0, 0) end   -- only jump to top on explicit (re)select
     end
     return api
 end
@@ -1692,12 +1693,12 @@ local function createView(page, cfg)
         callLbl.Text = "Call " .. math.clamp(view.callIdx or n, 1, n) .. " / " .. n
     end
     view._refreshMeta = function(e) view.refreshCallPicker(e) end
-    function view.renderDetail(e)
+    function view.renderDetail(e, keepScroll)
         view.refreshCallPicker(e)
         local packed = pickedPacked(e)
         local meta = { framework = e.framework, size = e.size, time = e.time }
         local savedP = e.packed; e.packed = packed
-        code.set(cfg.codegen(view.codeMode, e, meta))
+        code.set(cfg.codegen(view.codeMode, e, meta), keepScroll)
         e.packed = savedP
         -- args tab
         for _, c in argsArea:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
@@ -1874,7 +1875,7 @@ local function createView(page, cfg)
             -- never shows a stale older fire while the remote keeps firing
             if view.callIdx == nil then
                 local now = os.clock()
-                if now - (view._detailClock or 0) > 0.25 then view._detailClock = now; pcall(view.renderDetail, view.selectedEntry) end
+                if now - (view._detailClock or 0) > 0.25 then view._detailClock = now; pcall(view.renderDetail, view.selectedEntry, true) end
             end
             vlist.invalidate()
         end
