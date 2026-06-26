@@ -54,22 +54,71 @@ local cloneref          = fn("cloneref") or function(x) return x end
 local getconnections    = fn("getconnections") or fn("get_signal_cons")
 local httpRequestFn     = fn("request") or fn("http_request") or fn("syn_request") or (typeof(getfenv().syn) == "table" and typeof(getfenv().syn.request) == "function" and getfenv().syn.request or nil)
 
--- Behavioral capability probes: don't trust that a primitive merely EXISTS — verify it
--- actually works (some executors export stubs). Probe hookfunction by hooking a dummy.
-local function probeHookFunction()
-    if not hookfunction then return false end
-    local ok = pcall(function()
-        local f = function() return "a" end
-        local old = hookfunction(f, function() return "b" end)
-        local works = (f() == "b")
-        if old then pcall(hookfunction, f, old) end       -- restore
-        return works
-    end)
-    return ok
+local getrawmetatable   = fn("getrawmetatable") or getrawmetatable
+
+-- ─── Functional capability self-test ────────────────────────────────────────
+-- Don't trust that a primitive merely EXISTS — some executors export stubs that
+-- lie. Each test EXERCISES the function on a throwaway object and asserts the real
+-- result, so the spy KNOWS which data sources are trustworthy rather than assuming.
+-- Surfaced to the user in Settings → Compatibility (green = verified working).
+local Caps, CapsOrder = {}, {}
+local function captest(name, essential, checker)
+    CapsOrder[#CapsOrder + 1] = name
+    local ok, res = pcall(checker)
+    local pass = ok and res ~= false
+    local note
+    if not pass then note = ok and "present but had no effect" or tostring(res):gsub("^.-:%d+:%s*", "") end
+    Caps[name] = { ok = pass, essential = essential or false, note = note }
+    return pass
 end
-local HOOKS_AVAILABLE    = probeHookFunction()
-if hookfunction and not HOOKS_AVAILABLE then HOOKS_AVAILABLE = true end  -- probe threw but fn exists; trust it
-local NAMECALL_AVAILABLE = hookmetamethod and getnamecallmethod and true or false
+
+captest("hookfunction", true, function()
+    assert(typeof(hookfunction) == "function", "missing")
+    local f = function() return "a" end
+    local old = hookfunction(f, function() return "b" end)
+    local works = f() == "b"
+    if old then pcall(hookfunction, f, old) end           -- restore the dummy
+    return works
+end)
+captest("hookmetamethod", true, function() return typeof(hookmetamethod) == "function" end)
+captest("getnamecallmethod", true, function() return typeof(getnamecallmethod) == "function" end)
+captest("getrawmetatable", false, function()
+    assert(typeof(getrawmetatable) == "function", "missing")
+    return typeof(getrawmetatable(game)) == "table"
+end)
+captest("getconnections", false, function()
+    assert(typeof(getconnections) == "function", "missing")
+    return typeof(getconnections(RunService.Heartbeat)) == "table"
+end)
+captest("getcallbackvalue", false, function()                 -- needed to read RemoteFunction callbacks (incoming)
+    assert(typeof(getcallbackvalue) == "function", "missing")
+    local bf = Instance.new("BindableFunction"); local cb = function() end
+    bf.OnInvoke = cb
+    local got = getcallbackvalue(bf, "OnInvoke"); bf:Destroy()
+    return got == cb
+end)
+captest("getnilinstances", false, function()
+    assert(typeof(getnilinstancesFn) == "function", "missing")
+    return typeof(getnilinstancesFn()) == "table"
+end)
+captest("getcallingscript", false, function()
+    assert(typeof(getcallingscript) == "function", "missing")
+    getcallingscript(); return true                          -- must not error
+end)
+captest("checkcaller", false, function()
+    assert(typeof(checkcaller) == "function", "missing")
+    return typeof(checkcaller()) == "boolean"
+end)
+captest("newcclosure", false, function()
+    assert(typeof(newcclosure) == "function", "missing")
+    return newcclosure(function() return 7 end)() == 7
+end)
+captest("firesignal", false, function() return typeof(firesignal) == "function" end)
+captest("decompile", false, function() return typeof(decompile) == "function" end)
+
+local HOOKS_AVAILABLE    = Caps.hookfunction.ok
+local NAMECALL_AVAILABLE = Caps.hookmetamethod.ok and Caps.getnamecallmethod.ok
+local INCOMING_AVAILABLE = Caps.getconnections.ok or Caps.firesignal.ok
 local NIL_FN_NAME        = fn("getnilinstances") and "getnilinstances" or (fn("getnils") and "getnils")
 
 --==============================  GC keeper  =================================--
@@ -117,7 +166,10 @@ do
     if saved then for k, v in saved do if Settings[k] ~= nil then Settings[k] = v end end end
 end
 if Settings.Capture_mode < 1 or Settings.Capture_mode > 3 then Settings.Capture_mode = 1 end
-if not NAMECALL_AVAILABLE and Settings.Capture_mode == 1 then Settings.Capture_mode = 2 end
+-- Auto-demote to the safest capture mode this executor can ACTUALLY do (validated above),
+-- so a missing/stubbed primitive degrades gracefully instead of silently capturing nothing.
+if Settings.Capture_mode == 1 and not NAMECALL_AVAILABLE then Settings.Capture_mode = HOOKS_AVAILABLE and 2 or 3 end
+if Settings.Capture_mode == 2 and not HOOKS_AVAILABLE then Settings.Capture_mode = NAMECALL_AVAILABLE and 1 or 3 end
 local USE_FUNCTION_HOOKS = HOOKS_AVAILABLE and Settings.Capture_mode <= 2
 local USE_NAMECALL       = NAMECALL_AVAILABLE and Settings.Capture_mode == 1
 
@@ -899,6 +951,58 @@ function UI.dropdown(parent, opts, current, onPick, width)
         end
     end))
     return btn, function(v) lbl.Text = tostring(v) end
+end
+
+-- Menu button (Cobalt-style): an icon+label+caret button that opens an anchored
+-- dropdown of option rows on click. Collapses a long action row into a few tidy
+-- groups. Options: { text, icon?, onClick, tint?("Bad"/"Good"/"Warn"/Color3),
+-- condition?()->bool, closeOnClick? }. `o.items` may be a table or a function
+-- (rebuilt each open, so condition/labels stay live).
+function UI.menuButton(parent, o)
+    o = o or {}
+    local b = make("TextButton", { Parent = parent, AutoButtonColor = false, BorderSizePixel = 0, Text = "", BackgroundColor3 = "@Panel3", Size = o.size or UDim2.new(0, 0, 1, 0), AutomaticSize = Enum.AutomaticSize.X, LayoutOrder = o.order or 0 }, { corner(o.radius or 8), stroke("Stroke", 1, 0.35) })
+    local rowf = make("Frame", { Parent = b, BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }), make("UIPadding", { PaddingLeft = UDim.new(0, 11), PaddingRight = UDim.new(0, 9) }) })
+    if o.icon then make("ImageLabel", { Parent = rowf, BackgroundTransparency = 1, Image = o.icon, ImageColor3 = Theme[o.color or "Text"] or Theme.Text, Size = UDim2.fromOffset(14, 14), LayoutOrder = 1 }) end
+    make("TextLabel", { Parent = rowf, BackgroundTransparency = 1, Font = FONT, TextSize = o.textSize or 12, Text = o.text or "", TextColor3 = "@" .. (o.color or "Text"), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 1, 0), LayoutOrder = 2 })
+    make("ImageLabel", { Name = "Caret", Parent = rowf, BackgroundTransparency = 1, Image = "rbxassetid://10709790948", ImageColor3 = Theme.Sub, Size = UDim2.fromOffset(11, 11), LayoutOrder = 3 })
+    track(b.MouseEnter:Connect(function() TweenService:Create(b, EASE_F, { BackgroundColor3 = Theme.Hover }):Play() end))
+    track(b.MouseLeave:Connect(function() TweenService:Create(b, EASE_F, { BackgroundColor3 = Theme.Panel3 }):Play() end))
+
+    local function tintOf(t)
+        if typeof(t) == "Color3" then return t end
+        if type(t) == "string" then return Theme[t] or Theme.Text end
+        return Theme.Text
+    end
+    local pop, backdrop
+    local function close() if backdrop then backdrop:Destroy(); backdrop = nil end if pop then pop:Destroy(); pop = nil end end
+    track(b.MouseButton1Click:Connect(function()
+        if pop then close(); return end
+        local items = typeof(o.items) == "function" and o.items() or o.items or {}
+        local shown = {}
+        for _, it in ipairs(items) do if not (it.condition and not it.condition()) then shown[#shown + 1] = it end end
+        if #shown == 0 then return end
+        local abs, sz = b.AbsolutePosition, b.AbsoluteSize
+        local w = o.menuWidth or 188
+        backdrop = make("TextButton", { Parent = ScreenGui, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, Size = UDim2.fromScale(1, 1), ZIndex = 89 })
+        track(backdrop.MouseButton1Click:Connect(close))
+        pop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 5), Size = UDim2.fromOffset(w, #shown * 30 + 6), ZIndex = 90 }, { corner(8), stroke("StrokeS", 1), pad(3, 3, 3, 3), make("UIScale", { Scale = UIScaleObj.Scale }), vlayout(2) })
+        for _, it in ipairs(shown) do
+            local txt = typeof(it.text) == "function" and it.text() or it.text
+            local ico = it.icon and (typeof(it.icon) == "function" and it.icon() or it.icon)
+            local col = tintOf(it.tint)
+            local oi = make("TextButton", { Parent = pop, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Hover", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 28), Text = "", ZIndex = 91 }, { corner(6) })
+            if ico then make("ImageLabel", { Parent = oi, BackgroundTransparency = 1, Image = ico, ImageColor3 = col, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 9, 0.5, 0), Size = UDim2.fromOffset(14, 14), ZIndex = 91 }) end
+            make("TextLabel", { Parent = oi, BackgroundTransparency = 1, Font = FONT, TextSize = 13, Text = txt, TextColor3 = col, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(ico and 31 or 11, 0), Size = UDim2.new(1, -(ico and 39 or 18), 1, 0), ZIndex = 91 })
+            track(oi.MouseEnter:Connect(function() oi.BackgroundTransparency = 0 end))
+            track(oi.MouseLeave:Connect(function() oi.BackgroundTransparency = 1 end))
+            track(oi.MouseButton1Click:Connect(function()
+                local fn2 = it.onClick
+                if it.closeOnClick ~= false then close() end
+                if fn2 then fn2() end
+            end))
+        end
+    end))
+    return b, { close = close }
 end
 
 function UI.input(parent, placeholder, onChange, o)
@@ -1748,12 +1852,8 @@ local function createView(page, cfg)
     end))
 
     --── toolbar actions ──
-    act("⧉  Copy", { primary = true, onClick = function() if code.Raw and code.Raw ~= "" then clip(code.Raw) end end })
-    act("▶  Run", { tint = "Good", onClick = function()
-        local e = view.selectedEntry; if not e then return end
-        Runner.open("Run · " .. e.name, "Edit and Run this code (isolated from the log list).", code.Raw)
-    end })
-    act("↻  Repeat", { tint = Color3.fromRGB(170, 130, 255), onClick = function()
+    -- handlers (logic unchanged) — wired below into a few grouped controls so the bar stays tidy
+    local function doRepeat()
         local e = view.selectedEntry; if not e or typeof(e.remote) ~= "Instance" then return end
         task.spawn(function()
             local a = e.packed
@@ -1768,43 +1868,35 @@ local function createView(page, cfg)
             end)
             Notify(ok and "Repeated" or "Repeat failed", ok and e.name or tostring(err), ok and "Good" or "Bad")
         end)
-    end })
-    if cfg.kind ~= "http" then
-        act("✦  Spoof", { tint = Color3.fromRGB(246, 110, 160), onClick = function()
-            local e = view.selectedEntry; if not e then return end
-            if e.class ~= "RemoteFunction" and e.class ~= "BindableFunction" then Notify("Spoof", "Only RemoteFunction/BindableFunction can be spoofed (selected: " .. e.class .. ").", "Bad"); return end
-            Runner.open("Spoof return · " .. e.name, "Edit to `return <values>` then 'Set as spoof'. The remote will reply your value to the client.", "return \"spoofed value\"", function(src)
-                if not loadstringFn then Notify("Spoof", "loadstring unavailable.", "Bad"); return end
-                if src:find("InvokeServer") or src:find("FireServer") or src:find("firesignal") then Notify("Spoof", "Body must be a pure `return …` (no remote calls).", "Bad"); return end
-                local f, err = loadstringFn(src); if not f then Notify("Spoof", "Code error: " .. tostring(err), "Bad"); return end
-                local res = table.pack(pcall(f)); if not res[1] then Notify("Spoof", "Run error: " .. tostring(res[2]), "Bad"); return end
-                local vals = { n = res.n - 1 }; for i = 2, res.n do vals[i - 1] = res[i] end
-                vals = keep(vals); view.spoofs[e.remote] = vals; view.spoofs[e.name] = vals; vlist.invalidate()
-                Notify("Return spoofed", e.name .. " now returns " .. (vals.n) .. " value(s).", "Good")
-            end)
-        end })
-        act("↵  Return", { tint = Color3.fromRGB(96, 200, 255), onClick = function()
-            local e = view.selectedEntry; if not e then return end
-            local isRF, isBF = e.class == "RemoteFunction", e.class == "BindableFunction"
-            if not isRF and not isBF then Notify("Get Return", "Select a RemoteFunction/BindableFunction.", "Bad"); return end
-            showTab("script")
-            task.spawn(function()
-                local a = e.packed
-                local res = table.pack(pcall(function() if isRF then return e.remote:InvokeServer(table.unpack(a, 1, a.n)) else return e.remote:Invoke(table.unpack(a, 1, a.n)) end end))
-                if not res[1] then Notify("Get Return failed", tostring(res[2]), "Bad"); return end
-                local vals = { n = res.n - 1 }; for i = 2, res.n do vals[i - 1] = res[i] end
-                if view.selectedEntry == e then ToString.SetCompress(nil); code.set(code.Raw .. "\n\n-- Returned:\n--[[ " .. ToString.ToString(vals) .. " ]]") end
-                Notify("Got return", e.name .. " → " .. (res.n - 1) .. " value(s)", "Good")
-            end)
-        end })
-        act("⌫  Clear", { onClick = function() table.clear(view.spoofs); vlist.invalidate(); Notify("Cleared spoofs", "", "Good") end })
     end
-    act("⊘  Block", { tint = "Bad", onClick = function() local e = view.selectedEntry; if e then view.block[e.remote] = true; view.block[e.name] = true; vlist.invalidate(); Notify("Blocked", e.name, "Bad") end end })
-    act("⊙  Unblock", { onClick = function() table.clear(view.block); vlist.invalidate(); Notify("Unblocked all", "", "Good") end })
-    act("⊝  Ignore", { onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; Notify("Ignored", e.name, "Sub") end end })
-    act("⊜  Unignore", { onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end Notify("Unignored all", "", "Good") end })
-    act("★  Pin", { tint = "Warn", onClick = function() local e = view.selectedEntry; if e then view.pins[e.name] = not view.pins[e.name]; view.dirtyFilter = true; Notify(view.pins[e.name] and "Pinned" or "Unpinned", e.name, "Warn") end end })
-    act("⤓  Decompile", { tint = "Warn", onClick = function()
+    local function doSpoof()
+        local e = view.selectedEntry; if not e then return end
+        if e.class ~= "RemoteFunction" and e.class ~= "BindableFunction" then Notify("Spoof", "Only RemoteFunction/BindableFunction can be spoofed (selected: " .. e.class .. ").", "Bad"); return end
+        Runner.open("Spoof return · " .. e.name, "Edit to `return <values>` then 'Set as spoof'. The remote will reply your value to the client.", "return \"spoofed value\"", function(src)
+            if not loadstringFn then Notify("Spoof", "loadstring unavailable.", "Bad"); return end
+            if src:find("InvokeServer") or src:find("FireServer") or src:find("firesignal") then Notify("Spoof", "Body must be a pure `return …` (no remote calls).", "Bad"); return end
+            local f, err = loadstringFn(src); if not f then Notify("Spoof", "Code error: " .. tostring(err), "Bad"); return end
+            local res = table.pack(pcall(f)); if not res[1] then Notify("Spoof", "Run error: " .. tostring(res[2]), "Bad"); return end
+            local vals = { n = res.n - 1 }; for i = 2, res.n do vals[i - 1] = res[i] end
+            vals = keep(vals); view.spoofs[e.remote] = vals; view.spoofs[e.name] = vals; vlist.invalidate()
+            Notify("Return spoofed", e.name .. " now returns " .. (vals.n) .. " value(s).", "Good")
+        end)
+    end
+    local function doReturn()
+        local e = view.selectedEntry; if not e then return end
+        local isRF, isBF = e.class == "RemoteFunction", e.class == "BindableFunction"
+        if not isRF and not isBF then Notify("Get Return", "Select a RemoteFunction/BindableFunction.", "Bad"); return end
+        showTab("script")
+        task.spawn(function()
+            local a = e.packed
+            local res = table.pack(pcall(function() if isRF then return e.remote:InvokeServer(table.unpack(a, 1, a.n)) else return e.remote:Invoke(table.unpack(a, 1, a.n)) end end))
+            if not res[1] then Notify("Get Return failed", tostring(res[2]), "Bad"); return end
+            local vals = { n = res.n - 1 }; for i = 2, res.n do vals[i - 1] = res[i] end
+            if view.selectedEntry == e then ToString.SetCompress(nil); code.set(code.Raw .. "\n\n-- Returned:\n--[[ " .. ToString.ToString(vals) .. " ]]") end
+            Notify("Got return", e.name .. " → " .. (res.n - 1) .. " value(s)", "Good")
+        end)
+    end
+    local function doDecompile()
         local e = view.selectedEntry; if not e then return end
         local c = e.caller
         if typeof(c) ~= "Instance" then Notify("Decompile", "Caller is not a script.", "Bad"); return end
@@ -1820,15 +1912,39 @@ local function createView(page, cfg)
             end
             code.set("-- No decompiler available (no native decompile / Konstant fallback).")
         end)
-    end })
-    act("⇪  Export", { onClick = function()
+    end
+    local function doExport()
         if not writefileFn then Notify("Export", "writefile unavailable.", "Bad"); return end
         local parts = {}
         for _, e in view.visible do parts[#parts + 1] = cfg.codegen("Readable", e, { framework = e.framework, size = e.size, time = e.time }) end
         local fname = CFG_DIR .. "/Rebirth_" .. (cfg.kind or "log") .. "_" .. os.date("%H%M%S") .. ".txt"
         pcall(function() ensureDir(); writefileFn(fname, table.concat(parts, "\n\n-- ──────────\n\n")) end)
         Notify("Exported", fname .. " (" .. #parts .. ")", "Good")
+    end
+    local notHttp = function() return cfg.kind ~= "http" end
+
+    act("⧉  Copy", { primary = true, onClick = function() if code.Raw and code.Raw ~= "" then clip(code.Raw) end end })
+    act("▶  Run", { tint = "Good", onClick = function()
+        local e = view.selectedEntry; if not e then return end
+        Runner.open("Run · " .. e.name, "Edit and Run this code (isolated from the log list).", code.Raw)
     end })
+    -- Manipulate ▾ : actions that act ON the selected call
+    UI.menuButton(actionBar, { text = "Manipulate", icon = "rbxassetid://10734963191", order = #actionBar:GetChildren(), items = {
+        { text = "Repeat call",      icon = ACT_ICON.Repeat, onClick = doRepeat },
+        { text = "Spoof return…",    icon = ACT_ICON.Spoof,  onClick = doSpoof,  condition = notHttp },
+        { text = "Get return value", icon = ACT_ICON.Return, onClick = doReturn, condition = notHttp },
+        { text = "Clear spoofs",     icon = ACT_ICON.Clear,  onClick = function() table.clear(view.spoofs); vlist.invalidate(); Notify("Cleared spoofs", "", "Good") end, condition = notHttp },
+    } })
+    -- List ▾ : actions that change what the log shows
+    UI.menuButton(actionBar, { text = "List", icon = "rbxassetid://10723375128", order = #actionBar:GetChildren(), items = {
+        { text = "Block remote", icon = ACT_ICON.Block, tint = "Bad", onClick = function() local e = view.selectedEntry; if e then view.block[e.remote] = true; view.block[e.name] = true; vlist.invalidate(); Notify("Blocked", e.name, "Bad") end end },
+        { text = "Unblock all",  icon = ACT_ICON.Unblock, onClick = function() table.clear(view.block); vlist.invalidate(); Notify("Unblocked all", "", "Good") end },
+        { text = "Ignore remote", icon = ACT_ICON.Ignore, onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; Notify("Ignored", e.name, "Sub") end end },
+        { text = "Unignore all",  onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end Notify("Unignored all", "", "Good") end },
+        { text = "Pin / Unpin",   icon = ACT_ICON.Pin, onClick = function() local e = view.selectedEntry; if e then view.pins[e.name] = not view.pins[e.name]; view.dirtyFilter = true; Notify(view.pins[e.name] and "Pinned" or "Unpinned", e.name, "Warn") end end },
+    } })
+    act("⤓  Decompile", { onClick = doDecompile })
+    act("⇪  Export", { onClick = doExport })
 
     showTab("script")
     return view
@@ -2118,6 +2234,26 @@ do
             if navBtns.Http then navBtns.Http.Visible = v end
         end)
         sw.AnchorPoint = Vector2.new(1, 0.5); sw.Position = UDim2.new(1, 0, 0.5, 0)
+    end
+    -- Compatibility readout — surfaces the engine self-test so you KNOW which
+    -- capabilities are *verified working* on your executor (not merely present).
+    ord += 1
+    make("TextLabel", { Parent = scroll, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Compatibility", TextColor3 = "@Text", TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 22), LayoutOrder = ord })
+    do
+        ord += 1
+        local okCount = 0; for _, n in CapsOrder do if Caps[n].ok then okCount += 1 end end
+        local modeName = ({ "Max (namecall + functions)", "Stealth (functions only)", "Passive (incoming only)" })[Settings.Capture_mode] or "?"
+        local card = make("Frame", { Parent = scroll, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2.new(1, 0, 0, 0), LayoutOrder = ord }, { corner(10), stroke("Stroke", 1), pad(12), vlayout(5) })
+        make("TextLabel", { Parent = card, BackgroundTransparency = 1, Font = FONT, Text = "Engine self-test · " .. okCount .. " / " .. #CapsOrder .. " verified working", TextColor3 = "@Text", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 18), LayoutOrder = 1 })
+        make("TextLabel", { Parent = card, BackgroundTransparency = 1, Font = FONT_REG, Text = "Auto-selected capture mode: " .. modeName, TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 14), LayoutOrder = 2 })
+        for i, n in CapsOrder do
+            local cap = Caps[n]
+            local r = make("Frame", { Parent = card, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 20), LayoutOrder = 2 + i })
+            make("Frame", { Parent = r, BackgroundColor3 = cap.ok and Theme.Good or Theme.Bad, BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 2, 0.5, 0), Size = UDim2.fromOffset(8, 8) }, { corner(4) })
+            make("TextLabel", { Parent = r, BackgroundTransparency = 1, Font = FONT_MONO, Text = n .. (cap.essential and "  *" or ""), TextColor3 = "@Text", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(18, 0), Size = UDim2.new(0.45, -18, 1, 0) })
+            make("TextLabel", { Parent = r, BackgroundTransparency = 1, Font = FONT_REG, Text = cap.ok and "verified" or (cap.note or "unavailable"), TextColor3 = cap.ok and Theme.Good or Theme.Faint, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.new(0.55, 0, 1, 0), TextTruncate = Enum.TextTruncate.AtEnd })
+        end
+        make("TextLabel", { Parent = card, BackgroundTransparency = 1, Font = FONT_REG, Text = "* essential for capture. Green = test passed on your executor.", TextColor3 = "@Faint", TextSize = 10, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 14), LayoutOrder = 998 })
     end
     make("TextLabel", { Parent = scroll, BackgroundTransparency = 1, Font = FONT_REG, Text = "Rebirth v" .. VERSION .. "  ·  premium GUI over the IxSpy engine", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 20), LayoutOrder = 999 })
 end
