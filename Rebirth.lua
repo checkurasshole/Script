@@ -680,19 +680,19 @@ local VERSION = "2.0"
 --==============================  Theme  ===================================--
 
 local Theme = {
-    Bg       = Color3.fromRGB(12, 13, 17),
-    Bg2      = Color3.fromRGB(16, 18, 24),
-    Panel    = Color3.fromRGB(20, 22, 29),
-    Panel2   = Color3.fromRGB(27, 30, 39),
-    Panel3   = Color3.fromRGB(38, 42, 54),
-    Hover    = Color3.fromRGB(50, 55, 70),
+    Bg       = Color3.fromRGB(23, 18, 13),
+    Bg2      = Color3.fromRGB(29, 23, 17),
+    Panel    = Color3.fromRGB(34, 27, 20),
+    Panel2   = Color3.fromRGB(45, 36, 27),
+    Panel3   = Color3.fromRGB(59, 48, 36),
+    Hover    = Color3.fromRGB(75, 61, 45),
     Accent   = Color3.fromRGB(201, 156, 88),
     Accent2  = Color3.fromRGB(238, 201, 134),
-    Text     = Color3.fromRGB(241, 243, 250),
-    Sub      = Color3.fromRGB(150, 156, 176),
-    Faint    = Color3.fromRGB(98, 103, 122),
-    Stroke   = Color3.fromRGB(36, 39, 50),
-    StrokeS  = Color3.fromRGB(54, 59, 75),
+    Text     = Color3.fromRGB(244, 238, 229),
+    Sub      = Color3.fromRGB(170, 157, 138),
+    Faint    = Color3.fromRGB(122, 108, 89),
+    Stroke   = Color3.fromRGB(53, 44, 33),
+    StrokeS  = Color3.fromRGB(76, 62, 46),
     Good     = Color3.fromRGB(74, 214, 140),
     Warn     = Color3.fromRGB(255, 196, 84),
     Bad      = Color3.fromRGB(240, 96, 104),
@@ -755,7 +755,7 @@ local function viewport() local c = workspace.CurrentCamera; return (c and c.Vie
 
 local Window = make("Frame", { Name = "Window", Parent = ScreenGui, BackgroundColor3 = "@Bg", BorderSizePixel = 0, Size = UDim2.fromOffset(800, 540), Position = UDim2.new(0.5, -400, 0.5, -270) }, { corner(12), stroke("StrokeS", 1, 0.2) })
 -- (window drop-shadow removed)
-make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(14), grad(90, Color3.fromRGB(26, 24, 44), Theme.Bg) })
+make("Frame", { Parent = Window, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 120), ZIndex = 0 }, { corner(12), grad(90, Color3.fromRGB(48, 36, 23), Theme.Bg) })
 
 local UIScaleObj = make("UIScale", { Parent = Window, Scale = 1 })
 -- DENSITY: render the whole window smaller (text + spacing + elements shrink together,
