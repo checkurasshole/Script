@@ -1157,17 +1157,20 @@ end
 local closeBtn = topCtl("X", "Bad", -12)
 local minBtn = topCtl("-", "Sub", -46)
 
--- drag
+-- drag — snapshot the window's ACTUAL pixel position (AbsolutePosition) at grab time.
+-- The window starts centered with scale components (0.5,…); reading .Offset alone
+-- dropped the scale and clamped the first drag to the top-left corner. Absolute pos
+-- has no scale component, so the first move can't jump.
 do
     local dragging, ds, sp, di
     track(Topbar.InputBegan:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging, ds, sp = true, i.Position, Window.Position; track(i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then dragging = false end end)) end
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging, ds, sp = true, i.Position, Window.AbsolutePosition; track(i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then dragging = false end end)) end
     end))
     track(Topbar.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then di = i end end))
     track(UserInputService.InputChanged:Connect(function(i)
         if i == di and dragging then
             local d = i.Position - ds; local v, s = viewport(), Window.AbsoluteSize
-            Window.Position = UDim2.fromOffset(math.clamp(sp.X.Offset + d.X, 0, math.max(0, v.X - s.X)), math.clamp(sp.Y.Offset + d.Y, 0, math.max(0, v.Y - s.Y)))
+            Window.Position = UDim2.fromOffset(math.clamp(sp.X + d.X, 0, math.max(0, v.X - s.X)), math.clamp(sp.Y + d.Y, 0, math.max(0, v.Y - s.Y)))
         end
     end))
 end
