@@ -286,6 +286,7 @@ do
         local ok, mt = pcall(getrawmetatable, v)
         if ok and type(mt) == "table" and rawget(mt, "__tostring") then
             local saved = rawget(mt, "__tostring")
+            -- restored gates the put-back: if the mt can't be unlocked the rawset errors → restored=false → we leave the mt untouched (never corrupt one we couldn't modify)
             local restored = pcall(function()
                 if fn("setreadonly") then env.setreadonly(mt, false) elseif fn("make_writable") then env.make_writable(mt) end
                 rawset(mt, "__tostring", nil)
