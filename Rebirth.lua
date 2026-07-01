@@ -1308,6 +1308,7 @@ local function selectPage(name)
         local on = n == name
         TweenService:Create(b, EASE_F, { BackgroundTransparency = on and 0 or 1 }):Play()
         b.Lbl.TextColor3 = on and Theme.Text or Theme.Sub
+        local ico = b:FindFirstChild("Icon"); if ico then ico.ImageColor3 = on and Theme.Accent or Theme.Sub end   -- active tab's icon pops, inactive dims with its label
         if on then
             task.defer(function()
                 local sc = math.max(UIScaleObj.Scale, 0.01)
