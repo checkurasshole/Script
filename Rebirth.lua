@@ -1505,7 +1505,7 @@ local function createView(page, cfg)
     local filtC = make("Frame", { Parent = row2, BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 0, 28) }, { hlayout(8) })
     if cfg.directions then local s = UI.segmented(filtC, { "All", "Out", "In" }, "All", function(v) view.filterDir = v; view.dirtyFilter = true end); s.LayoutOrder = 1 end
     if cfg.types then local d = UI.dropdown(filtC, cfg.types, "All", function(v) view.filterType = v; view.dirtyFilter = true end, 150); d.LayoutOrder = 2; d.Size = UDim2.fromOffset(150, 28) end
-    do local d = UI.dropdown(filtC, { "All", "Roblox", "ByteNet", "BridgeNet", "BridgeNet2", "Blink", "Warp", "Red", "Zap", "Knit", "Aero", "Buffer" }, "All", function(v) view.filterFw = v; view.dirtyFilter = true end, 124); d.LayoutOrder = 3; d.Size = UDim2.fromOffset(124, 28) end
+    do local d = UI.dropdown(filtC, { "All", "Roblox", "ByteNet", "BridgeNet", "BridgeNet2", "Blink", "Warp", "Red", "Zap", "Knit", "Aero", "Cmdr", "Buffer" }, "All", function(v) view.filterFw = v; view.dirtyFilter = true end, 124); d.LayoutOrder = 3; d.Size = UDim2.fromOffset(124, 28) end
 
     --── body: list | divider | detail ──
     local split = 0.44
@@ -1741,6 +1741,8 @@ local function createView(page, cfg)
         e.packed = savedP
         -- args tab
         for _, c in argsArea:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
+        -- per-remote stats line: fire count, first/last seen, and the calling script
+        make("TextLabel", { Parent = argsArea, BackgroundTransparency = 1, Font = FONT_MONO, RichText = true, Text = ("<font color=\"#c99c58\">×%d</font>  ·  first %s  ·  last %s%s"):format(e.count or 1, e.firstTime or e.time or "?", e.time or "?", e.callerName and ("  ·  by " .. richEsc(tostring(e.callerName))) or ""), TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = 0 })
         local n = packed.n or #packed
         if n == 0 then make("TextLabel", { Parent = argsArea, BackgroundTransparency = 1, Font = FONT, Text = "(no arguments)", TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 18) })
         else
@@ -1869,7 +1871,7 @@ local function createView(page, cfg)
                 id = nextId, name = nm, remote = remote, incoming = incoming, packed = packed, got = got,
                 caller = caller, callerName = callerName(caller), thread = tostring(thr), time = os.date("%H:%M:%S"), clk = clk,
                 framework = fwk, size = estimateSize(packed), count = 1, class = remote.ClassName, hidden = okk and not isDesc, gkey = gkey,
-                typeLabel = lbl, fullName = full, shortPath = short,
+                typeLabel = lbl, fullName = full, shortPath = short, firstTime = os.date("%H:%M:%S"),
             }
             -- index a bounded preview of the argument CONTENT so the filter can find remotes by payload
             -- (scalars + one level into tables; capped, no deep recursion or full serialization).
