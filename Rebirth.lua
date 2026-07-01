@@ -1740,6 +1740,24 @@ local function createView(page, cfg)
                 make("TextLabel", { Parent = rowf, BackgroundTransparency = 1, Font = FONT_MONO, RichText = true, Text = highlight(#s > 1200 and (s:sub(1, 1200) .. "  …") or s), TextColor3 = "@Text", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true, Position = UDim2.fromOffset(0, 18), Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y })
             end
         end
+        -- captured RemoteFunction return value(s), shown WITHOUT re-invoking (no side effects).
+        -- got shape: invoke -> { [1] = table.pack(returns) };  spoof -> the packed values directly.
+        local g = e.got
+        local rets = (type(g) == "table") and ((type(g[1]) == "table" and g[1].n ~= nil and g[1]) or (g.n ~= nil and g) or nil) or nil
+        if rets and (rets.n or #rets) > 0 then
+            make("TextLabel", { Parent = argsArea, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "RETURN  ·  server reply (latest call)", TextColor3 = "@Good", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 18), LayoutOrder = 500 })
+            for i = 1, (rets.n or #rets) do
+                local val = rets[i]
+                local ok, s = pcall(function() ToString.SetCompress(nil); return ToString.ToString(val, 1) end)
+                ToString.SetCompress(nil)
+                s = ok and s or ("<" .. typeof(val) .. ">")
+                local rowf = make("Frame", { Parent = argsArea, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 500 + i }, { corner(8), pad(8), stroke("StrokeS", 1, 0.6) })
+                make("TextLabel", { Parent = rowf, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "→ [" .. i .. "]  " .. typeof(val), TextColor3 = "@Good", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, -50, 0, 14) })
+                local cp = make("TextButton", { Parent = rowf, AutoButtonColor = false, BorderSizePixel = 0, BackgroundTransparency = 1, Text = "copy", Font = FONT, TextSize = 10, TextColor3 = "@Sub", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 0, 0, 0), Size = UDim2.fromOffset(40, 14) })
+                cp.MouseButton1Click:Connect(function() clip(s) end)
+                make("TextLabel", { Parent = rowf, BackgroundTransparency = 1, Font = FONT_MONO, RichText = true, Text = highlight(#s > 1200 and (s:sub(1, 1200) .. "  …") or s), TextColor3 = "@Text", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true, Position = UDim2.fromOffset(0, 18), Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y })
+            end
+        end
     end
 
     -- connections viewer
@@ -2794,6 +2812,11 @@ do
         if typeof(e.headers) == "table" and next(e.headers) then p[#p + 1] = "    Headers = " .. ToString.ToString(e.headers, 1) .. "," end
         if e.body ~= nil and e.body ~= "" then p[#p + 1] = "    Body = " .. ToString.ToString(e.body) .. "," end
         p[#p + 1] = "})"
+        if e.status or (e.resp and e.resp ~= "") then
+            p[#p + 1] = ""
+            p[#p + 1] = "-- Response" .. (e.status and ("  ·  status " .. tostring(e.status)) or "") .. (e.respTrunc and "  (truncated)" or "")
+            if e.resp and e.resp ~= "" then p[#p + 1] = "--[==[\n" .. e.resp .. "\n]==]" end   -- long-bracket keeps the request above copy-runnable
+        end
         return table.concat(p, "\n")
     end
     local function rb()
@@ -2815,7 +2838,16 @@ do
     UI.button(tb, { text = "Clear", color = "Bad", onClick = function() entries = {}; visible = {}; byId = {}; selected = nil; vlist.setItems(visible); code.set("") end }).Size = UDim2.new(0, 0, 1, 0)
     local function host(u) u = typeof(u) == "string" and u or tostring(u); return u:match("https?://([^/]+)") or u:sub(1, 30) end
     local q, qh = {}, 1
-    local function push(url, method, headers, b) if paused then return end if (#q - qh + 1) >= 1500 then return end q[#q + 1] = { url = typeof(url) == "string" and url or tostring(url), method = method, headers = headers, body = b, time = os.date("%H:%M:%S") } end
+    local function push(url, method, headers, b, res)
+        if paused then return end
+        if (#q - qh + 1) >= 1500 then return end
+        local st, rb
+        if type(res) == "table" then st = res.StatusCode or res.Status or res.status_code; rb = res.Body or res.body
+        elseif type(res) == "string" then rb = res end
+        if rb ~= nil and type(rb) ~= "string" then rb = tostring(rb) end
+        local rt = rb ~= nil and #rb > 8000; if rt then rb = rb:sub(1, 8000) end
+        q[#q + 1] = { url = typeof(url) == "string" and url or tostring(url), method = method, headers = headers, body = b, time = os.date("%H:%M:%S"), status = st, resp = rb, respTrunc = rt }
+    end
     function httpTick()
         local n = #q
         if qh <= n then
@@ -2839,12 +2871,13 @@ do
     local httprequest = fn("request") or fn("http_request") or fn("syn_request") or (typeof(env.syn) == "table" and typeof(env.syn.request) == "function" and env.syn.request or nil)
     if USE_FUNCTION_HOOKS and httprequest then pcall(function() Hooks.HookFunction(httprequest, function(old, opt, ...)
         local res = old(opt, ...)
-        if typeof(opt) == "table" then push(opt.Url or opt.url, opt.Method or opt.method or "GET", opt.Headers or opt.headers, opt.Body or opt.body) end
+        if typeof(opt) == "table" then push(opt.Url or opt.url, opt.Method or opt.method or "GET", opt.Headers or opt.headers, opt.Body or opt.body, res) end
         return res
     end, "request") end) end
     if USE_FUNCTION_HOOKS and not USE_NAMECALL then for _, m in { "RequestAsync", "GetAsync", "PostAsync" } do pcall(function() Hooks.HookFunction(HttpService[m], function(old, self, ...)
-        if self == HttpService then local a = table.pack(...); if m == "RequestAsync" and typeof(a[1]) == "table" then push(a[1].Url, a[1].Method or "GET", a[1].Headers, a[1].Body) elseif m == "GetAsync" then push(a[1], "GET") elseif m == "PostAsync" then push(a[1], "POST", nil, a[2]) end end
-        return old(self, ...)
+        local ret = table.pack(old(self, ...))   -- call first so we can capture the response too
+        if self == HttpService then local a = table.pack(...); if m == "RequestAsync" and typeof(a[1]) == "table" then push(a[1].Url, a[1].Method or "GET", a[1].Headers, a[1].Body, ret[1]) elseif m == "GetAsync" then push(a[1], "GET", nil, nil, ret[1]) elseif m == "PostAsync" then push(a[1], "POST", nil, a[2], ret[1]) end end
+        return table.unpack(ret, 1, ret.n)
     end, "HttpService." .. m) end) end end
     addNamecallRoute(function(self, M, ...) if self == HttpService then local a = { ... }; if M == "RequestAsync" and typeof(a[1]) == "table" then push(a[1].Url, a[1].Method or "GET", a[1].Headers, a[1].Body) elseif M == "GetAsync" then push(a[1], "GET") elseif M == "PostAsync" then push(a[1], "POST", nil, a[2]) end end return false end)
 end
