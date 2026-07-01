@@ -1769,7 +1769,8 @@ local function createView(page, cfg)
         -- args tab
         for _, c in argsArea:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
         -- per-remote stats line: fire count, first/last seen, and the calling script
-        make("TextLabel", { Parent = argsArea, BackgroundTransparency = 1, Font = FONT_MONO, RichText = true, Text = ("<font color=\"#c99c58\">×%d</font>  ·  first %s  ·  last %s%s"):format(e.count or 1, e.firstTime or e.time or "?", e.time or "?", e.callerName and ("  ·  by " .. richEsc(tostring(e.callerName))) or ""), TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = 0 })
+        local avgB = math.floor((e.sizeSum or e.size or 0) / math.max(1, e.count or 1))
+        make("TextLabel", { Parent = argsArea, BackgroundTransparency = 1, Font = FONT_MONO, RichText = true, Text = ("<font color=\"#c99c58\">×%d</font>  ·  first %s  ·  last %s  ·  avg %sb%s"):format(e.count or 1, e.firstTime or e.time or "?", e.time or "?", commaize(avgB), e.callerName and ("  ·  by " .. richEsc(tostring(e.callerName))) or ""), TextColor3 = "@Sub", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = 0 })
         local n = packed.n or #packed
         if n == 0 then make("TextLabel", { Parent = argsArea, BackgroundTransparency = 1, Font = FONT, Text = "(no arguments)", TextColor3 = "@Faint", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 18) })
         else
@@ -1879,6 +1880,7 @@ local function createView(page, cfg)
         local existing = Settings.Group_calls and view.groupMap[gkey]
         if existing then
             existing.count += 1; existing.packed = packed; existing.got = got; existing.remote = remote; existing.clk = clk; existing.time = os.date("%H:%M:%S")
+            existing.sizeSum = (existing.sizeSum or existing.size or 0) + estimateSize(packed)   -- running total for avg payload size
             existing.history = existing.history or {}
             existing.history[#existing.history + 1] = { packed = packed, time = existing.time, n = existing.count }  -- n = TRUE call number
             if #existing.history > math.max(Settings.Calls_per_remote, 5) then
