@@ -1968,7 +1968,10 @@ local function createView(page, cfg)
         if view.filterDir == "In" and not e.incoming then return false end
         if view.filterType ~= "All" and e.class ~= view.filterType then return false end
         if view.filterFw ~= "All" and e.framework ~= view.filterFw then return false end
-        if view.filterText ~= "" then for term in view.filterText:gmatch("%S+") do if not e.search:find(term, 1, true) then return false end end end
+        if view.filterText ~= "" then for term in view.filterText:gmatch("%S+") do
+            if term:sub(1, 1) == "-" and #term > 1 then if e.search:find(term:sub(2), 1, true) then return false end   -- -term excludes
+            elseif not e.search:find(term, 1, true) then return false end
+        end end
         return true
     end
     function view.rebuild()
@@ -2247,7 +2250,7 @@ local function installRemoteHooks(view)
             track(RunService.Heartbeat:Connect(function()
                 local n = #q; if qh > n then return end
                 local b = 120
-                while qh <= n and b > 0 do local e = q[qh]; q[qh] = nil; qh += 1; b -= 1; if e and typeof(e[1]) == "Instance" and view.accepting() then view.addRaw(cloneref(e[1]), false, e[3], "Actor VM", nil) end end
+                while qh <= n and b > 0 do local e = q[qh]; q[qh] = nil; qh += 1; b -= 1; if e and typeof(e[1]) == "Instance" and view.accepting() then pcall(view.addRaw, cloneref(e[1]), false, e[3], "Actor VM", nil) end end
                 if qh > #q then for k in q do q[k] = nil end; qh = 1 end
                 if #q - qh + 1 > 6000 then qh = #q + 1 end
             end))
@@ -2946,7 +2949,7 @@ do
         if dirtyH or page:GetAttribute("dirty") then
             dirtyH = false; page:SetAttribute("dirty", nil)
             local out = {}
-            for i = #entries, 1, -1 do local e = entries[i]; local ok = true; if filterText ~= "" then for term in filterText:gmatch("%S+") do if not e.search:find(term, 1, true) then ok = false; break end end end; if ok then out[#out + 1] = e end end
+            for i = #entries, 1, -1 do local e = entries[i]; local ok = true; if filterText ~= "" then for term in filterText:gmatch("%S+") do local neg = term:sub(1, 1) == "-" and #term > 1; if neg then if e.search:find(term:sub(2), 1, true) then ok = false; break end elseif not e.search:find(term, 1, true) then ok = false; break end end end; if ok then out[#out + 1] = e end end
             visible = out; vlist.setItems(out)
         end
         vlist.tick()
