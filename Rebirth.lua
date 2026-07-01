@@ -1399,6 +1399,7 @@ do
     for _, w in { "game","workspace","script","Enum","Color3","Vector3","Vector2","CFrame","UDim","UDim2","Instance","BrickColor","Ray","Rect","TweenInfo","NumberRange","NumberSequence","ColorSequence","math","table","string","task","os","coroutine","buffer","unpack","getNil","getnilinstances","getcallbackvalue","firesignal","request","pcall","select","hookfunction","newcclosure","print","Font","DateTime" } do GL[w] = true end
     local C = { c = "#5a6378", s = "#9ed27a", n = "#e0b262", k = "#c98cff", g = "#62a8e8", p = "#9aa0b4" }
     local function esc(s) return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub("\"", "&quot;")) end
+    -- span() esc's its text, which is what makes EVERY highlighter branch RichText-injection-safe (a remote arg can't inject <font> tags). Keep it so: never append raw text to `out` — route it through span() or esc().
     local function span(c, t) return "<font color=\"" .. c .. "\">" .. esc(t) .. "</font>" end
     function highlight(code)
         -- skip the per-char highlighter on very large sources (huge decompiled scripts) to avoid a freeze
