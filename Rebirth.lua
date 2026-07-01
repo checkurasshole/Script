@@ -452,7 +452,7 @@ do
             count = math.max(count, k)
         end
         if arr then
-            arr = #tbl == count; allValid = false
+            arr = count >= 1 and #tbl == count; allValid = false   -- require positive dense keys; {[0]=x}/negatives serialize as a dict (else the entry is dropped)
             if arr then for i = 1, count do if tbl[i] == nil then arr = false; break end end end
         else for k in tbl do if typeof(k) ~= "string" or not validName(k) then allValid = false; break end end end
         return arr, allValid, count
