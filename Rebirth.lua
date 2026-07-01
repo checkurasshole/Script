@@ -227,17 +227,23 @@ local NamecallRoutes = {}
 local function addNamecallRoute(f) NamecallRoutes[#NamecallRoutes + 1] = f end
 local function installNamecall()
     if not USE_NAMECALL then return end
-    Hooks.HookMetaMethod("__namecall", function(old, self, ...)
-        if typeof(self) == "Instance" then
-            local m = getnamecallmethod()
-            if m then
-                local M = m:sub(1, 1):upper() .. m:sub(2)
-                for _, route in NamecallRoutes do
-                    local matched, res = route(self, M, ...)
-                    if matched then return table.unpack(res, 1, res.n) end
-                end
-            end
+    -- dispatch defined ONCE (no per-namecall closure alloc on this very hot path)
+    local function dispatch(self, ...)
+        if typeof(self) ~= "Instance" then return false end
+        local m = getnamecallmethod(); if not m then return false end
+        local M = m:sub(1, 1):upper() .. m:sub(2)
+        for _, route in NamecallRoutes do
+            local matched, res = route(self, M, ...)
+            if matched then return true, res end
         end
+        return false
+    end
+    Hooks.HookMetaMethod("__namecall", function(old, self, ...)
+        -- NEVER let a spy bug break a game namecall: on ANY error, fall through to the real call.
+        -- Safe from double-firing: routes only perform the real call as their LAST step, so a throw
+        -- always happens before the remote actually fires.
+        local ok, matched, res = pcall(dispatch, self, ...)
+        if ok and matched and res then return table.unpack(res, 1, res.n) end
         return old(self, ...)
     end, "__namecall dispatcher")
 end
