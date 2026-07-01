@@ -346,7 +346,7 @@ do
     local tostr
     local function convertArg(arg, indent)
         local t = typeof(arg)
-        if compressMap and (t == "Instance" or t == "string") and compressMap[arg] then return compressMap[arg] end
+        if compressMap and t == "Instance" and compressMap[arg] then return compressMap[arg] end   -- compress map only ever holds instance keys (hoisted vars)
         if t == "string" then
             local ok, decoded = pcall(HttpService.JSONDecode, HttpService, arg)
             if ok and not tonumber(arg) and typeof(decoded) == "table" then
