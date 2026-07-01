@@ -759,7 +759,10 @@ local function decompileScript(scr)
             end
             -- Konstant (raw bytecode, text)
             local okr2, resp2 = pcall(httpRequestFn, { Url = "https://api.plusgiant5.com/konstant/decompile", Method = "POST", Body = bc, Headers = { ["Content-Type"] = "text/plain" } })
-            if okr2 and type(resp2) == "table" and resp2.Body and #resp2.Body > 0 then return resp2.Body end
+            if okr2 and type(resp2) == "table" and resp2.Body and #resp2.Body > 0 then
+                local st2 = resp2.StatusCode or resp2.Status or resp2.status_code   -- reject error pages (only accept 200, or when no status is reported)
+                if not st2 or tonumber(st2) == 200 then return resp2.Body end
+            end
         end
     end
     return nil
@@ -894,6 +897,10 @@ do
     })
     function Notify(title, text, colorKey, dur)
         colorKey, dur = colorKey or "Accent", dur or 4
+        -- cap simultaneous toasts so a burst can't fill the screen (destroy is safe mid-fade:
+        -- the delayed fade guards on card.Parent). Cards are holder's only Frame children, oldest first.
+        do local cards = {}; for _, c in holder:GetChildren() do if c:IsA("Frame") then cards[#cards + 1] = c end end
+            for i = 1, #cards - 5 do cards[i]:Destroy() end end
         local card = make("Frame", { Parent = holder, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, BackgroundTransparency = 1, ZIndex = 61 }, {
             corner(10), stroke("StrokeS", 1, 0.4),
             make("Frame", { BackgroundColor3 = "@" .. colorKey, BorderSizePixel = 0, Size = UDim2.new(0, 3, 1, -18), Position = UDim2.fromOffset(9, 9), ZIndex = 62 }, { corner(2) }),
@@ -2503,7 +2510,7 @@ local function _buildExplorer()
         if isScript(inst) then
             propScroll.Visible = false; scrFrame.Visible = true
             UI.button(pBtns, { text = "Copy source", primary = true, textSize = 11, order = 2, onClick = function() if scrView.Raw and scrView.Raw ~= "" then clip(scrView.Raw) end end }).Size = UDim2.fromOffset(0, 22)
-            if decompiled[inst] then scrView.set(decompiled[inst])
+            if decompiled[inst] and decompiled[inst] ~= "" then scrView.set(decompiled[inst])   -- "" = a scan couldn't decompile it; fall through to retry rather than show a blank panel
             else
                 scrView.set("-- decompiling " .. tostring(inst.Name) .. " …")
                 task.spawn(function()
