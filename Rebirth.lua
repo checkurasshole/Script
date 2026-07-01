@@ -256,6 +256,10 @@ do
     local function normalize(s)
         return (s:gsub("[%z\1-\31\127\\\"]", function(c) return ESCAPES[c] or string.format("\\%03d", string.byte(c)) end))
     end
+    -- binary-safe: also escapes high bytes (128-255) so buffer payloads copy/paste losslessly
+    local function normalizeBin(s)
+        return (s:gsub("[%z\1-\31\127-\255\\\"]", function(c) return ESCAPES[c] or string.format("\\%03d", string.byte(c)) end))
+    end
     -- Stringify userdata safely: a malicious __tostring on a passed object can crash/detect.
     local function safeTostring(v)
         local ok, mt = pcall(getrawmetatable, v)
@@ -413,7 +417,7 @@ do
             local zero = true
             for i = 1, #s1 do if string.byte(s1, i) ~= 0 then zero = false; break end end
             -- reuse the corrected normalize() so byte escaping is consistent (3-digit, backslash-safe)
-            return (zero and ("buffer.create(" .. #s1 .. ")") or ("buffer.fromstring(\"" .. normalize(s1) .. "\")")) .. " --[[ len " .. #s1 .. " ]]"
+            return (zero and ("buffer.create(" .. #s1 .. ")") or ("buffer.fromstring(\"" .. normalizeBin(s1) .. "\")")) .. " --[[ len " .. #s1 .. " ]]"
         elseif t == "Instance" then return getPath(arg)
         elseif t == "table" then return tostr(arg, indent)
         else
