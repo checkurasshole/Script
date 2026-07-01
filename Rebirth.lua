@@ -854,7 +854,7 @@ local function make(class, props, children)
     if props then
         for k, v in props do
             if k ~= "Parent" then
-                if k ~= "Text" and type(v) == "string" and v:sub(1, 1) == "@" then o[k] = Theme[v:sub(2)] or Color3.new(1, 0, 1)
+                if k ~= "Text" and type(v) == "string" and v:sub(1, 1) == "@" then o[k] = Theme[v:sub(2)] or Color3.new(1, 0, 1)   -- "@Name" -> Theme.Name; unknown key -> magenta (visible dev-time flag)
                 else o[k] = v end
             end
         end
