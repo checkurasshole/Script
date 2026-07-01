@@ -1792,7 +1792,7 @@ local function createView(page, cfg)
         local n = math.max(1, (e and e.history and #e.history) or 1)
         callBtn.Visible = n > 1
         local sel = math.clamp(view.callIdx or n, 1, n)
-        local trueN = (e and e.history and e.history[sel] and e.history[sel].n) or sel
+        local trueN = (e and e.history and e.history[sel] and e.history[sel].n) or sel   -- history[i].n is the TRUE fire number (not the array index), so "#101/300" is correct after the history window trims early calls
         callLbl.Text = "Call #" .. trueN .. " / " .. ((e and e.count) or n)
     end
     view._refreshMeta = function(e) view.refreshCallPicker(e) end
