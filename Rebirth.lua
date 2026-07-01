@@ -361,6 +361,7 @@ do
             if ok and not tonumber(arg) and typeof(decoded) == "table" then
                 return "game:GetService(\"HttpService\"):JSONEncode(" .. tostr(decoded, indent) .. ")"
             end
+            -- rewrite a GUID literal as GenerateGUID(...) so replayed code makes a FRESH id, not a stale hardcoded one. layout: braced {8-4-4-4-12} = 38 chars (dashes at 10,15,20,25); bare 8-4-4-4-12 = 36 chars (dashes at 9,14,19,24)
             if #arg == 38 and arg:sub(1,1)=="{" and arg:sub(-1)=="}" and arg:sub(10,10)=="-" and arg:sub(15,15)=="-" and arg:sub(20,20)=="-" and arg:sub(25,25)=="-" then
                 return "game:GetService(\"HttpService\"):GenerateGUID(true)"
             elseif #arg == 36 and arg:sub(9,9)=="-" and arg:sub(14,14)=="-" and arg:sub(19,19)=="-" and arg:sub(24,24)=="-" then
