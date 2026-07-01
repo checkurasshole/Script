@@ -2894,6 +2894,13 @@ do
         end
         return table.concat(p, "\n")
     end
+    local function buildCurl(e)   -- replayable in a terminal (single-quote shell-escaped)
+        local function q(s) return "'" .. tostring(s):gsub("'", "'\\''") .. "'" end
+        local parts = { "curl -X " .. (e.method or "GET") .. " " .. q(e.url or "") }
+        if typeof(e.headers) == "table" then for k, v in e.headers do parts[#parts + 1] = "-H " .. q(tostring(k) .. ": " .. tostring(v)) end end
+        if e.body ~= nil and e.body ~= "" then parts[#parts + 1] = "--data " .. q(e.body) end
+        return table.concat(parts, " ")
+    end
     local function rb()
         return make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 44) }, {
             corner(9),
@@ -2910,6 +2917,7 @@ do
     end, function(e) selected = e; code.set(buildCode(e)); vlist.invalidate() end)
     local tb = make("Frame", { Parent = page, BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 34) }, { hlayout(6) })
     UI.button(tb, { text = "Copy", primary = true, onClick = function() if code.Raw ~= "" then clip(code.Raw) end end }).Size = UDim2.new(0, 0, 1, 0)
+    UI.button(tb, { text = "Copy cURL", onClick = function() if selected then clip(buildCurl(selected)) end end }).Size = UDim2.new(0, 0, 1, 0)
     UI.button(tb, { text = "Clear", color = "Bad", onClick = function() entries = {}; visible = {}; byId = {}; selected = nil; vlist.setItems(visible); code.set("") end }).Size = UDim2.new(0, 0, 1, 0)
     local function host(u) u = typeof(u) == "string" and u or tostring(u); return u:match("https?://([^/]+)") or u:sub(1, 30) end
     local q, qh = {}, 1
