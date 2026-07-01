@@ -1990,6 +1990,7 @@ local function createView(page, cfg)
         if head > n then view.queue = {}; view.qHead = 1 end
         local E = view.entries
         local maxN = math.max(Settings.Maximum_log_amount, 50)
+        -- trim only past 130% of the cap (not exactly at maxN): the rebuild below is O(n), so the 30% slack amortizes it to once per ~0.3*maxN new entries instead of every frame at steady state
         if #E > maxN * 1.3 then
             local from = #E - maxN + 1
             local newE = table.create(maxN)
