@@ -1184,6 +1184,7 @@ local function VirtualList(parent, rowH, buildRow, bindRow, onClick)
                 row = table.remove(pool)
                 if not row then
                     row = buildRow()
+                    -- click reads rowItem[row] (the row's CURRENTLY-bound item), never a captured item: pooled rows get rebound to different items, so a captured upvalue would fire on a stale one
                     track(row.MouseButton1Click:Connect(function() local it = rowItem[row]; if it and onClick then onClick(it) end end))
                 end
                 row.Parent = content
