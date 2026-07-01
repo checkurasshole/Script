@@ -631,6 +631,7 @@ do
         local used = {}
         for _, svc in servicesOrder do used[svc] = true end
         local function uniqueName(base)
+            -- fall back to "Variable" for an empty / leading-digit / reserved-word base (so we never emit e.g. `local end = ...`), then dedupe against `used` (pre-seeded with service names) as base, base2, base3…
             base = tostring(base):gsub("[^%w_]", "")
             if base == "" or tonumber(base:sub(1, 1)) then base = "Variable" end
             if not ToString.ValidName(base) then base = "Variable" end
