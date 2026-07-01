@@ -1546,6 +1546,7 @@ local function createView(page, cfg)
         local drag
         track(divider.MouseEnter:Connect(function() divider.BackgroundTransparency = 0.2 end))
         track(divider.MouseLeave:Connect(function() if not drag then divider.BackgroundTransparency = 1 end end))
+        addTip(divider, "Drag to resize panels")
         track(divider.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then drag = true end end))
         track(UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then drag = false; divider.BackgroundTransparency = 1 end end))
         track(UserInputService.InputChanged:Connect(function(i) if drag and i.UserInputType == Enum.UserInputType.MouseMovement then split = math.clamp((i.Position.X - body.AbsolutePosition.X) / math.max(body.AbsoluteSize.X, 1), 0.24, 0.6); relayout() end end))
