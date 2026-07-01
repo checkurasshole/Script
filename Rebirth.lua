@@ -157,6 +157,21 @@ do
     -- hand-edited config (e.g. a number field saved as a string) can't crash startup downstream.
     if saved then for k, v in saved do if Settings[k] ~= nil and type(v) == type(Settings[k]) then Settings[k] = v end end end
 end
+-- persist block / ignore / pin lists BY NAME (per view kind) across reloads. Instance keys and
+-- auto-ignored spam are excluded — only your manual, name-keyed choices survive a reload.
+local FILTERS_PATH = CFG_DIR .. "/Filters.json"
+local AllFilters = readJSON(FILTERS_PATH) or {}
+local function saveFilters(kind, view)
+    local function names(t, skip) local o = {}; for k, v in t do if type(k) == "string" and v and not (skip and skip[k]) then o[k] = true end end return o end
+    AllFilters[kind] = { block = names(view.block), ignore = names(view.ignore, view.autoIgnored), pins = names(view.pins) }
+    writeJSON(FILTERS_PATH, AllFilters)
+end
+local function loadFilters(kind, view)
+    local f = AllFilters[kind]; if type(f) ~= "table" then return end
+    for _, key in { "block", "ignore", "pins" } do
+        if type(f[key]) == "table" then for nm, v in f[key] do if type(nm) == "string" and v == true then view[key][nm] = true end end end
+    end
+end
 if Settings.Capture_mode < 1 or Settings.Capture_mode > 3 then Settings.Capture_mode = 1 end
 -- Auto-demote to the safest capture mode this executor can ACTUALLY do (validated above),
 -- so a missing/stubbed primitive degrades gracefully instead of silently capturing nothing.
@@ -1474,6 +1489,7 @@ local function createView(page, cfg)
         codeMode = Settings.Codegen_mode,
     }
     AllViews[#AllViews + 1] = view
+    loadFilters(cfg.kind, view)   -- restore this view's saved block/ignore/pin names
 
     --── toolbar (row 1: actions + filter + count) ──
     local header = make("Frame", { Parent = page, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 66) })
@@ -2030,11 +2046,11 @@ local function createView(page, cfg)
     } })
     -- List ▾ : actions that change what the log shows
     UI.menuButton(actionBar, { text = "List", icon = "rbxassetid://10723375128", order = #actionBar:GetChildren(), items = {
-        { text = "Block remote", icon = ACT_ICON.Block, tint = "Bad", onClick = function() local e = view.selectedEntry; if e then view.block[e.remote] = true; view.block[e.name] = true; vlist.invalidate(); Notify("Blocked", e.name, "Bad") end end },
-        { text = "Unblock all",  icon = ACT_ICON.Unblock, onClick = function() table.clear(view.block); vlist.invalidate(); Notify("Unblocked all", "", "Good") end },
-        { text = "Ignore remote", icon = ACT_ICON.Ignore, onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; if view.selectedEntry == e then view.selectedEntry = nil; code.set(""); callBtn.Visible = false end view.dirtyFilter = true; Notify("Ignored", e.name, "Sub") end end },
-        { text = "Unignore all",  onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end view.dirtyFilter = true; Notify("Unignored all", "", "Good") end },
-        { text = "Pin / Unpin",   icon = ACT_ICON.Pin, onClick = function() local e = view.selectedEntry; if e then view.pins[e.name] = not view.pins[e.name]; view.dirtyFilter = true; Notify(view.pins[e.name] and "Pinned" or "Unpinned", e.name, "Warn") end end },
+        { text = "Block remote", icon = ACT_ICON.Block, tint = "Bad", onClick = function() local e = view.selectedEntry; if e then view.block[e.remote] = true; view.block[e.name] = true; saveFilters(cfg.kind, view); vlist.invalidate(); Notify("Blocked", e.name, "Bad") end end },
+        { text = "Unblock all",  icon = ACT_ICON.Unblock, onClick = function() table.clear(view.block); saveFilters(cfg.kind, view); vlist.invalidate(); Notify("Unblocked all", "", "Good") end },
+        { text = "Ignore remote", icon = ACT_ICON.Ignore, onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; saveFilters(cfg.kind, view); if view.selectedEntry == e then view.selectedEntry = nil; code.set(""); callBtn.Visible = false end view.dirtyFilter = true; Notify("Ignored", e.name, "Sub") end end },
+        { text = "Unignore all",  onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end saveFilters(cfg.kind, view); view.dirtyFilter = true; Notify("Unignored all", "", "Good") end },
+        { text = "Pin / Unpin",   icon = ACT_ICON.Pin, onClick = function() local e = view.selectedEntry; if e then view.pins[e.name] = not view.pins[e.name]; saveFilters(cfg.kind, view); view.dirtyFilter = true; Notify(view.pins[e.name] and "Pinned" or "Unpinned", e.name, "Warn") end end },
         { text = "Reveal in Explorer", icon = "rbxassetid://10723387085", onClick = function() local e = view.selectedEntry; if e and typeof(e.remote) == "Instance" and ExplorerReveal then ExplorerReveal(e.remote) else Notify("Explorer", "No instance to reveal.", "Bad") end end },
     } })
     act("⤓  Decompile", { onClick = doDecompile })
