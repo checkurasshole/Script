@@ -252,6 +252,7 @@ local function installNamecall()
 end
 
 local function resolveCaller()
+    -- returns an Instance (getcallingscript — most accurate) OR a source string (debug.info fallback); callerName() handles both shapes
     if getcallingscript then
         local ok, scr = pcall(getcallingscript)
         if ok and typeof(scr) == "Instance" then return cloneref(scr) end
