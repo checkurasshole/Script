@@ -927,7 +927,7 @@ do local c = workspace.CurrentCamera; if c then track(c:GetPropertyChangedSignal
 
 local Notify
 do
-    local holder = make("Frame", { Name = "Toasts", Parent = ScreenGui, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -16), Size = UDim2.fromOffset(320, 500), BackgroundTransparency = 1, ZIndex = 60 }, {
+    local holder = make("Frame", { Name = "Toasts", Parent = ScreenGui, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -16), Size = UDim2.fromOffset(320, 500), BackgroundTransparency = 1, ZIndex = 150 }, {
         make("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, VerticalAlignment = Enum.VerticalAlignment.Bottom, HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim.new(0, 9) }),
         make("UIScale", { Scale = UIScaleObj.Scale }),
     })
