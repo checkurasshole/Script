@@ -28,27 +28,19 @@ local hookfunction      = fn("hookfunction")
 local hookmetamethod    = fn("hookmetamethod")
 local getnamecallmethod = fn("getnamecallmethod")
 local newcclosure       = fn("newcclosure")
-local clonefunction     = fn("clonefunction")
-local iscclosure        = fn("iscclosure")
 local checkcaller       = fn("checkcaller")
 local getcallingscript  = fn("getcallingscript")
 local getcallbackvalue  = fn("getcallbackvalue")
 local getnilinstancesFn = fn("getnilinstances") or fn("getnils")
-local getinstancesFn    = fn("getinstances")
-local getgc             = fn("getgc")
 local firesignal        = fn("firesignal")
 local setclipboard      = fn("setclipboard") or fn("toclipboard")
 local decompile         = fn("decompile")
 local getscriptbytecode = fn("getscriptbytecode") or fn("dumpstring")
-local getactors         = fn("getactors")
-local run_on_actor      = fn("run_on_actor")
 local loadstringFn      = fn("loadstring")
 local writefileFn       = fn("writefile")
 local readfileFn        = fn("readfile")
 local isfileFn          = fn("isfile")
 local makefolderFn      = fn("makefolder")
-local protectgui        = fn("protect_gui") or fn("protectgui")
-local gethui            = fn("gethui")
 local cloneref          = fn("cloneref") or function(x) return x end
 local getconnections    = fn("getconnections") or fn("get_signal_cons")
 local httpRequestFn     = fn("request") or fn("http_request") or fn("syn_request") or (typeof(getfenv().syn) == "table" and typeof(getfenv().syn.request) == "function" and getfenv().syn.request or nil)
@@ -176,6 +168,8 @@ local USE_NAMECALL       = NAMECALL_AVAILABLE and Settings.Capture_mode == 1
 local Hooks = {}
 do
     local restore = keep({})
+    local iscclosure = fn("iscclosure")
+    local clonefunction = fn("clonefunction")
     local mmLogged = false
     local registry = keep({})   -- displayed in the Hooks manager
     local function isC(f) if iscclosure then return iscclosure(f) end return debug.info(f, "s") == "[C]" end
@@ -843,6 +837,8 @@ local function track(c) Conns[#Conns + 1] = c; return c end
 local ScreenGui = make("ScreenGui", { Name = "Rebirth", ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, IgnoreGuiInset = true, DisplayOrder = 1e9 })
 do
     local ok = false
+    local protectgui = fn("protect_gui") or fn("protectgui")
+    local gethui = fn("gethui")
     if gethui then ok = pcall(function() ScreenGui.Parent = gethui() end) and ScreenGui.Parent ~= nil end
     if not ok and protectgui then pcall(protectgui, ScreenGui) end
     if not ok then ok = pcall(function() ScreenGui.Parent = CoreGui end) and ScreenGui.Parent ~= nil end
@@ -2068,6 +2064,10 @@ end
 --==============================  Remote / Event capture  ==================--
 
 local function installRemoteHooks(view)
+    local getactors = fn("getactors")
+    local run_on_actor = fn("run_on_actor")
+    local getgc = fn("getgc")
+    local getinstancesFn = fn("getinstances")
     task.spawn(function()
         local seen = keep({})
         local function setup(inst)
