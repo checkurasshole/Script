@@ -2851,6 +2851,7 @@ end
 
 --==============================  Settings  ================================--
 
+local KB = { listening = false }   -- toggle-key rebind state, shared with the keybind handler below
 do
     local page = newPage("Settings")
     local scroll = make("ScrollingFrame", { Parent = page, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 4, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y }, { vlayout(8) })
@@ -2883,6 +2884,12 @@ do
     tog("Syntax highlighting", "Color generated code.", "Highlight_syntax")
     ch("Default codegen", "Inspector code style.", "Codegen_mode", Codegen.Modes)
     ch("Log which calls", "Filter captures by caller.", "Log_which_calls", { "Game only", "All calls", "Executor only" }, { "Game only", "All calls", "Executor only" })
+    do
+        local c = rowCard("Toggle keybind", "Key to show/hide the window. Click, then press a key (Esc cancels).")
+        local kb = UI.button(c, { text = Settings.Toggle_key, autoX = false })
+        kb.AnchorPoint = Vector2.new(1, 0.5); kb.Position = UDim2.new(1, 0, 0.5, 0); kb.Size = UDim2.fromOffset(150, 30)
+        track(kb.MouseButton1Click:Connect(function() kb.Lbl.Text = "Press a key…"; KB.listening = true; KB.onDone = function(name) kb.Lbl.Text = name end end))
+    end
     do
         local c = rowCard("Show HTTP Spy", "Adds the HTTP Spy tab to the sidebar.")
         local sw = UI.toggle(c, Settings.Show_http, function(v)
@@ -2943,6 +2950,15 @@ task.spawn(function()
 end)
 track(UserInputService.InputBegan:Connect(function(i, gpe)
     if gpe then return end
+    if KB.listening and i.UserInputType == Enum.UserInputType.Keyboard then   -- rebind: capture the next key (Esc cancels), never toggle on it
+        KB.listening = false
+        if i.KeyCode ~= Enum.KeyCode.Escape then
+            local nm = i.KeyCode.Name
+            if nm and nm ~= "Unknown" then Settings.Toggle_key = nm; saveSettings() end
+        end
+        if KB.onDone then KB.onDone(Settings.Toggle_key) end
+        return
+    end
     local ok, kc = pcall(function() return Enum.KeyCode[Settings.Toggle_key] end)
     if ok and kc and i.KeyCode == kc then Window.Visible = not Window.Visible end
 end))
