@@ -228,6 +228,8 @@ end
 
 -- one shared __namecall hook; pages register routes
 local NamecallRoutes = {}
+-- route contract: return `false` to pass through (dispatch tries the next route, else the real call), or `true, <table.pack(realCall(...))>` to CLAIM it.
+-- when claiming: run the real call LAST (a throw then can't double-fire) and wrap its result with table.pack — never nil, so dispatch's `and res` always unpacks a real result (even {n=0} for a blocked call).
 local function addNamecallRoute(f) NamecallRoutes[#NamecallRoutes + 1] = f end
 local function installNamecall()
     if not USE_NAMECALL then return end
