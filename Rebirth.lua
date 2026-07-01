@@ -462,6 +462,7 @@ do
         indent = tonumber(indent) or 0
         local pad, padNext = string.rep("    ", math.max(indent, 0)), string.rep("    ", math.max(indent, 0) + 1)
         if typeof(tbl) ~= "table" then return convertArg(tbl, math.max(indent, 0)) end
+        if indent > 40 then return "{ --[[ …depth capped ]] }" end   -- guard pathological deep nesting from overflowing the stack
         if table.find(parsed, tbl) then return "{} --[[ cyclic ]]" end
         table.insert(parsed, tbl)
         local arr, allValid, count = isArray(tbl)
