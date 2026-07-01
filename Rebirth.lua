@@ -626,6 +626,8 @@ do
         local remotePath = shortPath(event)
         local instPaths = {}
         for _, inst in instOrder do instPaths[inst] = shortPath(inst) end
+        -- nil-parented instances passed as ARGS serialize inline as getNil(...) but aren't in instOrder (collect skips parentless), so shortPath never saw them — detect them here so the getNil helper still gets prepended
+        if not usesGetNil and ToString.NeedsGetNil and ToString.NeedsGetNil(packed) then usesGetNil = true end
         local used = {}
         for _, svc in servicesOrder do used[svc] = true end
         local function uniqueName(base)
