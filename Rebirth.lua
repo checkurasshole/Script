@@ -1526,6 +1526,7 @@ local function richEsc(s) return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">
 local function commaize(n)
     local s = tostring(math.floor(n))
     local k = 1
+    -- each pass inserts one comma before the last 3-digit group (k = gsub's substitution count); repeat until none left
     while k > 0 do s, k = s:gsub("^(-?%d+)(%d%d%d)", "%1,%2") end
     return s
 end
