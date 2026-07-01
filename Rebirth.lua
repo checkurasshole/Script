@@ -2084,7 +2084,7 @@ local function createView(page, cfg)
         showTab("script"); code.set("-- Decompiling " .. callerName(c) .. " …")
         task.spawn(function()
             local src = decompileScript(c)
-            code.set(src or "-- No decompiler available (native / lua.expert / Konstant all failed).")
+            if view.selectedEntry == e then code.set(src or "-- No decompiler available (native / lua.expert / Konstant all failed).") end   -- don't clobber a newer selection
         end)
     end
     local function doExport()
