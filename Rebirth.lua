@@ -718,13 +718,14 @@ do
     -- Hook template
     function Codegen.Hook(event, incoming, packed, meta)
         local path = (function() ToString.SetCompress(nil); return ToString.GetPath(event) end)()
-        local isFunc = event:IsA("RemoteFunction") or event:IsA("BindableFunction")
-        local method = isFunc and "InvokeServer" or "FireServer"
+        local cls = event.ClassName
+        local method = (cls == "RemoteFunction" and "InvokeServer") or (cls == "BindableFunction" and "Invoke") or (cls == "BindableEvent" and "Fire") or "FireServer"
+        local nm = (event.Name or ""):gsub('[%c"\\]', "")   -- sanitized so a quote/control char in the name can't break the print label
         return header(meta) .. "  |  HOOK TEMPLATE\n"
             .. "local remote = " .. path .. "\n"
             .. "local old\nold = hookfunction(remote." .. method .. ", newcclosure(function(self, ...)\n"
             .. "    if self == remote then\n"
-            .. "        print(\"[" .. event.Name .. "]\", ...)\n"
+            .. "        print(\"[" .. nm .. "]\", ...)\n"
             .. "        -- return  -- uncomment to block\n"
             .. "    end\n"
             .. "    return old(self, ...)\n"
