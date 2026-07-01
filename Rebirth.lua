@@ -1840,7 +1840,10 @@ local function createView(page, cfg)
         local q = view.queue
         local head, n = view.qHead, #q
         if head > n then return false end
-        local budget = 120
+        -- adaptive budget: clear burst backlogs faster (they're mostly cheap grouped repeats)
+        -- while staying light in the steady state. Still bounded, so no frame hang.
+        local pending = n - head + 1
+        local budget = pending > 1200 and 400 or (pending > 500 and 240 or 120)
         while head <= n and budget > 0 do local raw = q[head]; q[head] = nil; head += 1; budget -= 1; process(raw) end
         view.qHead = head
         if head > n then view.queue = {}; view.qHead = 1 end
@@ -2091,6 +2094,10 @@ local function installRemoteHooks(view)
         if getinstancesFn then scan(getinstancesFn, 400) end
         if getnilinstancesFn then scan(getnilinstancesFn, 200) end
         track(game.DescendantAdded:Connect(setup))
+        -- DescendantAdded only sees game descendants; nil-parented remotes built on init
+        -- (some frameworks/anti-cheats) are invisible to it. Re-scan nils over the startup
+        -- window to connect their incoming events too. seen[] blocks any double-connect.
+        if getnilinstancesFn then task.spawn(function() for _, d in { 2, 3, 5 } do task.wait(d); scan(getnilinstancesFn, 200) end end) end
         if getgc then task.spawn(function() pcall(function()
             local n = 0
             for _, v in getgc(true) do
