@@ -2784,6 +2784,7 @@ local function _buildExplorer()
         local sel = {}; for s in checked do sel[#sel + 1] = s end
         if #sel == 0 then Notify("Batch decompile", "No scripts checked — tick some in the tree first.", "Warn"); return end
         Notify("Batch decompile", "Decompiling " .. #sel .. " script(s)…", "Accent", 2)
+        selectedInst = nil; propScroll.Visible = false; scrFrame.Visible = true; scrView.set("-- decompiling " .. #sel .. " script(s)…")   -- immediate feedback
         task.spawn(function()
             local parts = {}
             for i, s in sel do
@@ -2794,7 +2795,7 @@ local function _buildExplorer()
                 if i % 3 == 0 then task.wait() end
             end
             local combined = table.concat(parts, "\n\n-- " .. string.rep("—", 24) .. "\n\n")
-            selectedInst = nil; propScroll.Visible = false; scrFrame.Visible = true; scrView.set(combined)
+            if selectedInst == nil then scrView.set(combined) end   -- don't clobber a script the user selected during the batch
             if setclipboard then pcall(setclipboard, combined) end
             local saved = ""
             if writefileFn then local fn2 = CFG_DIR .. "/Rebirth_dump_" .. os.date("%H%M%S") .. ".lua"; if pcall(function() ensureDir(); writefileFn(fn2, combined) end) then saved = " · saved to file" end end
