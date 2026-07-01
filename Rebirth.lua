@@ -1438,7 +1438,7 @@ local function codeView(parent)
         if keepScroll and raw == api.Raw then return end   -- live refresh, content unchanged: don't touch scroll
         api.Raw = raw or ""
         box.Text = highlight(api.Raw)
-        local lines = select(2, api.Raw:gsub("\n", "\n")) + 1
+        local lines = select(2, api.Raw:gsub("\n", "\n")) + 1   -- gsub's 2nd return = replacement count = newline count; +1 = line count
         local t = table.create(lines); for i = 1, lines do t[i] = i end
         gutter.Text = table.concat(t, "\n")
         if not keepScroll then scroll.CanvasPosition = Vector2.new(0, 0) end   -- only jump to top on explicit (re)select
