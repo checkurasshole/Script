@@ -765,7 +765,7 @@ do
     function Codegen.Generate(mode, event, incoming, packed, meta)
         local f = Codegen[mode] or Codegen.Readable
         local ok, res = pcall(f, event, incoming, packed, meta)
-        ToString.SetCompress(nil)
+        ToString.SetCompress(nil)   -- ALWAYS clear the hoisted-var compress map (this is outside the pcall, so it resets even when a mode throws) — otherwise a stale map would corrupt the next unrelated ToString call
         return ok and res or ("-- codegen error: " .. tostring(res))
     end
 end
