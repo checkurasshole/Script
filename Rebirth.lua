@@ -6,7 +6,7 @@
 -- ============================================================================
 
 if not game:GetService("RunService"):IsClient() then return end
-if shared and typeof(shared.__IxSpyRebirth) == "function" then pcall(shared.__IxSpyRebirth); return end
+if shared and typeof(shared.__IxSpyRebirth) == "function" then local ok, alive = pcall(shared.__IxSpyRebirth); if ok and alive then return end end  -- re-exec toggles an EXISTING live window; if that instance was destroyed externally (alive=false), fall through and load fresh instead of soft-locking
 
 --======================  Environment & capabilities  ========================--
 
@@ -3134,7 +3134,7 @@ selectPage("Remotes")
 task.defer(function() if activePage then selectPage(activePage) end end)  -- snap nav indicator after first layout
 if dashRefresh then pcall(dashRefresh) end
 shared = shared or {}
-shared.__IxSpyRebirth = function() if ScreenGui and ScreenGui.Parent then Window.Visible = not Window.Visible end end
+shared.__IxSpyRebirth = function() if ScreenGui and ScreenGui.Parent then Window.Visible = not Window.Visible return true end return false end  -- returns true only while this instance is alive, so a re-exec can tell a live window (toggle) from a dead one (reload)
 print("[Rebirth] v" .. VERSION .. " loaded OK (GitHub chunk; all Rebirth errors are tagged '[Rebirth]'). If you see a '[string \"<number>\"]' error, that's a DIFFERENT script.")
 Notify("Rebirth v" .. VERSION .. " ready", (HOOKS_AVAILABLE and (({ "Max", "Stealth", "Passive" })[Settings.Capture_mode] .. " capture") or "Passive · incoming only (no hooks)") .. "  ·  " .. Settings.Toggle_key .. " to toggle", "Accent", 5)
 
