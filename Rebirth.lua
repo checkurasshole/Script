@@ -2209,6 +2209,8 @@ local function installRemoteHooks(view)
             if inst:IsA("RemoteEvent") or inst:IsA("UnreliableRemoteEvent") then
                 track(inst.OnClientEvent:Connect(function(...) if Settings.Log_which_calls <= 2 and view.accepting() then view.addRaw(cloneref(inst), true, table.pack(...), nil, nil) end end))
             elseif inst:IsA("RemoteFunction") and getcallbackvalue and USE_FUNCTION_HOOKS then
+                -- known limitation: hooks OnClientInvoke only if the client callback is ALREADY set at scan time;
+                -- a callback assigned later isn't re-hooked. Incoming RF invokes are rare, so this is acceptable.
                 local ok, cb = pcall(getcallbackvalue, inst, "OnClientInvoke")
                 if ok and typeof(cb) == "function" then pcall(function() Hooks.HookFunction(cb, function(old, ...)
                     if Settings.Log_which_calls <= 2 then local got = {}; view.addRaw(cloneref(inst), true, table.pack(...), nil, got); got[1] = table.pack(old(...)); return table.unpack(got[1], 1, got[1].n) end
