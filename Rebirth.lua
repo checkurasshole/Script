@@ -216,6 +216,7 @@ do
         if not mmLogged then mmLogged = true; restore[#restore + 1] = keep({ "MM", method, old }) end
         if label then registry[#registry + 1] = { kind = "metamethod", label = label, active = true } end
     end
+    -- restore entries: {"F", target, originalFn} or {"MM", method, originalMM} — re-hook target with the saved original
     function Hooks.RestoreAll()
         for _, h in restore do pcall(function()
             if h[1] == "F" then hookfunction(h[2], h[3]) else hookmetamethod(game, h[2], h[3]) end
