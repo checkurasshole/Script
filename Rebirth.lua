@@ -1030,12 +1030,17 @@ function UI.dropdown(parent, opts, current, onPick, width)
     local btn = make("TextButton", { Parent = parent, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", Size = UDim2.fromOffset(width or 130, 30), Text = "", LayoutOrder = 0 }, { corner(8), stroke("Stroke", 1, 0.4) })
     local lbl = make("TextLabel", { Parent = btn, BackgroundTransparency = 1, Font = FONT, TextSize = 12, Text = tostring(current), TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(11, 0), Size = UDim2.new(1, -30, 1, 0) })
     make("TextLabel", { Parent = btn, BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 11, Text = "v", TextColor3 = "@Sub", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(12, 12) })
-    local pop
-    local function close() if pop then pop:Destroy(); pop = nil end end
+    local pop, backdrop
+    local function close() if backdrop then backdrop:Destroy(); backdrop = nil end if pop then pop:Destroy(); pop = nil end end
     track(btn.MouseButton1Click:Connect(function()
         if pop then close(); return end
         local abs, sz = btn.AbsolutePosition, btn.AbsoluteSize
-        pop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 5), Size = UDim2.fromOffset(width or 130, math.min(#opts, 9) * 28 + 8), ZIndex = 80, ClipsDescendants = true }, { corner(8), stroke("StrokeS", 1), pad(4), make("UIScale", { Scale = UIScaleObj.Scale }) })
+        backdrop = make("TextButton", { Parent = ScreenGui, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, Size = UDim2.fromScale(1, 1), ZIndex = 79 })   -- click-outside closes
+        backdrop.MouseButton1Click:Connect(close)
+        local ph = (math.min(#opts, 9) * 28 + 8) * UIScaleObj.Scale
+        local cam = workspace.CurrentCamera; local vpY = (cam and cam.ViewportSize.Y) or 1080
+        local py = abs.Y + sz.Y + 5; if py + ph > vpY then py = math.max(0, abs.Y - ph - 5) end   -- flip above if it would spill off the bottom
+        pop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, py), Size = UDim2.fromOffset(width or 130, math.min(#opts, 9) * 28 + 8), ZIndex = 80, ClipsDescendants = true }, { corner(8), stroke("StrokeS", 1), pad(4), make("UIScale", { Scale = UIScaleObj.Scale }) })
         local sc = make("ScrollingFrame", { Parent = pop, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 80 }, { vlayout(2) })
         for _, opt in opts do
             local o = make("TextButton", { Parent = sc, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26), Text = tostring(opt), Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 81 }, { corner(6), pad(0, 0, 9, 9) })
