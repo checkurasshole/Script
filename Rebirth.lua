@@ -363,7 +363,7 @@ do
             elseif arg == -math.huge then return "-math.huge"
             elseif arg ~= arg then return "(0/0)"
             elseif arg == math.pi then return "math.pi"
-            elseif math.floor(arg) == arg and math.abs(arg) < 1e15 then
+            elseif math.floor(arg) == arg and math.abs(arg) < 9e15 then   -- < 2^53: still exactly representable, so %d is exact (readable big IDs instead of 1e+16)
                 -- exact integer fast-path, but still apply time heuristics
                 if math.abs(os.time() - arg) <= 2.5 then return "os.time()"
                 elseif math.abs(workspace:GetServerTimeNow() - arg) <= 2.5 then return "math.floor(workspace:GetServerTimeNow())" end
