@@ -795,7 +795,7 @@ local DECOMPILE_OK = (decompile ~= nil) or (getscriptbytecode ~= nil and httpReq
 --  REBIRTH v2 — GUI
 -- ============================================================================
 
-local VERSION = "2.0"
+local VERSION = "2.1"
 
 --==============================  Theme  ===================================--
 
