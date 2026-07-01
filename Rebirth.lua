@@ -518,7 +518,8 @@ local function detectFramework(remote, packed)
     elseif has("warp") then return "Warp"
     elseif has("redevent") or has("/red/") or has("red_remote") then return "Red"
     elseif has("knit") or has("/re/") or has("/rf/") or has("knitremotes") then return "Knit"
-    elseif has("aeroremote") or has("aero/") then return "Aero" end
+    elseif has("aeroremote") or has("aero/") then return "Aero"
+    elseif has("cmdr") then return "Cmdr" end
     for i = 1, (packed.n or #packed) do if typeof(packed[i]) == "buffer" then return "Buffer" end end
     return "Roblox"
 end
@@ -1572,8 +1573,9 @@ local function createView(page, cfg)
         row.Typ.Text = shortType(e.typeLabel or e.class); row.Typ.TextColor3 = tc
         local p = (e.name ~= "" and e.name) or e.class or "?"
         row.Path.TextColor3 = Theme.Sub
-        local prefix = ""
-        if e.framework ~= "Roblox" then prefix = ('<font color="%s">[%s]</font> '):format(fwHex(e.framework), e.framework) end
+        -- direction glyph: up = we sent it to the server, down = server pushed it to us
+        local prefix = e.incoming and '<font color="#6fb2ff">\226\134\147</font> ' or '<font color="#7ee081">\226\134\145</font> '
+        if e.framework ~= "Roblox" then prefix = prefix .. ('<font color="%s">[%s]</font> '):format(fwHex(e.framework), e.framework) end
         if e.hidden then prefix = prefix .. '<font color="#ff6894">[hidden]</font> ' end   -- not a descendant of game (nil-parented / non-replicated)
         row.Path.Text = prefix .. richEsc(p)
         local cp, lbl = row.CountPill, row.CountPill.Lbl
