@@ -1268,6 +1268,7 @@ local function doMinimize()
     if minimized then restoreSize = Window.Size end            -- remember the (possibly resized) size
     contentArea.Visible = not minimized
     statusBar.Visible = not minimized
+    minBtn.Text = minimized and "+" or "-"                     -- glyph reflects state (restore vs minimize)
     TweenService:Create(Window, EASE, { Size = minimized and UDim2.fromOffset(restoreSize.X.Offset, 50) or restoreSize }):Play()
 end
 track(minBtn.MouseButton1Click:Connect(doMinimize))
