@@ -114,7 +114,7 @@ local NIL_FN_NAME        = fn("getnilinstances") and "getnilinstances" or (fn("g
 
 --==============================  GC keeper  =================================--
 
-local KEEP = {}
+local KEEP = {}   -- permanent anchor: holds refs to tables/functions so aggressive executor GC can't collect live spy state / hook restore data (bounded: only ~11 static call sites, never per-capture)
 local function keep(v)
     if typeof(v) == "table" or typeof(v) == "function" then KEEP[#KEEP + 1] = v end
     return v
