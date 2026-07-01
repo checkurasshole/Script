@@ -1530,9 +1530,9 @@ local function createView(page, cfg)
     -- toolbar (row 2: filters)
     local row2 = make("Frame", { Parent = header, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 36), Size = UDim2.new(1, 0, 0, 28) })
     local filtC = make("Frame", { Parent = row2, BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 0, 28) }, { hlayout(8) })
-    if cfg.directions then local s = UI.segmented(filtC, { "All", "Out", "In" }, "All", function(v) view.filterDir = v; view.dirtyFilter = true end); s.LayoutOrder = 1 end
-    if cfg.types then local d = UI.dropdown(filtC, cfg.types, "All", function(v) view.filterType = v; view.dirtyFilter = true end, 150); d.LayoutOrder = 2; d.Size = UDim2.fromOffset(150, 28) end
-    do local d = UI.dropdown(filtC, { "All", "Roblox", "ByteNet", "BridgeNet", "BridgeNet2", "Blink", "Warp", "Red", "Zap", "Knit", "Aero", "Cmdr", "Buffer" }, "All", function(v) view.filterFw = v; view.dirtyFilter = true end, 124); d.LayoutOrder = 3; d.Size = UDim2.fromOffset(124, 28) end
+    if cfg.directions then local s = UI.segmented(filtC, { "All", "Out", "In" }, "All", function(v) view.filterDir = v; view.dirtyFilter = true end); s.LayoutOrder = 1; addTip(s, "Direction: Out = client\226\134\146server, In = server\226\134\146client") end
+    if cfg.types then local d = UI.dropdown(filtC, cfg.types, "All", function(v) view.filterType = v; view.dirtyFilter = true end, 150); d.LayoutOrder = 2; d.Size = UDim2.fromOffset(150, 28); addTip(d, "Filter by remote/bindable type") end
+    do local d = UI.dropdown(filtC, { "All", "Roblox", "ByteNet", "BridgeNet", "BridgeNet2", "Blink", "Warp", "Red", "Zap", "Knit", "Aero", "Cmdr", "Buffer" }, "All", function(v) view.filterFw = v; view.dirtyFilter = true end, 124); d.LayoutOrder = 3; d.Size = UDim2.fromOffset(124, 28); addTip(d, "Filter by networking framework") end
 
     --── body: list | divider | detail ──
     local split = 0.44
@@ -1630,6 +1630,7 @@ local function createView(page, cfg)
         local prefix = e.incoming and '<font color="#6fb2ff">\226\134\147</font> ' or '<font color="#7ee081">\226\134\145</font> '
         if e.framework ~= "Roblox" then prefix = prefix .. ('<font color="%s">[%s]</font> '):format(fwHex(e.framework), e.framework) end
         if e.hidden then prefix = prefix .. '<font color="#ff6894">[hidden]</font> ' end   -- not a descendant of game (nil-parented / non-replicated)
+        if view.watch[e.name] then prefix = '<font color="#eec986">\226\151\137</font> ' .. prefix end   -- ◉ marks a watched remote
         row.Path.Text = prefix .. richEsc(p)
         local cp, lbl = row.CountPill, row.CountPill.Lbl
         cp.Visible = true
