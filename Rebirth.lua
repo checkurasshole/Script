@@ -1404,7 +1404,7 @@ do
         if not f then Notify("Compile error", tostring(err), "Bad"); return end
         task.spawn(function() local ok, e = pcall(f); Notify(ok and "Ran code" or "Runtime error", ok and "Executed" or tostring(e), ok and "Good" or "Bad") end)
     end })
-    UI.button(btnRow, { text = "Set as spoof", order = 2, onClick = function()
+    local spoofBtn = UI.button(btnRow, { text = "Set as spoof", order = 2, onClick = function()
         if ctx.onSpoof then ctx.onSpoof(edit.Text) end
     end })
     UI.button(btnRow, { text = "Close", order = 1, onClick = close })
@@ -1415,6 +1415,7 @@ do
         sub.Text = subText or ""
         edit.Text = code or ""
         ctx.onSpoof = onSpoof
+        spoofBtn.Visible = onSpoof ~= nil   -- only show the spoof action when the caller supplied one
         dim.Visible = true
         TweenService:Create(dim, EASE_F, { BackgroundTransparency = 0.45 }):Play()
     end
@@ -1445,7 +1446,7 @@ local function typeColor(label) return TYPE_COLOR[label] or Theme.Sub end
 local SHORT_TYPE = { RemoteEvent = "RE", FireServer = "FS", InvokeServer = "IS", InvokeClient = "IC", Unreliable = "UR", Fire = "Fire", Invoke = "Inv" }
 local function shortType(label) return SHORT_TYPE[label] or label end
 -- per-framework colors for the inline [framework] tag in each row (matches the reference)
-local FW_HEX = { ByteNet = "#7ab4ff", BridgeNet = "#9a7cff", BridgeNet2 = "#9a7cff", Blink = "#5fd0c0", Warp = "#ff9a6e", Red = "#ff6e6e", Zap = "#ffd166", Knit = "#c98cff", Aero = "#74b2ff", Buffer = "#9aa0b4" }
+local FW_HEX = { ByteNet = "#7ab4ff", BridgeNet = "#9a7cff", BridgeNet2 = "#9a7cff", Blink = "#5fd0c0", Warp = "#ff9a6e", Red = "#ff6e6e", Zap = "#ffd166", Knit = "#c98cff", Aero = "#74b2ff", Cmdr = "#8ed081", Buffer = "#9aa0b4" }
 local function fwHex(fw) return FW_HEX[fw] or "#d4a96e" end
 local function richEsc(s) return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) end
 local function commaize(n)
@@ -2487,7 +2488,11 @@ local function _buildExplorer()
         for _, it in items do if not (it.remote and not isRemote(inst)) then shown[#shown + 1] = it end end
         ctxBackdrop = make("TextButton", { Parent = ScreenGui, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, Size = UDim2.fromScale(1, 1), ZIndex = 95 })
         ctxBackdrop.MouseButton1Click:Connect(closeCtx); ctxBackdrop.MouseButton2Click:Connect(closeCtx)
-        ctxMenu = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(pos.X, pos.Y), Size = UDim2.fromOffset(186, #shown * 28 + 6), ZIndex = 96 }, { corner(8), stroke("StrokeS", 1), pad(3, 3, 3, 3), make("UIScale", { Scale = UIScaleObj.Scale }), vlayout(2) })
+        -- clamp to the viewport so a right-click near the bottom/right edge doesn't spill the menu off-screen
+        local mw, mh = 186 * UIScaleObj.Scale, (#shown * 28 + 6) * UIScaleObj.Scale
+        local cam = workspace.CurrentCamera; local vp = (cam and cam.ViewportSize) or Vector2.new(1920, 1080)
+        local px = math.clamp(pos.X, 0, math.max(0, vp.X - mw)); local py = math.clamp(pos.Y, 0, math.max(0, vp.Y - mh))
+        ctxMenu = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(px, py), Size = UDim2.fromOffset(186, #shown * 28 + 6), ZIndex = 96 }, { corner(8), stroke("StrokeS", 1), pad(3, 3, 3, 3), make("UIScale", { Scale = UIScaleObj.Scale }), vlayout(2) })
         for _, it in shown do
             local b = make("TextButton", { Parent = ctxMenu, AutoButtonColor = false, BackgroundColor3 = "@Hover", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 26), Text = "", ZIndex = 97 }, { corner(6) })
             make("TextLabel", { Parent = b, BackgroundTransparency = 1, Font = FONT, TextSize = 13, Text = it.text, TextColor3 = it.tint == "Bad" and "@Bad" or "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(11, 0), Size = UDim2.new(1, -18, 1, 0), ZIndex = 97 })
