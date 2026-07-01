@@ -2201,7 +2201,8 @@ local function installRemoteHooks(view)
         end) end) end
     end)
     if USE_FUNCTION_HOOKS then
-        local function out(self, args) if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), nil) end end
+        local function doOut(self, args) if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), nil) end end
+        local function out(self, args) pcall(doOut, self, args) end   -- capture never throws, so a Stealth-mode FireServer hook can't break the game
         local fireE = Hooks.HookFunction(Instance.new("RemoteEvent").FireServer, function(old, self, ...)
             if typeof(self) ~= "Instance" or self.ClassName ~= "RemoteEvent" then return old(self, ...) end
             local args = table.pack(...); out(self, args); if view.block[self] or view.block[self.Name] then return end
