@@ -175,8 +175,8 @@ end
 if Settings.Capture_mode < 1 or Settings.Capture_mode > 3 then Settings.Capture_mode = 1 end
 -- Auto-demote to the safest capture mode this executor can ACTUALLY do (validated above),
 -- so a missing/stubbed primitive degrades gracefully instead of silently capturing nothing.
-if Settings.Capture_mode == 1 and not NAMECALL_AVAILABLE then Settings.Capture_mode = HOOKS_AVAILABLE and 2 or 3 end
-if Settings.Capture_mode == 2 and not HOOKS_AVAILABLE then Settings.Capture_mode = NAMECALL_AVAILABLE and 1 or 3 end
+if Settings.Capture_mode <= 2 and not HOOKS_AVAILABLE then Settings.Capture_mode = 3 end   -- Max AND Stealth need hookfunction (namecall routes delegate to the function hooks); without it only Passive (incoming) works
+if Settings.Capture_mode == 1 and not NAMECALL_AVAILABLE then Settings.Capture_mode = HOOKS_AVAILABLE and 2 or 3 end   -- Max also needs namecall; fall to Stealth (functions) or Passive
 local USE_FUNCTION_HOOKS = HOOKS_AVAILABLE and Settings.Capture_mode <= 2
 local USE_NAMECALL       = NAMECALL_AVAILABLE and Settings.Capture_mode == 1
 
