@@ -1517,7 +1517,7 @@ local function createView(page, cfg)
         queue = {}, qHead = 1, dirtyFilter = false,
         selectedEntry = nil, paused = false, _lastSelCount = 0,
         block = keep({}), ignore = keep({}), spoofs = keep({}), pins = keep({}), watch = keep({}), watchLast = {},
-        rate = {}, autoIgnored = {}, typeCounts = {}, typeDirty = false,
+        rate = {}, autoIgnored = {},
         filterText = "", filterDir = "All", filterType = "All", filterFw = "All",
         codeMode = Settings.Codegen_mode,
     }
@@ -1566,7 +1566,6 @@ local function createView(page, cfg)
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Remote", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(COLS.path, 0), Size = UDim2.new(1, -COLS.path - 52, 0, 26) })
     make("TextLabel", { Parent = listHeader, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "Count", TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 0), Size = UDim2.fromOffset(46, 26) })
     make("Frame", { Parent = listHeader, BackgroundColor3 = "@Stroke", BorderSizePixel = 0, Position = UDim2.new(0, 8, 1, -1), Size = UDim2.new(1, -16, 0, 1) })
-    function view.refreshFooter() end  -- per-type footer chips removed (were clutter, mostly 0s)
     local listBody = make("Frame", { Parent = listPanel, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 28), Size = UDim2.new(1, 0, 1, -28) })
 
     --── empty state ──
@@ -2003,7 +2002,6 @@ local function createView(page, cfg)
             if atTop then vlist.toTop() end
         elseif added then if next(view.expanded) then view.refreshDisplay() else vlist.invalidate() end end
         vlist.tick()
-        if view.typeDirty then view.typeDirty = false; view.refreshFooter() end
         if view.selectedEntry and view.selectedEntry.count ~= view._lastSelCount then
             view._lastSelCount = view.selectedEntry.count
             pcall(view._refreshMeta, view.selectedEntry)
@@ -2026,8 +2024,8 @@ local function createView(page, cfg)
         statusLbl.Text = view.paused and "Paused" or "Capturing"
     end))
     track(clearBtn.MouseButton1Click:Connect(function()
-        view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.typeCounts = {}; view.expanded = {}; view.callIdx = nil
-        view.refreshDisplay(); countPill.Text = "0 logs"; empty.Visible = true; view.refreshFooter()
+        view.entries = {}; view.visible = {}; view.groupMap = {}; view.byId = {}; view.selectedEntry = nil; view.expanded = {}; view.callIdx = nil
+        view.refreshDisplay(); countPill.Text = "0 logs"; empty.Visible = true
         code.set(""); callBtn.Visible = false
         for _, c in argsArea:GetChildren() do if c:IsA("Frame") then c:Destroy() end end   -- wipe the detail too
         for _, c in connList:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
