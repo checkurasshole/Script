@@ -272,9 +272,10 @@ do
     end
     local function escapePattern(s) return (s:gsub("[%%%.%?%!%,%[%]%(%)%{%}]", "%%%0")) end
     local alphabet = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm_1234567890"
+    local RESERVED = {["and"]=1,["break"]=1,["do"]=1,["else"]=1,["elseif"]=1,["end"]=1,["false"]=1,["for"]=1,["function"]=1,["if"]=1,["in"]=1,["local"]=1,["nil"]=1,["not"]=1,["or"]=1,["repeat"]=1,["return"]=1,["then"]=1,["true"]=1,["until"]=1,["while"]=1}
     local function validName(v)
         v = tostring(v)
-        if not v or v == "" or tonumber(v:sub(1, 1)) then return false end
+        if not v or v == "" or tonumber(v:sub(1, 1)) or RESERVED[v] then return false end
         for ch in v:gmatch(".") do if not alphabet:find(escapePattern(ch)) then return false end end
         return true
     end
