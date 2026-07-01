@@ -341,7 +341,7 @@ do
             elseif arg == math.pi then return "math.pi"
             elseif math.floor(arg) == arg and math.abs(arg) < 1e15 then
                 -- exact integer fast-path, but still apply time heuristics
-                if math.abs(tick() - arg) <= 2.5 then return "os.time()"
+                if math.abs(os.time() - arg) <= 2.5 then return "os.time()"
                 elseif math.abs(workspace:GetServerTimeNow() - arg) <= 2.5 then return "math.floor(workspace:GetServerTimeNow())" end
                 return string.format("%d", arg)
             elseif math.abs(tick() - arg) <= 2.5 then return "tick()"
@@ -1863,7 +1863,7 @@ local function createView(page, cfg)
         if view.filterDir == "In" and not e.incoming then return false end
         if view.filterType ~= "All" and e.class ~= view.filterType then return false end
         if view.filterFw ~= "All" and e.framework ~= view.filterFw then return false end
-        if view.filterText ~= "" and not e.search:find(view.filterText, 1, true) then return false end
+        if view.filterText ~= "" then for term in view.filterText:gmatch("%S+") do if not e.search:find(term, 1, true) then return false end end end
         return true
     end
     function view.rebuild()
@@ -2689,7 +2689,7 @@ do
         if dirtyH or page:GetAttribute("dirty") then
             dirtyH = false; page:SetAttribute("dirty", nil)
             local out = {}
-            for i = #entries, 1, -1 do local e = entries[i]; if filterText == "" or e.search:find(filterText, 1, true) then out[#out + 1] = e end end
+            for i = #entries, 1, -1 do local e = entries[i]; local ok = true; if filterText ~= "" then for term in filterText:gmatch("%S+") do if not e.search:find(term, 1, true) then ok = false; break end end end; if ok then out[#out + 1] = e end end
             visible = out; vlist.setItems(out)
         end
         vlist.tick()
