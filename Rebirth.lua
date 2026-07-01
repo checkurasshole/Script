@@ -1873,7 +1873,7 @@ local function createView(page, cfg)
         local e = view.selectedEntry; if not e or not getconnections then return end
         local sig = signalOf(e); if not sig then return end
         local ok, conns = pcall(getconnections, sig)
-        if ok and type(conns) == "table" then for _, con in conns do pcall(function() (con.Disable or con.disable)(con) end) end Notify("Disabled all", e.name .. " incoming blocked", "Bad"); view.renderConns(e) end
+        if ok and type(conns) == "table" then local nn = 0; for _, con in conns do if pcall(function() (con.Disable or con.disable)(con) end) then nn += 1 end end Notify("Disabled connections", nn .. " listener" .. (nn == 1 and "" or "s") .. " on " .. e.name, "Bad"); view.renderConns(e) end
     end))
 
     function view.select(e)
