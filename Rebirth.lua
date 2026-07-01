@@ -3126,7 +3126,7 @@ if dashRefresh then pcall(dashRefresh) end
 shared = shared or {}
 shared.__IxSpyRebirth = function() if ScreenGui and ScreenGui.Parent then Window.Visible = not Window.Visible end end
 print("[Rebirth] v" .. VERSION .. " loaded OK (GitHub chunk; all Rebirth errors are tagged '[Rebirth]'). If you see a '[string \"<number>\"]' error, that's a DIFFERENT script.")
-Notify("Rebirth v" .. VERSION .. " ready", HOOKS_AVAILABLE and (({ "Max", "Stealth", "Passive" })[Settings.Capture_mode] .. " capture · " .. Settings.Toggle_key .. " to toggle") or "Limited mode (no hooks)", "Accent", 5)
+Notify("Rebirth v" .. VERSION .. " ready", (HOOKS_AVAILABLE and (({ "Max", "Stealth", "Passive" })[Settings.Capture_mode] .. " capture") or "Passive · incoming only (no hooks)") .. "  ·  " .. Settings.Toggle_key .. " to toggle", "Accent", 5)
 
 
 
