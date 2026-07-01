@@ -3057,7 +3057,7 @@ do
         local okCount = 0; for _, n in CapsOrder do if Caps[n].ok then okCount += 1 end end
         local modeName = ({ "Max (namecall + functions)", "Stealth (functions only)", "Passive (incoming only)" })[Settings.Capture_mode] or "?"
         local card = make("Frame", { Parent = scroll, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, AutomaticSize = Enum.AutomaticSize.Y, Size = UDim2.new(1, 0, 0, 0), LayoutOrder = ord }, { corner(10), stroke("Stroke", 1), pad(12), vlayout(5) })
-        make("TextLabel", { Parent = card, BackgroundTransparency = 1, Font = FONT, Text = "Engine self-test · " .. okCount .. " / " .. #CapsOrder .. " verified working", TextColor3 = "@Text", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 18), LayoutOrder = 1 })
+        make("TextLabel", { Parent = card, BackgroundTransparency = 1, Font = FONT, Text = "Engine self-test · " .. okCount .. " / " .. #CapsOrder .. " verified working on your executor", TextColor3 = "@Text", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 18), LayoutOrder = 1 })
         make("TextLabel", { Parent = card, BackgroundTransparency = 1, Font = FONT_REG, Text = "Auto-selected capture mode: " .. modeName, TextColor3 = "@Faint", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 14), LayoutOrder = 2 })
         for i, n in CapsOrder do
             local cap = Caps[n]
