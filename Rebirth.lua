@@ -2096,7 +2096,7 @@ local function createView(page, cfg)
     local function doDecompile()
         local e = view.selectedEntry; if not e then return end
         local c = e.caller
-        if typeof(c) ~= "Instance" then Notify("Decompile", "Caller is not a script.", "Bad"); return end
+        if typeof(c) ~= "Instance" then Notify("Decompile", typeof(c) == "string" and ("Caller '" .. tostring(c):sub(1, 80) .. "' resolved by name only — no script instance to decompile.") or "No caller script to decompile.", "Bad"); return end
         showTab("script"); code.set("-- Decompiling " .. callerName(c) .. " …")
         task.spawn(function()
             local src = decompileScript(c)
