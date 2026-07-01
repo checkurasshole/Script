@@ -2274,6 +2274,8 @@ local function installRemoteHooks(view)
             local genv = (fn("getgenv") and env.getgenv()) or _G
             genv.__RebirthQ = genv.__RebirthQ or {}
             local q = genv.__RebirthQ
+            -- only remotes are hooked in actor VMs (not bindables): bindables are VM-local, so an actor's
+            -- BindableEvent/Function never reaches the main VM anyway. pcall-wrapped; returns original result.
             local code = [[ pcall(function() local genv=(getgenv and getgenv())or _G; local q=genv.__RebirthQ; if not q or not hookfunction then return end local function w(cls,m) local old; old=hookfunction(Instance.new(cls)[m],function(self,...) if typeof(self)=="Instance" and self.ClassName==cls then q[#q+1]={self,m,table.pack(...)} end return old(self,...) end) end w("RemoteEvent","FireServer");w("UnreliableRemoteEvent","FireServer");w("RemoteFunction","InvokeServer") end) ]]
             for _, a in getactors() do pcall(run_on_actor, a, code) end
             local qh = 1
