@@ -3073,8 +3073,10 @@ task.spawn(function()
         if not ScreenGui.Parent then break end   -- stop the per-second loop once the GUI is torn down
         table.remove(Stats.history, 1); Stats.history[60] = Stats.sec; Stats.perSec = Stats.sec; Stats.sec = 0
         if remotesView and not remotesView.paused then statusLbl.Text = "Capturing" end
-        local okp, ping = pcall(function() return LocalPlayer:GetNetworkPing() * 1000 end)
-        tsMeta.Text = os.date("%H:%M:%S") .. "   ·   " .. frameCount .. " FPS   ·   " .. ((okp and ping) and (math.floor(ping) .. " ms") or "— ms")
+        if Window.Visible then   -- topbar clock/FPS/ping only matters when the GUI is shown
+            local okp, ping = pcall(function() return LocalPlayer:GetNetworkPing() * 1000 end)
+            tsMeta.Text = os.date("%H:%M:%S") .. "   ·   " .. frameCount .. " FPS   ·   " .. ((okp and ping) and (math.floor(ping) .. " ms") or "— ms")
+        end
         frameCount = 0
         if activePage == "Dashboard" and dashRefresh then pcall(dashRefresh) end
     end
