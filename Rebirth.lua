@@ -2091,9 +2091,10 @@ local function createView(page, cfg)
         if not writefileFn then Notify("Export", "writefile unavailable.", "Bad"); return end
         local parts = {}
         for _, e in view.visible do parts[#parts + 1] = cfg.codegen("Readable", e, { framework = e.framework, size = e.size, time = e.time }) end
+        if #parts == 0 then Notify("Export", "Nothing to export (list is empty or filtered out).", "Warn"); return end
         local fname = CFG_DIR .. "/Rebirth_" .. (cfg.kind or "log") .. "_" .. os.date("%H%M%S") .. ".txt"
-        pcall(function() ensureDir(); writefileFn(fname, table.concat(parts, "\n\n-- ──────────\n\n")) end)
-        Notify("Exported", fname .. " (" .. #parts .. ")", "Good")
+        local ok = pcall(function() ensureDir(); writefileFn(fname, table.concat(parts, "\n\n-- ──────────\n\n")) end)
+        Notify(ok and "Exported" or "Export failed", ok and (fname .. "  (" .. #parts .. ")") or "write error (disk/permission?)", ok and "Good" or "Bad")
     end
     local notHttp = function() return cfg.kind ~= "http" end
 
