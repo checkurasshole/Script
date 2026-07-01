@@ -1884,6 +1884,7 @@ local function createView(page, cfg)
         local gkey = nm .. "\0" .. remote.ClassName .. "\0" .. (incoming and "I" or "O")
         local existing = Settings.Group_calls and view.groupMap[gkey]
         if existing then
+            if cfg.onStat then cfg.onStat(existing) end   -- count EVERY call (not just new remotes) so Dashboard Total/Calls-per-sec are real
             existing.count += 1; existing.packed = packed; existing.got = got; existing.remote = remote; existing.clk = clk; existing.time = os.date("%H:%M:%S")
             existing.sizeSum = (existing.sizeSum or existing.size or 0) + estimateSize(packed)   -- running total for avg payload size
             existing.history = existing.history or {}
