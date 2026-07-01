@@ -2196,7 +2196,7 @@ do
         end
         local mode = ({ "Max (namecall + functions)", "Stealth (functions only)", "Passive (incoming only)" })[Settings.Capture_mode]
         statusBar.Text = string.format("capture: %s  ·  decompiler: %s  ·  actors: %s  ·  getconnections: %s",
-            HOOKS_AVAILABLE and mode or "no hooks", decompile and "yes" or "no", (fn("getactors") and fn("run_on_actor")) and "yes" or "no", getconnections and "yes" or "no")
+            mode, decompile and "yes" or "no", (fn("getactors") and fn("run_on_actor")) and "yes" or "no", getconnections and "yes" or "no")
     end
 end
 
