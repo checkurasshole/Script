@@ -13,6 +13,7 @@ if shared and typeof(shared.__IxSpyRebirth) == "function" then pcall(shared.__Ix
 local env = getfenv()
 local function fn(name)
     local f = env[name]
+    if typeof(f) ~= "function" then local ok, g = pcall(function() return getgenv()[name] end); if ok then f = g end end   -- fall back to the shared global env (some executors expose fns only there)
     return (typeof(f) == "function") and f or nil
 end
 
