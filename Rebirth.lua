@@ -1637,7 +1637,8 @@ local function createView(page, cfg)
         local txt, col = (e.count or 1) .. "x", Theme.Accent
         if view.spoofs[e.name] then txt, col = "SPOOF", Theme.Good elseif view.block[e.name] then txt, col = "BLOCK", Theme.Bad end
         lbl.Text = txt; lbl.TextColor3 = col; cp.BackgroundColor3 = col
-        row.BackgroundTransparency = sel and 0.5 or 1
+        if not sel and view.watch[e.name] then row.BackgroundColor3 = Theme.Accent; row.BackgroundTransparency = 0.92   -- faint tint on watched rows
+        else row.BackgroundColor3 = Theme.Panel2; row.BackgroundTransparency = sel and 0.5 or 1 end
     end
     local vlist = VirtualList(listBody, 38, buildRow, bindRow, function(item)
         view.select(item.entry)                         -- selects entry (resets callIdx to latest)
