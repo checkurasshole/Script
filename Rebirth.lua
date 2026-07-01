@@ -1485,7 +1485,11 @@ do
     end
 end
 
-local function clip(s) if setclipboard then setclipboard(s); Notify("Copied", "Sent to clipboard", "Good", 2) end end
+local function clip(s)
+    if not setclipboard then Notify("Copy", "Clipboard unavailable on this executor.", "Bad", 2); return end
+    local ok = pcall(setclipboard, s)
+    Notify(ok and "Copied" or "Copy failed", ok and "Sent to clipboard" or "clipboard error", ok and "Good" or "Bad", 2)
+end
 local function callerName(c) if typeof(c) == "Instance" then local ok, n = pcall(function() return c:GetFullName() end); return ok and n or c.Name elseif typeof(c) == "string" then return c end return nil end
 -- method-based type label (matches the reference: FireServer / InvokeServer / InvokeClient / …)
 local function typeLabel(class, incoming)
