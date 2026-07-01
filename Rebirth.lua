@@ -533,7 +533,7 @@ do
     ToString.ValidName = validName
 end
 
-local GETNIL = "local function getNil(name, class)\n    for _, v in getnilinstances() do\n        if v.ClassName == class and v.Name == name then return v end\n    end\nend\n"
+local GETNIL = "local function getNil(name, class)\n    for _, v in " .. (NIL_FN_NAME or "getnilinstances") .. "() do\n        if v.ClassName == class and v.Name == name then return v end\n    end\nend\n"   -- use the executor's actual nil-list fn (getnilinstances OR getnils)
 
 --======================  Networking framework detection  ====================--
 
