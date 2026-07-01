@@ -199,6 +199,7 @@ do
         local cloned = clonefunction and clonefunction(function(...) return c(...) end) or function(...) return c(...) end
         return function(...) return cloned(...) end
     end
+    -- match the hook's closure TYPE to the original (C vs Lua) so iscclosure(hook) == iscclosure(original) — evades closure-type detection
     local function safe(original, hooked) if isC(original) then return newC(newL(hooked)) else return newL(newC(hooked)) end end
 
     function Hooks.HookFunction(target, replacement, label)
