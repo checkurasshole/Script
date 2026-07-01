@@ -2246,8 +2246,8 @@ local function _buildExplorer()
     local treeBody  = make("Frame", { Parent = treePanel, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 4), Size = UDim2.new(1, 0, 1, -42) })
     -- selection bar: live count + batch-decompile + scripts-only filter toggle (DECOMPILER-style)
     local treeBar = make("Frame", { Parent = treePanel, BackgroundColor3 = "@Panel", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 34) }, { corner(11) })
-    local cntLbl = make("TextLabel", { Parent = treeBar, BackgroundTransparency = 1, Font = FONT, Text = "0 selected", TextColor3 = "@Sub", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(10, 0), Size = UDim2.new(0.34, 0, 1, 0) })
-    local function refreshCount() cntLbl.Text = nChecked .. " selected" end
+    local cntLbl = make("TextButton", { Parent = treeBar, AutoButtonColor = false, BackgroundTransparency = 1, Font = FONT, Text = "0 selected", TextColor3 = "@Sub", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(10, 0), Size = UDim2.new(0.34, 0, 1, 0) })
+    local function refreshCount() cntLbl.Text = nChecked .. " selected" .. (nChecked > 0 and "  ·  clear" or "") end
     local dcBtn = UI.button(treeBar, { text = "Decompile ✓", primary = true, autoX = false, textSize = 12 })
     dcBtn.AnchorPoint = Vector2.new(1, 0.5); dcBtn.Position = UDim2.new(1, -8, 0.5, 0); dcBtn.Size = UDim2.fromOffset(104, 24)
     local soBtn = UI.button(treeBar, { text = "Scripts only", autoX = false, textSize = 12 })
@@ -2705,6 +2705,10 @@ local function _buildExplorer()
         showSet = nil; searchMatches = nil
         refreshTree()
     end))
+    track(cntLbl.MouseButton1Click:Connect(function()   -- click the count to clear the batch selection
+        if nChecked == 0 then return end
+        checked = {}; nChecked = 0; refreshCount(); treeList.invalidate()
+    end))
 
     expanded[game] = true
     refreshTree(); renderProps(nil); loadRMD()   -- fetch real Studio icon indices in the background
@@ -2785,7 +2789,7 @@ do
     local code = codeView(detail)
     local selected, dirtyH = nil, false
     local function buildCode(e)
-        local p = { "-- Rebirth HTTP  ·  " .. (e.time or ""), "local res = request({", "    Url = \"" .. e.url .. "\"," }
+        local p = { "-- Rebirth HTTP  ·  " .. (e.time or ""), "local res = request({", "    Url = " .. ToString.ToString(e.url) .. "," }   -- escaped, not raw-concatenated (URLs can contain quotes/backslashes)
         if e.method then p[#p + 1] = "    Method = \"" .. e.method .. "\"," end
         if typeof(e.headers) == "table" and next(e.headers) then p[#p + 1] = "    Headers = " .. ToString.ToString(e.headers, 1) .. "," end
         if e.body ~= nil and e.body ~= "" then p[#p + 1] = "    Body = " .. ToString.ToString(e.body) .. "," end
