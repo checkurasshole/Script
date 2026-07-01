@@ -1526,6 +1526,7 @@ local function createView(page, cfg)
     local clearBtn = UI.button(actC, { text = "Clear", icon = "rbxassetid://10747362241", color = "Bad", order = 2, onClick = function() end })
     local rightC = make("Frame", { Parent = row1, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 0, 30) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8), HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }) })
     local search = UI.input(rightC, "Filter", function(t) view.filterText = t:lower(); view.dirtyFilter = true end, { size = UDim2.fromOffset(200, 30), order = 1 })
+    addTip(search, "space = AND  ·  -term = exclude  ·  matches name / path / args / caller")
     local countPill = make("TextLabel", { Parent = rightC, BackgroundColor3 = "@Panel2", Font = FONT_MONO, Text = "0 logs", TextColor3 = "@Sub", TextSize = 12, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.new(0, 0, 0, 30), LayoutOrder = 2 }, { corner(8), stroke("Stroke", 1, 0.5), make("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }) })
     -- toolbar (row 2: filters)
     local row2 = make("Frame", { Parent = header, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 36), Size = UDim2.new(1, 0, 0, 28) })
@@ -1926,7 +1927,7 @@ local function createView(page, cfg)
                 end
                 argPrev = table.concat(parts, " ")
             end
-            e.search = (nm .. " " .. fwk .. " " .. full .. " " .. argPrev):lower()
+            e.search = (nm .. " " .. fwk .. " " .. full .. " " .. argPrev .. " " .. (e.callerName or "")):lower()   -- also searchable by calling script
             e.history = { { packed = packed, time = e.time, n = 1 } }
             view.entries[#view.entries + 1] = e
             view.byId[e.id] = e
