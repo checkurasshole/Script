@@ -1887,8 +1887,6 @@ local function createView(page, cfg)
             if r.c > 80 then view.ignore[nm] = true; view.dirtyFilter = true; if not view.autoIgnored[nm] then view.autoIgnored[nm] = true; Notify("Auto-ignored spam", nm .. " (>80/s)", "Warn", 3) end return end
         end
         local lbl = typeLabel(remote.ClassName, incoming)
-        view.typeCounts[lbl] = (view.typeCounts[lbl] or 0) + 1  -- per-call totals for the footer
-        view.typeDirty = true
         local gkey = nm .. "\0" .. remote.ClassName .. "\0" .. (incoming and "I" or "O")
         local existing = Settings.Group_calls and view.groupMap[gkey]
         if existing then
