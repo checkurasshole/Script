@@ -1222,8 +1222,10 @@ do  -- equalizer animation (reads as a live capture feed)
         local frames = { { 6, 11, 7, 13 }, { 12, 5, 13, 7 }, { 7, 13, 6, 11 }, { 13, 7, 11, 5 } }
         local k = 0
         while statusWave and statusWave.Parent do
-            k = (k % #frames) + 1
-            for i, b in waveBars do TweenService:Create(b, TweenInfo.new(0.30, Enum.EasingStyle.Quad), { Size = UDim2.fromOffset(2, frames[k][i]) }):Play() end
+            if Window.Visible then   -- don't spawn tweens while the GUI is hidden (keybind toggled off)
+                k = (k % #frames) + 1
+                for i, b in waveBars do TweenService:Create(b, TweenInfo.new(0.30, Enum.EasingStyle.Quad), { Size = UDim2.fromOffset(2, frames[k][i]) }):Play() end
+            end
             task.wait(0.32)
         end
     end)
