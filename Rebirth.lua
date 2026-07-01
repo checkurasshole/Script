@@ -811,6 +811,7 @@ local function decompileScript(scr)
     end
     return nil
 end
+-- decompile is possible if the executor has native decompile(), OR can dump bytecode AND make HTTP requests (for the lua.expert / Konstant fallbacks). Gates the decompile UI so it's only offered when it can actually work.
 local DECOMPILE_OK = (decompile ~= nil) or (getscriptbytecode ~= nil and httpRequestFn ~= nil)
 
 -- ============================================================================
