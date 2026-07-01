@@ -473,7 +473,7 @@ do
         if typeof(tbl) ~= "table" then return convertArg(tbl, math.max(indent, 0)) end
         if indent > 40 then return "{ --[[ …depth capped ]] }" end   -- guard pathological deep nesting from overflowing the stack
         if table.find(parsed, tbl) then return "{} --[[ cyclic ]]" end
-        table.insert(parsed, tbl)
+        table.insert(parsed, tbl)   -- stack-based cycle guard (popped after recursing, at line ~499): flags only TRUE self-cycles — a table shared across sibling branches isn't on the stack anymore, so it still serializes fully each time (a visited-set would wrongly flag it)
         local arr, allValid, count = isArray(tbl)
         local result
         if arr then
