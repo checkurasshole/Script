@@ -213,6 +213,7 @@ do
     function Hooks.HookMetaMethod(method, replacement, label)
         local old
         old = hookmetamethod(game, method, safe(pcall, function(...) return replacement(old, ...) end))
+        -- store only the FIRST metamethod's original (the TRUE original), so RestoreAll unhooks cleanly even if __namecall is re-hooked. Assumes one metamethod hook — only __namecall is used; a second DIFFERENT metamethod would need its own restore entry.
         if not mmLogged then mmLogged = true; restore[#restore + 1] = keep({ "MM", method, old }) end
         if label then registry[#registry + 1] = { kind = "metamethod", label = label, active = true } end
     end
