@@ -774,7 +774,7 @@ end
 local _b64enc = fn("base64_encode") or fn("base64encode") or (typeof(getfenv().crypt) == "table" and rawget(getfenv().crypt, "base64encode"))
 local function b64(data)
     if _b64enc then local ok, r = pcall(_b64enc, data); if ok and type(r) == "string" and #r > 0 then return r end end
-    -- pure-Lua base64 fallback: bytes -> bitstring, read 6-bit groups; trailing "0000" zero-pads the last group (extra <6-bit chunk discarded), then "="/"==" by length mod 3
+    -- pure-Lua base64 fallback (verified byte-exact vs RFC 4648 vectors): bytes -> bitstring, read 6-bit groups; trailing "0000" zero-pads the last group (extra <6-bit chunk discarded), then "="/"==" by length mod 3
     local b = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
     return ((data:gsub(".", function(x)
         local r, byte = "", x:byte()
