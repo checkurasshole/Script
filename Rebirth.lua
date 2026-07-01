@@ -900,6 +900,7 @@ do  -- smooth per-frame shine traveling around the edge + gentle breathe
     local t = 0
     track(RunService.Heartbeat:Connect(function(dt)
         if not winShine.Parent then return end
+        if not Window.Visible then return end   -- don't run the per-frame shine while the GUI is hidden
         t += dt
         winShine.Rotation = (t * 70) % 360
         winStroke.Transparency = 0.06 + math.sin(t * 2.5) * 0.05   -- floor ~0.01, so the whole edge stays gold
