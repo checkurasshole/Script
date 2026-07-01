@@ -153,7 +153,9 @@ end
 local function saveSettings() writeJSON(SETTINGS_PATH, Settings) end
 do
     local saved = readJSON(SETTINGS_PATH)
-    if saved then for k, v in saved do if Settings[k] ~= nil then Settings[k] = v end end end
+    -- only adopt keys that exist in defaults AND match the default's type, so a corrupt or
+    -- hand-edited config (e.g. a number field saved as a string) can't crash startup downstream.
+    if saved then for k, v in saved do if Settings[k] ~= nil and type(v) == type(Settings[k]) then Settings[k] = v end end end
 end
 if Settings.Capture_mode < 1 or Settings.Capture_mode > 3 then Settings.Capture_mode = 1 end
 -- Auto-demote to the safest capture mode this executor can ACTUALLY do (validated above),
