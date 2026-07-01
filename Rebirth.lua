@@ -1510,7 +1510,7 @@ local function createView(page, cfg)
         entries = {}, visible = {}, byId = {}, groupMap = {},
         queue = {}, qHead = 1, dirtyFilter = false,
         selectedEntry = nil, paused = false, _lastSelCount = 0,
-        block = keep({}), ignore = keep({}), spoofs = keep({}), pins = keep({}),
+        block = keep({}), ignore = keep({}), spoofs = keep({}), pins = keep({}), watch = keep({}), watchLast = {},
         rate = {}, autoIgnored = {}, typeCounts = {}, typeDirty = false,
         filterText = "", filterDir = "All", filterType = "All", filterFw = "All",
         codeMode = Settings.Codegen_mode,
@@ -1867,6 +1867,7 @@ local function createView(page, cfg)
     local function process(raw)
         local remote, incoming, packed, caller, got, clk, thr = raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7]
         local nm = remote.Name ~= "" and remote.Name or remote.ClassName
+        if view.watch[nm] then local wl = view.watchLast[nm]; if not wl or (clk - wl) > 1 then view.watchLast[nm] = clk; Notify("Watched remote fired", nm, "Accent", 2.5) end end   -- one notify/sec per watched name
         if Settings.Ignore_spammy_logs then
             local r = view.rate[nm]
             if not r or (clk - r.t) > 1 then r = { t = clk, c = 0 }; view.rate[nm] = r end
@@ -2103,6 +2104,7 @@ local function createView(page, cfg)
         { text = "Ignore remote", icon = ACT_ICON.Ignore, onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; Filters.save(cfg.kind, view); if view.selectedEntry == e then view.selectedEntry = nil; code.set(""); callBtn.Visible = false end view.dirtyFilter = true; Notify("Ignored", e.name, "Sub") end end },
         { text = "Unignore all",  onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end Filters.save(cfg.kind, view); view.dirtyFilter = true; Notify("Unignored all", "", "Good") end },
         { text = "Pin / Unpin",   icon = ACT_ICON.Pin, onClick = function() local e = view.selectedEntry; if e then view.pins[e.name] = not view.pins[e.name]; Filters.save(cfg.kind, view); view.dirtyFilter = true; Notify(view.pins[e.name] and "Pinned" or "Unpinned", e.name, "Warn") end end },
+        { text = "Watch fires",   icon = ACT_ICON.Pin, onClick = function() local e = view.selectedEntry; if e then view.watch[e.name] = (not view.watch[e.name]) or nil; Notify(view.watch[e.name] and "Watching" or "Unwatched", e.name .. (view.watch[e.name] and " — you'll get a toast each time it fires" or ""), "Accent") end end },
         { text = "Reveal in Explorer", icon = "rbxassetid://10723387085", onClick = function() local e = view.selectedEntry; if e and typeof(e.remote) == "Instance" and ExplorerReveal then ExplorerReveal(e.remote) else Notify("Explorer", "No instance to reveal.", "Bad") end end },
     } })
     act("⤓  Decompile", { onClick = doDecompile })
