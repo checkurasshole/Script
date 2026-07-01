@@ -2243,7 +2243,15 @@ local function _buildExplorer()
 
     local body = make("Frame", { Parent = page, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 40), Size = UDim2.new(1, 0, 1, -40) })
     local treePanel = make("Frame", { Parent = body, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Size = UDim2.new(0.46, -6, 1, 0) }, { corner(11), stroke("Stroke", 1) })
-    local treeBody  = make("Frame", { Parent = treePanel, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 4), Size = UDim2.new(1, 0, 1, -8) })
+    local treeBody  = make("Frame", { Parent = treePanel, BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 4), Size = UDim2.new(1, 0, 1, -42) })
+    -- selection bar: live count + batch-decompile + scripts-only filter toggle (DECOMPILER-style)
+    local treeBar = make("Frame", { Parent = treePanel, BackgroundColor3 = "@Panel", BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 34) }, { corner(11) })
+    local cntLbl = make("TextLabel", { Parent = treeBar, BackgroundTransparency = 1, Font = FONT, Text = "0 selected", TextColor3 = "@Sub", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(10, 0), Size = UDim2.new(0.34, 0, 1, 0) })
+    local function refreshCount() cntLbl.Text = nChecked .. " selected" end
+    local dcBtn = UI.button(treeBar, { text = "Decompile ✓", primary = true, autoX = false, textSize = 12 })
+    dcBtn.AnchorPoint = Vector2.new(1, 0.5); dcBtn.Position = UDim2.new(1, -8, 0.5, 0); dcBtn.Size = UDim2.fromOffset(104, 24)
+    local soBtn = UI.button(treeBar, { text = "Scripts only", autoX = false, textSize = 12 })
+    soBtn.AnchorPoint = Vector2.new(1, 0.5); soBtn.Position = UDim2.new(1, -118, 0.5, 0); soBtn.Size = UDim2.fromOffset(94, 24)
     local propPanel = make("Frame", { Parent = body, BackgroundColor3 = "@Bg2", BorderSizePixel = 0, Position = UDim2.new(0.46, 6, 0, 0), Size = UDim2.new(0.54, -6, 1, 0) }, { corner(11), stroke("Stroke", 1) })
 
     -- property panel header (fixed) + scrolling body
@@ -2260,6 +2268,16 @@ local function _buildExplorer()
     local selectedInst = nil
     local searchMatches = nil            -- flat list while searching
     local rowMap = {}
+
+    -- ── DECOMPILER-style tree: filter to scripts/remotes, checkbox multi-select, batch decompile ──
+    local TARGET = { Script = true, LocalScript = true, ModuleScript = true, RemoteEvent = true, RemoteFunction = true, UnreliableRemoteEvent = true, BindableEvent = true, BindableFunction = true }
+    local SCRIPTCLS = { Script = true, LocalScript = true, ModuleScript = true }
+    local function clsOf(inst) local ok, c = pcall(function() return inst.ClassName end); return ok and c or "" end
+    local function nmOf(inst) local ok, n = pcall(function() return inst.Name end); return ok and tostring(n) or "?" end
+    local scriptsOnly = true          -- filtered tree (DECOMPILER default); toggle off for the full instance tree
+    local checked, nChecked = {}, 0   -- script inst -> true (batch-decompile selection)
+    local showSet = nil               -- inst -> true (instances to show while filtered); nil = needs rebuild
+    local scriptDescCache = {}        -- folder -> { script descendants } for tri-state; cleared on rebuild
 
     local function childrenOf(inst) local ok, c = pcall(function() return inst:GetChildren() end); return ok and c or {} end
     local function compactVal(v)
@@ -2367,25 +2385,74 @@ local function _buildExplorer()
     end
 
     -- ── tree ──
-    local treeList, renderProps, contextFor
+    local treeList, renderProps, contextFor, toggleCheck
+    -- build the "show" set: every script/remote plus its ancestor folders (so branches with no scripts are hidden)
+    local function rebuildFilter()
+        showSet = {}; scriptDescCache = {}
+        local targets = {}
+        local function collect(v) if typeof(v) == "Instance" and TARGET[clsOf(v)] then targets[#targets + 1] = v end end
+        pcall(function() for _, v in game:GetDescendants() do collect(v) end end)
+        if getnilinstancesFn then pcall(function() for _, v in getnilinstancesFn() do collect(v) end end) end
+        for _, t in targets do
+            showSet[t] = true
+            local isS = SCRIPTCLS[clsOf(t)]
+            local ok, p = pcall(function() return t.Parent end); p = ok and p or nil
+            while p and p ~= game do
+                showSet[p] = true
+                if isS then local d = scriptDescCache[p]; if not d then d = {}; scriptDescCache[p] = d end; d[#d + 1] = t end   -- pre-fill tri-state lists in one pass
+                local ok2, pp = pcall(function() return p.Parent end); p = ok2 and pp or nil
+            end
+        end
+    end
+    -- folder -> its script descendants, pre-filled by rebuildFilter in one pass (no per-bind tree walk)
+    local EMPTY_DESC = {}
+    local function scriptDescOf(inst) return scriptDescCache[inst] or EMPTY_DESC end
+    local function shownKids(inst)
+        local kids = childrenOf(inst)
+        if scriptsOnly and showSet then
+            local out = {}; for _, c in kids do if showSet[c] then out[#out + 1] = c end end; kids = out
+        end
+        table.sort(kids, function(a, b)
+            local ta, tb = TARGET[clsOf(a)] or false, TARGET[clsOf(b)] or false
+            if ta ~= tb then return not ta end   -- containers first, then scripts/remotes
+            return nmOf(a):lower() < nmOf(b):lower()
+        end)
+        return kids
+    end
     local function flatten()
         if searchMatches then return searchMatches end
+        if scriptsOnly and not showSet then rebuildFilter() end
         local out = {}
         local function walk(inst, depth)
-            local kids = childrenOf(inst)
+            local kids = shownKids(inst)
             out[#out + 1] = { inst = inst, depth = depth, hasKids = #kids > 0 }
             if expanded[inst] and #kids > 0 then for _, c in kids do walk(c, depth + 1) end end
         end
         walk(game, 0)
         return out
     end
-    local function refreshTree() treeList.setItems(flatten()); treeList.tick() end
+    local function refreshTree() treeList.setItems(flatten()); treeList.tick() end   -- flatten rebuilds the filter only when showSet was invalidated (nil)
     local function selectInst(inst) selectedInst = inst; pcall(renderProps, inst); if treeList then treeList.invalidate() end end
+    -- batch-selection helpers
+    local function setChecked(s, on)
+        if on and not checked[s] then checked[s] = true; nChecked += 1
+        elseif not on and checked[s] then checked[s] = nil; nChecked -= 1 end
+    end
+    toggleCheck = function(inst)
+        if SCRIPTCLS[clsOf(inst)] then setChecked(inst, not checked[inst])
+        else
+            local desc = scriptDescOf(inst); if #desc == 0 then return end
+            local allOn = true; for _, s in desc do if not checked[s] then allOn = false; break end end
+            for _, s in desc do setChecked(s, not allOn) end
+        end
+        refreshCount(); treeList.invalidate()
+    end
 
     local function buildTreeRow()
         local row = make("TextButton", { AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", BackgroundTransparency = 1, Text = "", Size = UDim2.new(1, 0, 0, 24) }, {
             corner(6),
             make("ImageButton", { Name = "Arrow", AutoButtonColor = false, BackgroundTransparency = 1, Image = "rbxassetid://10709791437", ImageColor3 = "@Sub", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(11, 11), Rotation = 0, Visible = false }),
+            make("TextButton", { Name = "Chk", AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel3", Text = "", Font = FONT_BOLD, TextSize = 11, TextColor3 = Color3.new(1, 1, 1), AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromOffset(14, 14), Visible = false, ZIndex = 3 }, { corner(4) }),
             make("ImageLabel", { Name = "Ico", BackgroundTransparency = 1, Image = CLASS_IMG, ImageRectSize = Vector2.new(16, 16), ScaleType = Enum.ScaleType.Crop, AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromOffset(16, 16) }),
             make("TextLabel", { Name = "Nm", BackgroundTransparency = 1, Font = FONT, TextSize = 12, TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Size = UDim2.new(1, -40, 1, 0) }),
             make("TextLabel", { Name = "Cls", BackgroundTransparency = 1, Font = FONT_REG, TextSize = 10, TextColor3 = "@Faint", TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(0, 24), AutomaticSize = Enum.AutomaticSize.X }),
@@ -2396,6 +2463,9 @@ local function _buildExplorer()
             local node = rowMap[row]; if not node or not node.hasKids then return end
             expanded[node.inst] = (not expanded[node.inst]) or nil
             refreshTree()
+        end))
+        track(row.Chk.MouseButton1Click:Connect(function()
+            local node = rowMap[row]; if node then toggleCheck(node.inst) end
         end))
         track(row.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton2 then
@@ -2411,8 +2481,21 @@ local function _buildExplorer()
         row.Arrow.Position = UDim2.fromOffset(x + 5, 12)
         row.Arrow.Visible = node.hasKids and not node.search
         row.Arrow.Rotation = expanded[inst] and 90 or 0
-        local cls = (pcall(function() return inst.ClassName end)) and inst.ClassName or ""
-        local ix = node.search and 4 or (x + 16)
+        local cls = clsOf(inst)
+        -- checkbox: scripts get an individual box; folders a tri-state over their script descendants
+        local isScr = SCRIPTCLS[cls] and true or false
+        local desc = (not isScr and not node.search and scriptsOnly) and scriptDescOf(inst) or nil
+        local showChk = (isScr or (desc and #desc > 0)) and not node.search and true or false
+        row.Chk.Visible = showChk
+        if showChk then
+            row.Chk.Position = UDim2.fromOffset(x + 18, 12)
+            local st   -- 0 none, 1 all, 2 some
+            if isScr then st = checked[inst] and 1 or 0
+            else local c = 0; for _, s in desc do if checked[s] then c += 1 end end; st = (c == 0 and 0) or (c == #desc and 1) or 2 end
+            row.Chk.Text = (st == 1 and "✓") or (st == 2 and "–") or ""
+            row.Chk.BackgroundColor3 = (st == 1 and Theme.Good) or (st == 2 and Theme.Warn) or Theme.Panel3
+        end
+        local ix = node.search and 4 or (x + 35)
         row.Ico.Position = UDim2.fromOffset(ix, 12); setRowIcon(row.Ico, cls)
         local nx = ix + 20
         local okn, nm = pcall(function() return node.search and inst:GetFullName() or inst.Name end)
@@ -2581,6 +2664,7 @@ local function _buildExplorer()
         if not (okd and inst:IsDescendantOf(game)) then refreshTree(); selectInst(inst); Notify("Explorer", inst.Name .. " is nil-parented — properties only.", "Warn"); return end
         local p = inst.Parent
         while p do expanded[p] = true; if p == game then break end p = p.Parent end
+        if scriptsOnly then showSet = nil end   -- rebuild the filter so a freshly-seen remote is included
         local flat = flatten(); treeList.setItems(flat); treeList.tick()
         selectInst(inst)
         for i, node in flat do if node.inst == inst then treeList.scroll.CanvasPosition = Vector2.new(0, math.max(0, (i - 1) * 26 - 80)); treeList.invalidate(); break end end
@@ -2592,10 +2676,40 @@ local function _buildExplorer()
     for _, svc in { "Workspace","Players","Lighting","ReplicatedStorage","ReplicatedFirst","ServerStorage","ServerScriptService","StarterGui","StarterPack","StarterPlayer","SoundService","Chat","Teams","LocalizationService","TestService","RunService","UserInputService","ContextActionService","TweenService","Debris","CollectionService","PhysicsService","MarketplaceService","HttpService","TextService","GuiService","PathfindingService","ProximityPromptService","TeleportService","PolicyService","MaterialService","InsertService","BadgeService","GroupService","AssetService","AvatarEditorService","TextChatService","VoiceChatService" } do
         pcall(function() game:GetService(svc) end)
     end
+    -- ── batch decompile: dump every checked script into the source view + clipboard (+ file) ──
+    local function decompileSelected()
+        local sel = {}; for s in checked do sel[#sel + 1] = s end
+        if #sel == 0 then Notify("Batch decompile", "No scripts checked — tick some in the tree first.", "Warn"); return end
+        Notify("Batch decompile", "Decompiling " .. #sel .. " script(s)…", "Accent", 2)
+        task.spawn(function()
+            local parts = {}
+            for i, s in sel do
+                local okp, path = pcall(function() return s:GetFullName() end)
+                local src = decompiled[s]
+                if src == nil or src == "" then src = decompileScript(s) or "-- (no source)"; decompiled[s] = src end
+                parts[#parts + 1] = ("-- [%d/%d] %s  (%s)\n%s"):format(i, #sel, okp and path or nmOf(s), clsOf(s), src)
+                if i % 3 == 0 then task.wait() end
+            end
+            local combined = table.concat(parts, "\n\n-- " .. string.rep("—", 24) .. "\n\n")
+            selectedInst = nil; propScroll.Visible = false; scrFrame.Visible = true; scrView.set(combined)
+            if setclipboard then pcall(setclipboard, combined) end
+            local saved = ""
+            if writefileFn then local fn2 = CFG_DIR .. "/Rebirth_dump_" .. os.date("%H%M%S") .. ".lua"; if pcall(function() ensureDir(); writefileFn(fn2, combined) end) then saved = " · saved to file" end end
+            Notify("Batch decompile", #sel .. " script(s) done — copied" .. saved, "Good")
+        end)
+    end
+    track(dcBtn.MouseButton1Click:Connect(decompileSelected))
+    track(soBtn.MouseButton1Click:Connect(function()
+        scriptsOnly = not scriptsOnly
+        soBtn.Lbl.Text = scriptsOnly and "Scripts only" or "Full tree"
+        showSet = nil; searchMatches = nil
+        refreshTree()
+    end))
+
     expanded[game] = true
     refreshTree(); renderProps(nil); loadRMD()   -- fetch real Studio icon indices in the background
     explorerTick = function() pcall(function() treeList.tick() end) end   -- driven by the runtime loop so scrolling repaints the window
-    track(refreshBtn.MouseButton1Click:Connect(function() refreshTree(); if selectedInst then pcall(renderProps, selectedInst) end end))
+    track(refreshBtn.MouseButton1Click:Connect(function() showSet = nil; refreshTree(); if selectedInst then pcall(renderProps, selectedInst) end end))
     -- "Find code": decompile every client script and grep its source for the search text
     -- (the merged Script Scanner). Matches show in the tree; click one to read its source.
     local scanning = false
