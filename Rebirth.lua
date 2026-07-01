@@ -168,6 +168,7 @@ function Filters.save(kind, view)
     writeJSON(Filters.path, Filters.data)
 end
 function Filters.load(kind, view)
+    -- load-side guard mirroring Filters.save: adopt only string names mapped to `true`, so a corrupt/hand-edited Filters.json stays inert (never injects non-name keys or odd values)
     local f = Filters.data[kind]; if type(f) ~= "table" then return end
     for _, key in { "block", "ignore", "pins" } do
         if type(f[key]) == "table" then for nm, v in f[key] do if type(nm) == "string" and v == true then view[key][nm] = true end end end
