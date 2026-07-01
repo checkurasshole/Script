@@ -1038,7 +1038,7 @@ function UI.dropdown(parent, opts, current, onPick, width)
         backdrop = make("TextButton", { Parent = ScreenGui, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, Size = UDim2.fromScale(1, 1), ZIndex = 79 })   -- click-outside closes
         backdrop.MouseButton1Click:Connect(close)
         local ph = (math.min(#opts, 9) * 28 + 8) * UIScaleObj.Scale
-        local cam = workspace.CurrentCamera; local vpY = (cam and cam.ViewportSize.Y) or 1080
+        local vpY = viewport().Y
         local py = abs.Y + sz.Y + 5; if py + ph > vpY then py = math.max(0, abs.Y - ph - 5) end   -- flip above if it would spill off the bottom
         pop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, py), Size = UDim2.fromOffset(width or 130, math.min(#opts, 9) * 28 + 8), ZIndex = 80, ClipsDescendants = true }, { corner(8), stroke("StrokeS", 1), pad(4), make("UIScale", { Scale = UIScaleObj.Scale }) })
         local sc = make("ScrollingFrame", { Parent = pop, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 80 }, { vlayout(2) })
@@ -2679,7 +2679,7 @@ local function _buildExplorer()
         ctxBackdrop.MouseButton1Click:Connect(closeCtx); ctxBackdrop.MouseButton2Click:Connect(closeCtx)
         -- clamp to the viewport so a right-click near the bottom/right edge doesn't spill the menu off-screen
         local mw, mh = 186 * UIScaleObj.Scale, (#shown * 28 + 6) * UIScaleObj.Scale
-        local cam = workspace.CurrentCamera; local vp = (cam and cam.ViewportSize) or Vector2.new(1920, 1080)
+        local vp = viewport()
         local px = math.clamp(pos.X, 0, math.max(0, vp.X - mw)); local py = math.clamp(pos.Y, 0, math.max(0, vp.Y - mh))
         ctxMenu = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(px, py), Size = UDim2.fromOffset(186, #shown * 28 + 6), ZIndex = 96 }, { corner(8), stroke("StrokeS", 1), pad(3, 3, 3, 3), make("UIScale", { Scale = UIScaleObj.Scale }), vlayout(2) })
         for _, it in shown do
