@@ -920,8 +920,10 @@ local DENSITY = 0.78
 local function applyScale() local v = viewport(); UIScaleObj.Scale = math.clamp(math.min(v.X / 1360, v.Y / 780), 0.45, 1.0) * DENSITY end
 applyScale()
 local function clampWindow()
-    local v, s = viewport(), Window.AbsoluteSize
-    Window.Position = UDim2.fromOffset(math.clamp(Window.Position.X.Offset, 0, math.max(0, v.X - s.X)), math.clamp(Window.Position.Y.Offset, 0, math.max(0, v.Y - s.Y)))
+    local v, s, a = viewport(), Window.AbsoluteSize, Window.AbsolutePosition
+    -- use AbsolutePosition (real pixels) not Position.Offset — the initial centered position has a 0.5 scale
+    -- component, so clamping the offset alone would snap the window to the top-left on a viewport resize
+    Window.Position = UDim2.fromOffset(math.clamp(a.X, 0, math.max(0, v.X - s.X)), math.clamp(a.Y, 0, math.max(0, v.Y - s.Y)))
 end
 do local c = workspace.CurrentCamera; if c then track(c:GetPropertyChangedSignal("ViewportSize"):Connect(function() applyScale(); clampWindow() end)) end end
 
