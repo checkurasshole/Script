@@ -1300,7 +1300,7 @@ do
     local grip = make("TextButton", { Parent = Window, AutoButtonColor = false, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -5, 1, -5), Size = UDim2.fromOffset(18, 18), Text = "◢", Font = FONT_BOLD, TextSize = 11, TextColor3 = "@Faint", ZIndex = 6 })
     addTip(grip, "Drag to resize")
     local rz, sp2, ss
-    track(grip.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then rz, sp2, ss = true, i.Position, Vector2.new(Window.Size.X.Offset, Window.Size.Y.Offset); track(i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then rz = false end end)) end end))
+    track(grip.InputBegan:Connect(function(i) if minimized then return end if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then rz, sp2, ss = true, i.Position, Vector2.new(Window.Size.X.Offset, Window.Size.Y.Offset); track(i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then rz = false end end)) end end))
     track(UserInputService.InputChanged:Connect(function(i)
         if rz and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
             local sc = UIScaleObj.Scale; local d = (i.Position - sp2) / sc; local v = viewport()
