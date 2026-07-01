@@ -159,15 +159,15 @@ do
 end
 -- persist block / ignore / pin lists BY NAME (per view kind) across reloads. Instance keys and
 -- auto-ignored spam are excluded — only your manual, name-keyed choices survive a reload.
-local FILTERS_PATH = CFG_DIR .. "/Filters.json"
-local AllFilters = readJSON(FILTERS_PATH) or {}
-local function saveFilters(kind, view)
+local Filters = { path = CFG_DIR .. "/Filters.json" }   -- one table instead of 4 top-level locals (register headroom)
+Filters.data = readJSON(Filters.path) or {}
+function Filters.save(kind, view)
     local function names(t, skip) local o = {}; for k, v in t do if type(k) == "string" and v and not (skip and skip[k]) then o[k] = true end end return o end
-    AllFilters[kind] = { block = names(view.block), ignore = names(view.ignore, view.autoIgnored), pins = names(view.pins) }
-    writeJSON(FILTERS_PATH, AllFilters)
+    Filters.data[kind] = { block = names(view.block), ignore = names(view.ignore, view.autoIgnored), pins = names(view.pins) }
+    writeJSON(Filters.path, Filters.data)
 end
-local function loadFilters(kind, view)
-    local f = AllFilters[kind]; if type(f) ~= "table" then return end
+function Filters.load(kind, view)
+    local f = Filters.data[kind]; if type(f) ~= "table" then return end
     for _, key in { "block", "ignore", "pins" } do
         if type(f[key]) == "table" then for nm, v in f[key] do if type(nm) == "string" and v == true then view[key][nm] = true end end end
     end
@@ -936,6 +936,25 @@ do
     end
 end
 
+--==============================  Tooltips  ================================--
+
+local addTip
+do
+    local tip = make("Frame", { Name = "Tooltip", Parent = ScreenGui, BackgroundColor3 = "@Panel3", BorderSizePixel = 0, Visible = false, ZIndex = 200, AutomaticSize = Enum.AutomaticSize.XY }, { corner(6), stroke("StrokeS", 1), pad(5, 5, 8, 8), make("UIScale", { Scale = UIScaleObj.Scale }) })
+    local tipLbl = make("TextLabel", { Parent = tip, BackgroundTransparency = 1, Font = FONT, Text = "", TextColor3 = "@Text", TextSize = 12, ZIndex = 201, AutomaticSize = Enum.AutomaticSize.XY })
+    local hovered
+    function addTip(gui, text)
+        track(gui.MouseEnter:Connect(function()
+            hovered = gui; tipLbl.Text = text
+            local a, s = gui.AbsolutePosition, gui.AbsoluteSize
+            if a.Y < 80 then tip.AnchorPoint = Vector2.new(0.5, 0); tip.Position = UDim2.fromOffset(a.X + s.X / 2, a.Y + s.Y + 6)
+            else tip.AnchorPoint = Vector2.new(0.5, 1); tip.Position = UDim2.fromOffset(a.X + s.X / 2, a.Y - 6) end
+            tip.Visible = true
+        end))
+        track(gui.MouseLeave:Connect(function() if hovered == gui then hovered = nil; tip.Visible = false end end))
+    end
+end
+
 --==============================  Components  ===============================--
 
 local UI = {}
@@ -1208,6 +1227,7 @@ local function topCtl(glyph, colorKey, order)
 end
 local minBtn = topCtl("-", "Sub", 3)
 local closeBtn = topCtl("X", "Bad", 4)
+addTip(minBtn, "Minimize"); addTip(closeBtn, "Close · unload spy")
 
 -- drag — snapshot the window's ACTUAL pixel position (AbsolutePosition) at grab time.
 -- The window starts centered with scale components (0.5,…); reading .Offset alone
@@ -1249,6 +1269,7 @@ track(minBtn.MouseButton1Click:Connect(doMinimize))
 -- resize grip
 do
     local grip = make("TextButton", { Parent = Window, AutoButtonColor = false, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -5, 1, -5), Size = UDim2.fromOffset(18, 18), Text = "◢", Font = FONT_BOLD, TextSize = 11, TextColor3 = "@Faint", ZIndex = 6 })
+    addTip(grip, "Drag to resize")
     local rz, sp2, ss
     track(grip.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then rz, sp2, ss = true, i.Position, Vector2.new(Window.Size.X.Offset, Window.Size.Y.Offset); track(i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then rz = false end end)) end end))
     track(UserInputService.InputChanged:Connect(function(i)
@@ -1489,7 +1510,7 @@ local function createView(page, cfg)
         codeMode = Settings.Codegen_mode,
     }
     AllViews[#AllViews + 1] = view
-    loadFilters(cfg.kind, view)   -- restore this view's saved block/ignore/pin names
+    Filters.load(cfg.kind, view)   -- restore this view's saved block/ignore/pin names
 
     --── toolbar (row 1: actions + filter + count) ──
     local header = make("Frame", { Parent = page, BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 66) })
@@ -2069,11 +2090,11 @@ local function createView(page, cfg)
     } })
     -- List ▾ : actions that change what the log shows
     UI.menuButton(actionBar, { text = "List", icon = "rbxassetid://10723375128", order = #actionBar:GetChildren(), items = {
-        { text = "Block remote", icon = ACT_ICON.Block, tint = "Bad", onClick = function() local e = view.selectedEntry; if e then view.block[e.remote] = true; view.block[e.name] = true; saveFilters(cfg.kind, view); vlist.invalidate(); Notify("Blocked", e.name, "Bad") end end },
-        { text = "Unblock all",  icon = ACT_ICON.Unblock, onClick = function() table.clear(view.block); saveFilters(cfg.kind, view); vlist.invalidate(); Notify("Unblocked all", "", "Good") end },
-        { text = "Ignore remote", icon = ACT_ICON.Ignore, onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; saveFilters(cfg.kind, view); if view.selectedEntry == e then view.selectedEntry = nil; code.set(""); callBtn.Visible = false end view.dirtyFilter = true; Notify("Ignored", e.name, "Sub") end end },
-        { text = "Unignore all",  onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end saveFilters(cfg.kind, view); view.dirtyFilter = true; Notify("Unignored all", "", "Good") end },
-        { text = "Pin / Unpin",   icon = ACT_ICON.Pin, onClick = function() local e = view.selectedEntry; if e then view.pins[e.name] = not view.pins[e.name]; saveFilters(cfg.kind, view); view.dirtyFilter = true; Notify(view.pins[e.name] and "Pinned" or "Unpinned", e.name, "Warn") end end },
+        { text = "Block remote", icon = ACT_ICON.Block, tint = "Bad", onClick = function() local e = view.selectedEntry; if e then view.block[e.remote] = true; view.block[e.name] = true; Filters.save(cfg.kind, view); vlist.invalidate(); Notify("Blocked", e.name, "Bad") end end },
+        { text = "Unblock all",  icon = ACT_ICON.Unblock, onClick = function() table.clear(view.block); Filters.save(cfg.kind, view); vlist.invalidate(); Notify("Unblocked all", "", "Good") end },
+        { text = "Ignore remote", icon = ACT_ICON.Ignore, onClick = function() local e = view.selectedEntry; if e then view.ignore[e.name] = true; Filters.save(cfg.kind, view); if view.selectedEntry == e then view.selectedEntry = nil; code.set(""); callBtn.Visible = false end view.dirtyFilter = true; Notify("Ignored", e.name, "Sub") end end },
+        { text = "Unignore all",  onClick = function() table.clear(view.ignore); if view.autoIgnored then table.clear(view.autoIgnored) end Filters.save(cfg.kind, view); view.dirtyFilter = true; Notify("Unignored all", "", "Good") end },
+        { text = "Pin / Unpin",   icon = ACT_ICON.Pin, onClick = function() local e = view.selectedEntry; if e then view.pins[e.name] = not view.pins[e.name]; Filters.save(cfg.kind, view); view.dirtyFilter = true; Notify(view.pins[e.name] and "Pinned" or "Unpinned", e.name, "Warn") end end },
         { text = "Reveal in Explorer", icon = "rbxassetid://10723387085", onClick = function() local e = view.selectedEntry; if e and typeof(e.remote) == "Instance" and ExplorerReveal then ExplorerReveal(e.remote) else Notify("Explorer", "No instance to reveal.", "Bad") end end },
     } })
     act("⤓  Decompile", { onClick = doDecompile })
