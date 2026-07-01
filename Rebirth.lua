@@ -737,7 +737,7 @@ do
         local path = (function() ToString.SetCompress(nil); return ToString.GetPath(event) end)()
         return header(meta) .. "  |  SPOOF TEMPLATE\n"
             .. "-- Edit the returned values, then press 'Apply spoof'.\n"
-            .. "-- For " .. event.Name .. " (" .. event.ClassName .. ")\n"
+            .. "-- For " .. ((event.Name or ""):gsub("%c", " ")) .. " (" .. event.ClassName .. ")\n"
             .. "return \"spoofed value\""
     end
 
