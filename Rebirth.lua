@@ -553,7 +553,7 @@ local function detectFramework(remote, packed)
     pcall(function() path = remote:GetFullName():lower() end)
     local function has(s) return lname:find(s, 1, true) ~= nil or path:find(s, 1, true) ~= nil end
     if has("bytenet") then return "ByteNet"
-    elseif has("bridgenet2") or has("databridge") then return "BridgeNet2"
+    elseif has("bridgenet2") or has("databridge") then return "BridgeNet2"   -- MUST stay before the "bridgenet" check: "bridgenet2" contains "bridgenet", so the more specific match has to win first
     elseif has("bridgenet") or lname == "bridge" then return "BridgeNet"
     elseif has("blink") then return "Blink"
     elseif lname:find("^zap") or has("zap_") or has("/zap") then return "Zap"
