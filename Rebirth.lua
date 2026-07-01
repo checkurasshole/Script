@@ -884,7 +884,7 @@ do
     local protectgui = fn("protect_gui") or fn("protectgui")
     local gethui = fn("gethui")
     if gethui then ok = pcall(function() ScreenGui.Parent = gethui() end) and ScreenGui.Parent ~= nil end
-    if not ok and protectgui then pcall(protectgui, ScreenGui) end
+    if not ok and protectgui then pcall(protectgui, ScreenGui); ok = ScreenGui.Parent ~= nil end   -- if protectgui also parented it, keep that (don't override with CoreGui below)
     if not ok then ok = pcall(function() ScreenGui.Parent = CoreGui end) and ScreenGui.Parent ~= nil end
     if not ok then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 end
