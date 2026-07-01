@@ -495,7 +495,17 @@ do
     ToString.Normalize = normalize
     ToString.NeedsGetNil = function(packed)
         if not NIL_FN_NAME then return false end
-        for i = 1, (packed.n or #packed) do local v = packed[i]; if typeof(v) == "Instance" and not v.Parent then return true end end
+        local seen = {}
+        local function scan(v, depth)   -- recurse tables too: a nil-parented instance nested in a payload still needs the getNil helper
+            local t = typeof(v)
+            if t == "Instance" then return not v.Parent
+            elseif t == "table" and not seen[v] and depth < 6 then
+                seen[v] = true
+                for k, val in v do if scan(k, depth + 1) or scan(val, depth + 1) then return true end end
+            end
+            return false
+        end
+        for i = 1, (packed.n or #packed) do if scan(packed[i], 0) then return true end end
         return false
     end
     -- Cheap shallow preview (NO deep serialization — this runs on every visible-row render).
