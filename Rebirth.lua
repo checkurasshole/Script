@@ -1871,7 +1871,28 @@ local function createView(page, cfg)
                 framework = fwk, size = estimateSize(packed), count = 1, class = remote.ClassName, hidden = okk and not isDesc, gkey = gkey,
                 typeLabel = lbl, fullName = full, shortPath = short,
             }
-            e.search = (nm .. " " .. fwk .. " " .. full):lower()
+            -- index a bounded preview of the argument CONTENT so the filter can find remotes by payload
+            -- (scalars + one level into tables; capped, no deep recursion or full serialization).
+            local argPrev = ""
+            do
+                local parts, budget = {}, 240
+                local function addScalar(v)
+                    if budget <= 0 then return end
+                    local tv = typeof(v); local s
+                    if tv == "string" then s = v elseif tv == "number" or tv == "boolean" or tv == "EnumItem" then s = tostring(v)
+                    elseif tv == "Instance" then s = (pcall(function() return v.Name end)) and v.Name or nil end
+                    if s then s = #s > 50 and s:sub(1, 50) or s; parts[#parts + 1] = s; budget -= #s + 1 end
+                end
+                local an = packed.n or #packed
+                for i = 1, math.min(an, 12) do
+                    if budget <= 0 then break end
+                    local v = packed[i]
+                    if typeof(v) == "table" then local c = 0; for k, val in v do addScalar(k); addScalar(val); c += 1; if c >= 20 or budget <= 0 then break end end
+                    else addScalar(v) end
+                end
+                argPrev = table.concat(parts, " ")
+            end
+            e.search = (nm .. " " .. fwk .. " " .. full .. " " .. argPrev):lower()
             e.history = { { packed = packed, time = e.time, n = 1 } }
             view.entries[#view.entries + 1] = e
             view.byId[e.id] = e
