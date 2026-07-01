@@ -2031,7 +2031,7 @@ local function createView(page, cfg)
     local function doRepeat()
         local e = view.selectedEntry; if not e or typeof(e.remote) ~= "Instance" then return end
         task.spawn(function()
-            local a = e.packed
+            local a = pickedPacked(e)   -- repeat the call you're VIEWING (respects the call picker), not just the latest
             local ok, err = pcall(function()
                 if not e.incoming then
                     if e.class == "RemoteFunction" then e.remote:InvokeServer(table.unpack(a, 1, a.n))
@@ -2063,7 +2063,7 @@ local function createView(page, cfg)
         if not isRF and not isBF then Notify("Get Return", "Select a RemoteFunction/BindableFunction.", "Bad"); return end
         showTab("script")
         task.spawn(function()
-            local a = e.packed
+            local a = pickedPacked(e)   -- return for the call you're VIEWING (respects the call picker)
             local res = table.pack(pcall(function() if isRF then return e.remote:InvokeServer(table.unpack(a, 1, a.n)) else return e.remote:Invoke(table.unpack(a, 1, a.n)) end end))
             if not res[1] then Notify("Get Return failed", tostring(res[2]), "Bad"); return end
             local vals = { n = res.n - 1 }; for i = 2, res.n do vals[i - 1] = res[i] end
