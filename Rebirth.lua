@@ -3032,6 +3032,7 @@ do
         return c
     end
     local function tog(label, desc, key) local c = rowCard(label, desc); local sw = UI.toggle(c, Settings[key], function(v) Settings[key] = v; saveSettings() end); sw.AnchorPoint = Vector2.new(1, 0.5); sw.Position = UDim2.new(1, 0, 0.5, 0) end
+    -- with `disp`: stores the 1-BASED position of the chosen string into Settings[key] (disp[i]==v → key=i) — numeric settings like Log_which_calls / Capture_mode depend on that 1/2/3 mapping. without `disp`: stores the chosen string itself (e.g. Codegen_mode).
     local function ch(label, desc, key, opts, disp)
         local c = rowCard(label, desc)
         local dd = UI.dropdown(c, opts, disp and disp[Settings[key]] or Settings[key], function(v) if disp then for i, d in disp do if d == v then Settings[key] = i; break end end else Settings[key] = v end saveSettings() end, 170)
