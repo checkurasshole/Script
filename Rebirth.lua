@@ -2822,10 +2822,11 @@ local function _buildExplorer()
     -- "Find code": decompile every client script and grep its source for the search text
     -- (the merged Script Scanner). Matches show in the tree; click one to read its source.
     local scanning = false
+    local searchToken = 0   -- shared by Find-code + tree text-search so they don't clobber each other
     track(codeBtn.MouseButton1Click:Connect(function()
         if scanning then scanning = false; codeLbl.Text = "Find code"; return end   -- click again = stop
         local q = (search.Text or ""):lower()
-        scanning = true; codeLbl.Text = "Scanning…"
+        scanning = true; codeLbl.Text = "Scanning…"; searchToken += 1; local myTok = searchToken
         task.spawn(function()
             local list, seen = {}, {}
             local function add(v)
@@ -2838,7 +2839,7 @@ local function _buildExplorer()
             if getnilinstancesFn then pcall(function() for _, v in getnilinstancesFn() do add(v) end end) end
             local matches, done = {}, 0
             for _, scr in list do
-                if not scanning or done >= 600 then break end
+                if not scanning or done >= 600 or myTok ~= searchToken then break end
                 if decompiled[scr] == nil then decompiled[scr] = decompileScript(scr) or "" end
                 done += 1
                 if q == "" or decompiled[scr]:lower():find(q, 1, true) then matches[#matches + 1] = { inst = scr, depth = 0, hasKids = false, search = true } end
@@ -2846,12 +2847,11 @@ local function _buildExplorer()
                 if #matches >= 400 then break end
                 task.wait()
             end
-            searchMatches = (#matches > 0) and matches or nil; refreshTree()
+            if myTok == searchToken then searchMatches = (#matches > 0) and matches or nil; refreshTree() end   -- skip if a newer search superseded this scan
             local was = scanning; scanning = false; codeLbl.Text = "Find code"
             Notify("Code search", #matches .. " script" .. (#matches == 1 and "" or "s") .. (q ~= "" and (" matched '" .. q .. "'") or " found") .. (was and "" or " (stopped)"), "Good")
         end)
     end))
-    local searchToken = 0
     track(search:GetPropertyChangedSignal("Text"):Connect(function()
         local q = search.Text
         searchToken += 1; local my = searchToken
