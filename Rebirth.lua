@@ -2201,8 +2201,8 @@ local function installRemoteHooks(view)
         end) end) end
     end)
     if USE_FUNCTION_HOOKS then
-        local function doOut(self, args) if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), nil) end end
-        local function out(self, args) pcall(doOut, self, args) end   -- capture never throws, so a Stealth-mode FireServer hook can't break the game
+        local function doCap(self, args, got) if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), got) end end
+        local function out(self, args) pcall(doCap, self, args) end   -- capture never throws, so a hook can't break the game (Stealth mode)
         local fireE = Hooks.HookFunction(Instance.new("RemoteEvent").FireServer, function(old, self, ...)
             if typeof(self) ~= "Instance" or self.ClassName ~= "RemoteEvent" then return old(self, ...) end
             local args = table.pack(...); out(self, args); if view.block[self] or view.block[self.Name] then return end
@@ -2217,12 +2217,12 @@ local function installRemoteHooks(view)
             if typeof(self) ~= "Instance" or self.ClassName ~= "RemoteFunction" then return old(self, ...) end
             local args = table.pack(...)
             local spoof = view.spoofs[self] or view.spoofs[self.Name]
-            if spoof then if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), spoof) end return table.unpack(spoof, 1, spoof.n or #spoof) end
+            if spoof then pcall(doCap, self, args, spoof); return table.unpack(spoof, 1, spoof.n or #spoof) end
             if not view.block[self] and not view.block[self.Name] then
                 local got = {}
-                if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), got) end
+                pcall(doCap, self, args, got)
                 got[1] = table.pack(old(self, table.unpack(args, 1, args.n))); return table.unpack(got[1], 1, got[1].n)
-            elseif view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), nil) end
+            else pcall(doCap, self, args, nil) end
         end, "RemoteFunction.InvokeServer")
         addNamecallRoute(function(self, M, ...)
             local cn = self.ClassName
@@ -2251,10 +2251,11 @@ end
 
 local function installEventHooks(view)
     if not USE_FUNCTION_HOOKS then return end
+    local function doCap(self, args, got) if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), got) end end
     local fire = Hooks.HookFunction(Instance.new("BindableEvent").Fire, function(old, self, ...)
         if typeof(self) ~= "Instance" or self.ClassName ~= "BindableEvent" then return old(self, ...) end
         local args = table.pack(...)
-        if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), nil) end
+        pcall(doCap, self, args, nil)
         if view.block[self] or view.block[self.Name] then return end
         return old(self, table.unpack(args, 1, args.n))
     end, "BindableEvent.Fire")
@@ -2262,12 +2263,12 @@ local function installEventHooks(view)
         if typeof(self) ~= "Instance" or self.ClassName ~= "BindableFunction" then return old(self, ...) end
         local args = table.pack(...)
         local spoof = view.spoofs[self] or view.spoofs[self.Name]
-        if spoof then if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), spoof) end return table.unpack(spoof, 1, spoof.n or #spoof) end
+        if spoof then pcall(doCap, self, args, spoof); return table.unpack(spoof, 1, spoof.n or #spoof) end
         if not view.block[self] and not view.block[self.Name] then
             local got = {}
-            if view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), got) end
+            pcall(doCap, self, args, got)
             got[1] = table.pack(old(self, table.unpack(args, 1, args.n))); return table.unpack(got[1], 1, got[1].n)
-        elseif view.accepting() and callPasses(checkcaller and checkcaller()) then view.addRaw(cloneref(self), false, args, resolveCaller(), nil) end
+        else pcall(doCap, self, args, nil) end
     end, "BindableFunction.Invoke")
     addNamecallRoute(function(self, M, ...)
         local cn = self.ClassName
