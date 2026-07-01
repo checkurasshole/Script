@@ -1682,12 +1682,14 @@ local function createView(page, cfg)
     local callBtn = make("TextButton", { Parent = scriptArea, AutoButtonColor = false, BorderSizePixel = 0, BackgroundColor3 = "@Panel2", Position = UDim2.fromOffset(128, 0), Size = UDim2.fromOffset(146, 30), Text = "", Visible = false }, { corner(8), stroke("Stroke", 1, 0.4) })
     local callLbl = make("TextLabel", { Parent = callBtn, BackgroundTransparency = 1, Font = FONT, TextSize = 12, Text = "", TextColor3 = "@Text", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromOffset(11, 0), Size = UDim2.new(1, -28, 1, 0) })
     make("TextLabel", { Parent = callBtn, BackgroundTransparency = 1, Font = FONT_BOLD, TextSize = 11, Text = "v", TextColor3 = "@Sub", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(12, 12) })
-    local callPop
-    local function closeCallPop() if callPop then callPop:Destroy(); callPop = nil end end
+    local callPop, callBackdrop
+    local function closeCallPop() if callBackdrop then callBackdrop:Destroy(); callBackdrop = nil end if callPop then callPop:Destroy(); callPop = nil end end
     track(callBtn.MouseButton1Click:Connect(function()
         if callPop then closeCallPop(); return end
         local e = view.selectedEntry; if not (e and e.history and #e.history > 1) then return end
         local abs, sz = callBtn.AbsolutePosition, callBtn.AbsoluteSize
+        callBackdrop = make("TextButton", { Parent = ScreenGui, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, Size = UDim2.fromScale(1, 1), ZIndex = 79 })   -- click-outside closes the picker
+        callBackdrop.MouseButton1Click:Connect(closeCallPop)
         callPop = make("Frame", { Parent = ScreenGui, BackgroundColor3 = "@Panel2", BorderSizePixel = 0, Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 5), Size = UDim2.fromOffset(146, math.min(#e.history, 8) * 28 + 8), ZIndex = 80, ClipsDescendants = true }, { corner(8), stroke("StrokeS", 1), pad(4), make("UIScale", { Scale = UIScaleObj.Scale }) })
         local sc = make("ScrollingFrame", { Parent = callPop, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, 0), ScrollBarThickness = 3, ScrollBarImageColor3 = "@Accent", CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 80 }, { vlayout(2) })
         for i = #e.history, 1, -1 do
