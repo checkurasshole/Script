@@ -595,13 +595,13 @@ do
         local isFunc = event:IsA("RemoteFunction") or event:IsA("BindableFunction")
         local n = packed.n or #packed
         local instOrder, instSeen, seenTbl = {}, {}, {}
-        local function collect(v)
+        local function collect(v, depth)
             local t = typeof(v)
             if t == "Instance" then
                 if not instSeen[v] and v.Parent and v ~= workspace and v ~= game then instSeen[v] = true; instOrder[#instOrder + 1] = v end
-            elseif t == "table" and not seenTbl[v] then seenTbl[v] = true; for k, val in v do collect(k); collect(val) end end
+            elseif t == "table" and not seenTbl[v] and depth < 40 then seenTbl[v] = true; for k, val in v do collect(k, depth + 1); collect(val, depth + 1) end end   -- depth cap parity with tostr
         end
-        for i = 1, n do collect(packed[i]) end
+        for i = 1, n do collect(packed[i], 0) end
         local servicesSeen, servicesOrder, usesGetNil = {}, {}, false
         local function shortPath(inst)
             ToString.SetCompress(nil)
