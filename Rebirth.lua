@@ -2012,6 +2012,7 @@ local function createView(page, cfg)
         local out, pinned = {}, {}
         local E = view.entries
         for i = #E, 1, -1 do local e = E[i]; if view.passes(e) then if view.pins[e.name] then pinned[#pinned + 1] = e else out[#out + 1] = e end end end
+        -- pinned rows float to the top, then the rest — both already newest-first from the reverse iteration above
         if #pinned > 0 then local m = {}; for _, e in pinned do m[#m + 1] = e end; for _, e in out do m[#m + 1] = e end; out = m end
         view.visible = out
         view.refreshDisplay()
