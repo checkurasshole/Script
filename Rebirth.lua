@@ -2049,7 +2049,7 @@ local function createView(page, cfg)
         if e.class ~= "RemoteFunction" and e.class ~= "BindableFunction" then Notify("Spoof", "Only RemoteFunction/BindableFunction can be spoofed (selected: " .. e.class .. ").", "Bad"); return end
         Runner.open("Spoof return · " .. e.name, "Edit to `return <values>` then 'Set as spoof'. The remote will reply your value to the client.", "return \"spoofed value\"", function(src)
             if not loadstringFn then Notify("Spoof", "loadstring unavailable.", "Bad"); return end
-            if src:find("InvokeServer") or src:find("FireServer") or src:find("firesignal") then Notify("Spoof", "Body must be a pure `return …` (no remote calls).", "Bad"); return end
+            if src:find(":FireServer", 1, true) or src:find(":InvokeServer", 1, true) or src:find(":Fire(", 1, true) or src:find(":Invoke(", 1, true) or src:find("firesignal", 1, true) then Notify("Spoof", "Body must be a pure `return …` (no remote/bindable calls).", "Bad"); return end
             local f, err = loadstringFn(src); if not f then Notify("Spoof", "Code error: " .. tostring(err), "Bad"); return end
             local res = table.pack(pcall(f)); if not res[1] then Notify("Spoof", "Run error: " .. tostring(res[2]), "Bad"); return end
             local vals = { n = res.n - 1 }; for i = 2, res.n do vals[i - 1] = res[i] end
