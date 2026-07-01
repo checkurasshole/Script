@@ -2883,6 +2883,7 @@ do
         if e.status or (e.resp and e.resp ~= "") then
             p[#p + 1] = ""
             p[#p + 1] = "-- Response" .. (e.status and ("  ·  status " .. tostring(e.status)) or "") .. (e.respTrunc and "  (truncated)" or "")
+            if typeof(e.respHeaders) == "table" and next(e.respHeaders) then p[#p + 1] = "-- headers: " .. (ToString.ToString(e.respHeaders, 0):gsub("%s*\n%s*", " ")) end
             if e.resp and e.resp ~= "" then p[#p + 1] = "--[==[\n" .. e.resp .. "\n]==]" end   -- long-bracket keeps the request above copy-runnable
         end
         return table.concat(p, "\n")
@@ -2909,12 +2910,12 @@ do
     local function push(url, method, headers, b, res)
         if paused then return end
         if (#q - qh + 1) >= 1500 then return end
-        local st, rb
-        if type(res) == "table" then st = res.StatusCode or res.Status or res.status_code; rb = res.Body or res.body
+        local st, rb, rh
+        if type(res) == "table" then st = res.StatusCode or res.Status or res.status_code; rb = res.Body or res.body; rh = res.Headers or res.headers
         elseif type(res) == "string" then rb = res end
         if rb ~= nil and type(rb) ~= "string" then rb = tostring(rb) end
         local rt = rb ~= nil and #rb > 8000; if rt then rb = rb:sub(1, 8000) end
-        q[#q + 1] = { url = typeof(url) == "string" and url or tostring(url), method = method, headers = headers, body = b, time = os.date("%H:%M:%S"), status = st, resp = rb, respTrunc = rt }
+        q[#q + 1] = { url = typeof(url) == "string" and url or tostring(url), method = method, headers = headers, body = b, time = os.date("%H:%M:%S"), status = st, resp = rb, respTrunc = rt, respHeaders = (type(rh) == "table" and rh or nil) }
     end
     function httpTick()
         local n = #q
