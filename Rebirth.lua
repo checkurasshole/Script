@@ -1232,7 +1232,7 @@ do
     track(UserInputService.InputChanged:Connect(function(i)
         if rz and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
             local sc = UIScaleObj.Scale; local d = (i.Position - sp2) / sc; local v = viewport()
-            Window.Size = UDim2.fromOffset(math.clamp(ss.X + d.X, 640, v.X / sc), math.clamp(ss.Y + d.Y, 400, v.Y / sc))
+            Window.Size = UDim2.fromOffset(math.clamp(ss.X + d.X, 640, math.max(640, v.X / sc)), math.clamp(ss.Y + d.Y, 400, math.max(400, v.Y / sc)))
         end
     end))
 end
@@ -1700,7 +1700,7 @@ local function createView(page, cfg)
         return (e.history[idx] and e.history[idx].packed) or e.packed
     end
     function view.refreshCallPicker(e)
-        local n = (e and e.history and #e.history) or 1
+        local n = math.max(1, (e and e.history and #e.history) or 1)
         callBtn.Visible = n > 1
         local sel = math.clamp(view.callIdx or n, 1, n)
         local trueN = (e and e.history and e.history[sel] and e.history[sel].n) or sel
@@ -1972,15 +1972,8 @@ local function createView(page, cfg)
         if typeof(c) ~= "Instance" then Notify("Decompile", "Caller is not a script.", "Bad"); return end
         showTab("script"); code.set("-- Decompiling " .. callerName(c) .. " …")
         task.spawn(function()
-            if decompile then local ok, s = pcall(decompile, c); if ok and type(s) == "string" and #s > 0 then code.set(s); return end end
-            if getscriptbytecode and httpRequestFn then
-                local okb, bc = pcall(getscriptbytecode, c)
-                if okb and bc and #bc > 0 then
-                    local okr, resp = pcall(httpRequestFn, { Url = "https://api.plusgiant5.com/konstant/decompile", Method = "POST", Body = bc, Headers = { ["Content-Type"] = "text/plain" } })
-                    if okr and type(resp) == "table" and resp.Body then code.set(resp.Body); return end
-                end
-            end
-            code.set("-- No decompiler available (no native decompile / Konstant fallback).")
+            local src = decompileScript(c)
+            code.set(src or "-- No decompiler available (native / lua.expert / Konstant all failed).")
         end)
     end
     local function doExport()
