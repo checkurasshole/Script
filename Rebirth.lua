@@ -380,7 +380,7 @@ do
                 return string.format("%d", arg)
             elseif math.abs(tick() - arg) <= 2.5 then return "tick()"
             elseif math.abs(workspace:GetServerTimeNow() - arg) <= 2.5 then return "workspace:GetServerTimeNow()"
-            elseif math.abs(os.clock() - arg) <= 2.5 then return "os.clock()" end
+            end   -- os.clock() heuristic removed: its small seconds magnitude false-matched ordinary float args
             -- round-trip-exact float: shortest representation that reads back identically
             local s = string.format("%.14g", arg)
             if tonumber(s) ~= arg then s = string.format("%.17g", arg) end
@@ -715,7 +715,7 @@ do
         elseif not incoming then code = isFunc and ("local result = " .. path .. ":InvokeServer(" .. args .. ")") or (path .. ":FireServer(" .. args .. ")")
         elseif isFunc then code = "getcallbackvalue(" .. path .. ", \"OnClientInvoke\")(" .. args .. ")"
         else code = "firesignal(" .. path .. ".OnClientEvent" .. (n > 0 and ", " .. args or "") .. ")" end
-        local pre = ToString.NeedsGetNil(packed) and (GETNIL .. "\n") or ""
+        local pre = (ToString.NeedsGetNil(packed) or args:find("getNil(", 1, true)) and (GETNIL .. "\n") or ""
         return pre .. header(meta) .. "\n" .. code
     end
 
@@ -1395,6 +1395,7 @@ end
 local function teardown()
     Hooks.RestoreAll()
     for _, c in Conns do pcall(function() c:Disconnect() end) end
+    pcall(function() if fn("getgenv") then env.getgenv().__RebirthActive = false end end)
     ScreenGui:Destroy()
     if shared then shared.__IxSpyRebirth = nil end
 end
@@ -1932,6 +1933,7 @@ local function createView(page, cfg)
             existing.sizeSum = (existing.sizeSum or existing.size or 0) + estimateSize(packed)   -- running total for avg payload size
             existing.history = existing.history or {}
             existing.history[#existing.history + 1] = { packed = packed, time = existing.time, n = existing.count }  -- n = TRUE call number
+            if #existing.search < 3000 then local ok2, ap = pcall(ToString.ArgPreview, packed); if ok2 and ap then existing.search = existing.search .. " " .. ap:lower() end end   -- index later payloads too, bounded
             if #existing.history > math.max(Settings.Calls_per_remote, 5) then
                 table.remove(existing.history, 1)
                 -- the array just shifted down by one — keep a selected sub-row pointing at the SAME call
@@ -2199,7 +2201,7 @@ do
     function dashRefresh()
         cTotal.Text = tostring(Stats.total); cRate.Text = tostring(Stats.perSec)
         local u = 0; for _ in Stats.freq do u += 1 end; cUniq.Text = tostring(u)
-        local fc = 0; for k in Stats.fw do if k ~= "Roblox" then fc += 1 end end; cFw.Text = tostring(fc)
+        local fc = 0; for k in Stats.fw do if k ~= "Roblox" and k ~= "" then fc += 1 end end; cFw.Text = tostring(fc)
         local mx = 1; for i = 1, 60 do mx = math.max(mx, Stats.history[i]) end
         for i = 1, 60 do local h = Stats.history[i] / mx; bars[i].Size = UDim2.new(1 / 60, -2, h, 0); bars[i].BackgroundColor3 = h > 0.66 and Theme.Bad or h > 0.33 and Theme.Warn or Theme.Accent end
         for _, c in topBody:GetChildren() do if c:IsA("Frame") then c:Destroy() end end
@@ -2224,7 +2226,7 @@ local function installRemoteHooks(view)
     local getgc = fn("getgc")
     local getinstancesFn = fn("getinstances")
     task.spawn(function()
-        local seen = keep({})
+        local seen, seenCb = keep({}), {}
         local function setup(inst)
             if typeof(inst) ~= "Instance" or seen[inst] then return end
             seen[inst] = true
@@ -2234,7 +2236,7 @@ local function installRemoteHooks(view)
                 -- known limitation: hooks OnClientInvoke only if the client callback is ALREADY set at scan time;
                 -- a callback assigned later isn't re-hooked. Incoming RF invokes are rare, so this is acceptable.
                 local ok, cb = pcall(getcallbackvalue, inst, "OnClientInvoke")
-                if ok and typeof(cb) == "function" then pcall(function() Hooks.HookFunction(cb, function(old, ...)
+                if ok and typeof(cb) == "function" and not seenCb[cb] then seenCb[cb] = true; pcall(function() Hooks.HookFunction(cb, function(old, ...)
                     if Settings.Log_which_calls <= 2 then local got = {}; view.addRaw(cloneref(inst), true, table.pack(...), nil, got); got[1] = table.pack(old(...)); return table.unpack(got[1], 1, got[1].n) end
                     return old(...)
                 end) end) end
@@ -2291,11 +2293,12 @@ local function installRemoteHooks(view)
         if Settings.Actor_support and getactors and run_on_actor then pcall(function()
             local genv = (fn("getgenv") and env.getgenv()) or _G
             genv.__RebirthQ = genv.__RebirthQ or {}
+            genv.__RebirthActive = true
             local q = genv.__RebirthQ
             -- only remotes are hooked in actor VMs (not bindables): bindables are VM-local, so an actor's
             -- BindableEvent/Function never reaches the main VM anyway. pcall-wrapped; returns original result.
-            local code = [[ pcall(function() local genv=(getgenv and getgenv())or _G; local q=genv.__RebirthQ; if not q or not hookfunction then return end local function w(cls,m) local old; old=hookfunction(Instance.new(cls)[m],function(self,...) if typeof(self)=="Instance" and self.ClassName==cls then q[#q+1]={self,m,table.pack(...)} end return old(self,...) end) end w("RemoteEvent","FireServer");w("UnreliableRemoteEvent","FireServer");w("RemoteFunction","InvokeServer") end) ]]
-            for _, a in getactors() do pcall(run_on_actor, a, code) end
+            local code = [[ pcall(function() local genv=(getgenv and getgenv())or _G; local q=genv.__RebirthQ; if not q or not hookfunction then return end local function w(cls,m) local old; old=hookfunction(Instance.new(cls)[m],function(self,...) if genv.__RebirthActive and typeof(self)=="Instance" and self.ClassName==cls then q[#q+1]={self,m,table.pack(...)} end return old(self,...) end) end w("RemoteEvent","FireServer");w("UnreliableRemoteEvent","FireServer");w("RemoteFunction","InvokeServer") end) ]]
+            if not genv.__RebirthActorsHooked then genv.__RebirthActorsHooked = true; for _, a in getactors() do pcall(run_on_actor, a, code) end end
             local qh = 1
             track(RunService.Heartbeat:Connect(function()
                 local n = #q; if qh > n then return end
@@ -2496,6 +2499,7 @@ do
         local sw = UI.toggle(c, Settings.Show_http, function(v)
             Settings.Show_http = v; saveSettings()
             if navBtns.Http then navBtns.Http.Visible = v end
+            if not v and activePage == "Http" then selectPage("Remotes") end
         end)
         sw.AnchorPoint = Vector2.new(1, 0.5); sw.Position = UDim2.new(1, 0, 0.5, 0)
     end
