@@ -134,6 +134,9 @@ local Settings = keep({
     Codegen_mode       = "Readable",
     Toggle_key         = "RightControl",
     Show_http          = false,   -- HTTP Spy tab hidden until enabled in Settings
+    Bridge_enabled     = false,   -- AI Bridge: expose logs + fire/repeat/decompile to a local server (Claude/any AI). Reload to apply.
+    Bridge_url         = "http://127.0.0.1:8781",
+    Bridge_interval    = 1,
 })
 local CFG_DIR = "IxSpy"
 local SETTINGS_PATH = CFG_DIR .. "/Settings.json"
@@ -1892,7 +1895,7 @@ local function createView(page, cfg)
             local brow = make("Frame", { Parent = rowf, BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, 0, 1, 0), Size = UDim2.new(0, 140, 0, 18) }, { make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 4), HorizontalAlignment = Enum.HorizontalAlignment.Right }) })
             local function mb(txt, ck, cb) local b = make("TextButton", { Parent = brow, AutoButtonColor = true, BorderSizePixel = 0, BackgroundColor3 = "@Panel3", Size = UDim2.fromOffset(58, 18), Text = txt, Font = FONT, TextSize = 10, TextColor3 = "@" .. ck }, { corner(5) }); b.MouseButton1Click:Connect(cb) end
             mb("Toggle", "Text", function() local okk = pcall(function() if enabled then (con.Disable or con.disable)(con) else (con.Enable or con.enable)(con) end end); if okk then enabled = not enabled; st.Text = enabled and "enabled" or "disabled"; st.TextColor3 = enabled and Theme.Good or Theme.Bad else Notify("Connections", "Toggle unsupported", "Bad") end end)
-            mb("Fire", "Accent", function() local a = e.packed or table.pack(); local okk = pcall(function() (con.Fire or con.fire)(con, table.unpack(a, 1, a.n or #a)) end); Notify(okk and "Fired" or "Fire failed", e.name, okk and "Good" or "Bad", 2) end)
+            mb("Fire", "Accent", function() local a = pickedPacked(e) or table.pack(); local okk = pcall(function() (con.Fire or con.fire)(con, table.unpack(a, 1, a.n or #a)) end); Notify(okk and "Fired" or "Fire failed", e.name, okk and "Good" or "Bad", 2) end)
         end
     end
     track(connDisableAll.MouseButton1Click:Connect(function()
@@ -1998,7 +2001,7 @@ local function createView(page, cfg)
         -- while staying light in the steady state. Still bounded, so no frame hang.
         local pending = n - head + 1
         local budget = pending > 1200 and 400 or (pending > 500 and 240 or 120)
-        while head <= n and budget > 0 do local raw = q[head]; q[head] = nil; head += 1; budget -= 1; process(raw) end
+        while head <= n and budget > 0 do local raw = q[head]; q[head] = nil; head += 1; budget -= 1; pcall(process, raw) end
         view.qHead = head
         if head > n then view.queue = {}; view.qHead = 1 end
         local E = view.entries
@@ -2087,21 +2090,26 @@ local function createView(page, cfg)
         local e = view.selectedEntry; if not e or typeof(e.remote) ~= "Instance" then return end
         task.spawn(function()
             local a = pickedPacked(e)   -- repeat the call you're VIEWING (respects the call picker), not just the latest
-            local ok, err = pcall(function()
+            local ok, didOrErr = pcall(function()
                 if not e.incoming then
                     if e.class == "RemoteFunction" then e.remote:InvokeServer(table.unpack(a, 1, a.n))
                     elseif e.class == "BindableFunction" then e.remote:Invoke(table.unpack(a, 1, a.n))
                     elseif e.class == "BindableEvent" then e.remote:Fire(table.unpack(a, 1, a.n))
                     else e.remote:FireServer(table.unpack(a, 1, a.n)) end
-                elseif e.class == "RemoteFunction" and getcallbackvalue then getcallbackvalue(e.remote, "OnClientInvoke")(table.unpack(a, 1, a.n))
-                elseif firesignal then firesignal(e.remote.OnClientEvent, table.unpack(a, 1, a.n)) end
+                    return true
+                elseif e.class == "RemoteFunction" and getcallbackvalue then getcallbackvalue(e.remote, "OnClientInvoke")(table.unpack(a, 1, a.n)); return true
+                elseif firesignal then firesignal(e.remote.OnClientEvent, table.unpack(a, 1, a.n)); return true end
+                return false
             end)
-            Notify(ok and "Repeated" or "Repeat failed", ok and e.name or tostring(err), ok and "Good" or "Bad")
+            if ok and didOrErr then Notify("Repeated", e.name, "Good")
+            elseif ok then Notify("Repeat unavailable", "This executor cannot replay an incoming " .. e.class .. " (needs firesignal / getcallbackvalue).", "Bad")
+            else Notify("Repeat failed", tostring(didOrErr), "Bad") end
         end)
     end
     local function doSpoof()
         local e = view.selectedEntry; if not e then return end
         if e.class ~= "RemoteFunction" and e.class ~= "BindableFunction" then Notify("Spoof", "Only RemoteFunction/BindableFunction can be spoofed (selected: " .. e.class .. ").", "Bad"); return end
+        if e.incoming then Notify("Spoof", "Spoofing only affects OUTGOING RemoteFunction/BindableFunction replies; this is an incoming call.", "Bad"); return end
         Runner.open("Spoof return · " .. e.name, "Edit to `return <values>` then 'Set as spoof'. The remote will reply your value to the client.", "return \"spoofed value\"", function(src)
             if not loadstringFn then Notify("Spoof", "loadstring unavailable.", "Bad"); return end
             if src:find(":FireServer", 1, true) or src:find(":InvokeServer", 1, true) or src:find(":Fire(", 1, true) or src:find(":Invoke(", 1, true) or src:find("firesignal", 1, true) then Notify("Spoof", "Body must be a pure `return …` (no remote/bindable calls).", "Bad"); return end
@@ -2116,6 +2124,7 @@ local function createView(page, cfg)
         local e = view.selectedEntry; if not e then return end
         local isRF, isBF = e.class == "RemoteFunction", e.class == "BindableFunction"
         if not isRF and not isBF then Notify("Get Return", "Select a RemoteFunction/BindableFunction.", "Bad"); return end
+        if e.incoming then Notify("Get Return", "Incoming call (server->client): re-invoking would send NEW traffic to the server, so it was not run.", "Bad"); return end
         showTab("script")
         task.spawn(function()
             local a = pickedPacked(e)   -- return for the call you're VIEWING (respects the call picker)
@@ -2241,13 +2250,13 @@ local function installRemoteHooks(view)
             if typeof(inst) ~= "Instance" or seen[inst] then return end
             seen[inst] = true
             if inst:IsA("RemoteEvent") or inst:IsA("UnreliableRemoteEvent") then
-                track(inst.OnClientEvent:Connect(function(...) if Settings.Log_which_calls <= 2 and view.accepting() then view.addRaw(cloneref(inst), true, table.pack(...), nil, nil) end end))
+                track(inst.OnClientEvent:Connect(function(...) if Settings.Log_which_calls <= 2 and view.accepting() then pcall(view.addRaw, cloneref(inst), true, table.pack(...), nil, nil) end end))
             elseif inst:IsA("RemoteFunction") and getcallbackvalue and USE_FUNCTION_HOOKS then
                 -- known limitation: hooks OnClientInvoke only if the client callback is ALREADY set at scan time;
                 -- a callback assigned later isn't re-hooked. Incoming RF invokes are rare, so this is acceptable.
                 local ok, cb = pcall(getcallbackvalue, inst, "OnClientInvoke")
                 if ok and typeof(cb) == "function" and not seenCb[cb] then seenCb[cb] = true; pcall(function() Hooks.HookFunction(cb, function(old, ...)
-                    if Settings.Log_which_calls <= 2 then local got = {}; view.addRaw(cloneref(inst), true, table.pack(...), nil, got); got[1] = table.pack(old(...)); return table.unpack(got[1], 1, got[1].n) end
+                    if Settings.Log_which_calls <= 2 then local got = {}; pcall(view.addRaw, cloneref(inst), true, table.pack(...), nil, got); got[1] = table.pack(old(...)); return table.unpack(got[1], 1, got[1].n) end
                     return old(...)
                 end) end) end
             end
@@ -2491,6 +2500,7 @@ do
     end
     ch("Capture mode", "Max uses a __namecall hook (reload to apply).", "Capture_mode", { "Max (namecall + functions)", "Stealth (functions only)", "Passive (incoming only)" }, { "Max (namecall + functions)", "Stealth (functions only)", "Passive (incoming only)" })
     tog("Actor support", "Hook remotes inside Actor VMs (reload).", "Actor_support")
+    tog("AI Bridge (localhost)", "Expose logs + fire/repeat/decompile to a local server an AI can drive. Run bridge-server.js first, then reload.", "Bridge_enabled")
     tog("Group identical calls", "Collapse repeats into one row with ×count.", "Group_calls")
     tog("Ignore spammy logs", "Auto-ignore remotes firing >80/s.", "Ignore_spammy_logs")
     num("Maximum logs", "Entries kept in memory.", "Maximum_log_amount", 100, 50000)
@@ -2579,12 +2589,153 @@ track(UserInputService.InputBegan:Connect(function(i, gpe)
     if ok and kc and i.KeyCode == kc then Window.Visible = not Window.Visible end
 end))
 
+-- ============================  AI Bridge (opt-in)  ==========================--
+-- Lets an EXTERNAL program (a local server that Claude / any AI talks to) read the
+-- captured logs & remotes and drive fire / repeat / decompile / arbitrary-run through
+-- this GUI. OFF by default; talks only to Settings.Bridge_url (localhost). All pcall-safe.
+local function _startBridge()
+    if not Settings.Bridge_enabled then return end
+    local httpreq = httpRequestFn
+    if not httpreq then Notify("AI Bridge", "This executor has no HTTP request function.", "Bad", 6); return end
+    local base = tostring(Settings.Bridge_url or "http://127.0.0.1:8781"):gsub("/+$", "")
+
+    local function req(method, path, bodyTbl)
+        local opt = { Url = base .. path, Method = method, Headers = { ["Content-Type"] = "application/json" } }
+        if bodyTbl ~= nil then opt.Body = HttpService:JSONEncode(bodyTbl) end
+        local ok, res = pcall(httpreq, opt)
+        if not ok or type(res) ~= "table" then return nil end
+        local body = res.Body or res.body
+        if type(body) == "string" and #body > 0 then
+            local ok2, d = pcall(function() return HttpService:JSONDecode(body) end)
+            if ok2 then return d end
+        end
+        return true
+    end
+
+    local function ser(v)
+        local ok, s = pcall(function() ToString.SetCompress(nil); return ToString.ToString(v, 0) end)
+        ToString.SetCompress(nil)
+        s = ok and s or ("<" .. typeof(v) .. ">")
+        return #s > 600 and (s:sub(1, 600) .. "…") or s
+    end
+
+    local function argList(packed)
+        local out, n = {}, (packed and (packed.n or #packed) or 0)
+        for i = 1, math.min(n, 25) do out[i] = ser(packed[i]) end
+        return out, n
+    end
+
+    local function entryJSON(view, e, withCode)
+        local args, n = argList(e.packed)
+        local rec = {
+            uid = view.kind .. ":" .. e.id, kind = view.kind, id = e.id, name = e.name,
+            class = e.class, direction = e.incoming and "in" or "out", framework = e.framework,
+            count = e.count, caller = e.callerName, path = e.fullName, time = e.time, argc = n, args = args,
+        }
+        if type(e.got) == "table" then
+            local g = (type(e.got[1]) == "table" and e.got[1].n ~= nil and e.got[1]) or (e.got.n ~= nil and e.got) or nil
+            if g then local rn = g.n or #g; rec.retc = rn; if rn > 0 then local r = {}; for i = 1, math.min(rn, 12) do r[i] = ser(g[i]) end; rec.returns = r end end
+        end
+        if withCode then
+            local ok, code = pcall(Codegen.Generate, Settings.Codegen_mode, e.remote, e.incoming, e.packed, { framework = e.framework, size = e.size, time = e.time })
+            rec.code = ok and code or nil
+        end
+        return rec
+    end
+
+    local function findEntry(uid)
+        if type(uid) ~= "string" then return nil end
+        for _, view in AllViews do
+            local pre = view.kind .. ":"
+            if uid:sub(1, #pre) == pre then
+                local id = tonumber(uid:sub(#pre + 1))
+                if id and view.byId[id] then return view, view.byId[id] end
+            end
+        end
+        return nil
+    end
+
+    local function snapshot(withCode, limit)
+        local views = {}
+        for _, view in AllViews do
+            if view.kind == "remote" or view.kind == "event" then
+                local logs, E, cap = {}, view.entries, limit or 250
+                for i = #E, math.max(1, #E - cap + 1), -1 do logs[#logs + 1] = entryJSON(view, E[i], withCode) end
+                views[#views + 1] = { kind = view.kind, total = #E, paused = view.paused or false, logs = logs }
+            end
+        end
+        return { version = VERSION, time = os.time(), mode = Settings.Capture_mode, views = views }
+    end
+
+    local function fireEntry(e, override)
+        local r, cls = e.remote, e.class
+        local pk = override or e.packed
+        local nn = pk.n or #pk
+        if cls == "RemoteEvent" or cls == "UnreliableRemoteEvent" then r:FireServer(table.unpack(pk, 1, nn)); return { fired = true }
+        elseif cls == "BindableEvent" then r:Fire(table.unpack(pk, 1, nn)); return { fired = true }
+        elseif cls == "RemoteFunction" then return { returned = true, value = ser(r:InvokeServer(table.unpack(pk, 1, nn))) }
+        elseif cls == "BindableFunction" then return { returned = true, value = ser(r:Invoke(table.unpack(pk, 1, nn))) } end
+        return { error = "unknown class " .. tostring(cls) }
+    end
+
+    -- turn a JSON args array of Luau-literal strings ("42", '"hi"', "true", "game.Players.LocalPlayer")
+    -- into a packed table; on parse failure the raw string is passed through.
+    local function packArgs(list)
+        if type(list) ~= "table" then return nil end
+        local p = { n = #list }
+        for i, sv in list do local ok, val = pcall(function() return loadstring("return " .. tostring(sv))() end); p[i] = ok and val or sv end
+        return p
+    end
+
+    local function exec(cmd)
+        local a = cmd.action
+        if a == "snapshot" or a == "logs" then return snapshot(cmd.code == true, cmd.limit)
+        elseif a == "get" then local v, e = findEntry(cmd.uid); if not e then return { error = "not found" } end return entryJSON(v, e, true)
+        elseif a == "code" then local v, e = findEntry(cmd.uid); if not e then return { error = "not found" } end
+            local ok, code = pcall(Codegen.Generate, cmd.mode or Settings.Codegen_mode, e.remote, e.incoming, e.packed, { framework = e.framework, size = e.size, time = e.time })
+            return { code = ok and code or nil }
+        elseif a == "repeat" or a == "fire" then local v, e = findEntry(cmd.uid); if not e then return { error = "not found" } end
+            local ok, res = pcall(fireEntry, e, packArgs(cmd.args)); return ok and res or { error = tostring(res) }
+        elseif a == "run" then local f, err = loadstring(tostring(cmd.code or "")); if not f then return { error = "compile: " .. tostring(err) } end
+            local ok, res = pcall(f); return { ok = ok, result = ser(res) }
+        elseif a == "decompile" then local scr; pcall(function() scr = cmd.path and loadstring("return " .. tostring(cmd.path))() end)
+            if typeof(scr) ~= "Instance" then return { error = "path did not resolve to an Instance" } end
+            local ok, code = pcall(decompileScript, scr); return { code = (ok and code) or nil, ok = ok and code ~= nil }
+        elseif a == "spoof" then local v, e = findEntry(cmd.uid); if not e then return { error = "not found" } end
+            v.spoofs[e.name] = (cmd.values and packArgs(cmd.values)) or nil; return { ok = true }
+        elseif a == "block" then local v, e = findEntry(cmd.uid); if not e then return { error = "not found" } end
+            v.block[e.name] = (cmd.on ~= false) or nil; return { ok = true }
+        elseif a == "pause" then for _, v in AllViews do v.paused = (cmd.on ~= false) end return { ok = true, paused = (cmd.on ~= false) }
+        elseif a == "ping" then return { ok = true, version = VERSION }
+        end
+        return { error = "unknown action: " .. tostring(a) }
+    end
+
+    Notify("AI Bridge", "Live → " .. base, "Good", 5)
+    task.spawn(function()
+        while ScreenGui and ScreenGui.Parent do
+            task.wait(math.clamp(Settings.Bridge_interval or 1, 0.3, 10))
+            if Settings.Bridge_enabled then
+                pcall(function() req("POST", "/ingest", snapshot(false, 150)) end)
+                local pulled = req("GET", "/pull")
+                if type(pulled) == "table" and type(pulled.commands) == "table" then
+                    for _, c in pulled.commands do
+                        local ok, data = pcall(exec, c)
+                        pcall(function() req("POST", "/result", { id = c.id, ok = ok, data = ok and data or { error = tostring(data) } }) end)
+                    end
+                end
+            end
+        end
+    end)
+end
+
 installNamecall()
 selectPage("Remotes")
 task.defer(function() if activePage then selectPage(activePage) end end)  -- snap nav indicator after first layout
 if dashRefresh then pcall(dashRefresh) end
 shared = shared or {}
-shared.__IxSpyRebirth = function() if ScreenGui and ScreenGui.Parent then Window.Visible = not Window.Visible return true end return false end  -- returns true only while this instance is alive, so a re-exec can tell a live window (toggle) from a dead one (reload)
+shared.__IxSpyRebirth = function() if ScreenGui and ScreenGui.Parent then Window.Visible = not Window.Visible return true end return false end
+pcall(_startBridge)  -- returns true only while this instance is alive, so a re-exec can tell a live window (toggle) from a dead one (reload)
 print("[Rebirth] v" .. VERSION .. " loaded OK (GitHub chunk; all Rebirth errors are tagged '[Rebirth]'). If you see a '[string \"<number>\"]' error, that's a DIFFERENT script.")
 Notify("Rebirth v" .. VERSION .. " ready", (HOOKS_AVAILABLE and (({ "Max", "Stealth", "Passive" })[Settings.Capture_mode] .. " capture") or "Passive · incoming only (no hooks)") .. "  ·  " .. Settings.Toggle_key .. " to toggle", "Accent", 5)
 
