@@ -391,35 +391,35 @@ do
             if math.abs(r-math.floor(r+0.5))<1e-4 and math.abs(g-math.floor(g+0.5))<1e-4 and math.abs(b-math.floor(b+0.5))<1e-4 then
                 return string.format("Color3.fromRGB(%d, %d, %d)", math.round(r), math.round(g), math.round(b))
             end
-            return string.format("Color3.new(%g, %g, %g)", arg.R, arg.G, arg.B)
+            return string.format("Color3.new(%.14g, %.14g, %.14g)", arg.R, arg.G, arg.B)
         elseif t == "BrickColor" then return "BrickColor.new(\"" .. arg.Name .. "\")"
-        elseif t == "UDim"  then return string.format("UDim.new(%g, %d)", arg.Scale, arg.Offset)
-        elseif t == "UDim2" then return string.format("UDim2.new(%g, %d, %g, %d)", arg.X.Scale, arg.X.Offset, arg.Y.Scale, arg.Y.Offset)
-        elseif t == "Vector3" then return string.format("Vector3.new(%g, %g, %g)", arg.X, arg.Y, arg.Z)
-        elseif t == "Vector2" then return string.format("Vector2.new(%g, %g)", arg.X, arg.Y)
+        elseif t == "UDim"  then return string.format("UDim.new(%.14g, %d)", arg.Scale, arg.Offset)
+        elseif t == "UDim2" then return string.format("UDim2.new(%.14g, %d, %.14g, %d)", arg.X.Scale, arg.X.Offset, arg.Y.Scale, arg.Y.Offset)
+        elseif t == "Vector3" then return string.format("Vector3.new(%.14g, %.14g, %.14g)", arg.X, arg.Y, arg.Z)
+        elseif t == "Vector2" then return string.format("Vector2.new(%.14g, %.14g)", arg.X, arg.Y)
         elseif t == "Vector3int16" then return string.format("Vector3int16.new(%d, %d, %d)", arg.X, arg.Y, arg.Z)
         elseif t == "CFrame" then return "CFrame.new(" .. table.concat({ arg:GetComponents() }, ", ") .. ")"
         elseif t == "Ray" then return "Ray.new(" .. convertArg(arg.Origin, indent) .. ", " .. convertArg(arg.Direction, indent) .. ")"
         elseif t == "EnumItem" then return tostring(arg)   -- tostring already yields "Enum.KeyCode.Space"
         elseif t == "Enum" then return tostring(arg)        -- tostring already yields "Enum.KeyCode"
         elseif t == "Vector2int16" then return string.format("Vector2int16.new(%d, %d)", arg.X, arg.Y)
-        elseif t == "NumberRange" then return string.format("NumberRange.new(%g, %g)", arg.Min, arg.Max)
-        elseif t == "TweenInfo" then return string.format("TweenInfo.new(%g, Enum.EasingStyle.%s, Enum.EasingDirection.%s, %d, %s, %g)", arg.Time, arg.EasingStyle.Name, arg.EasingDirection.Name, arg.RepeatCount, tostring(arg.Reverses), arg.DelayTime)
-        elseif t == "Rect" then return string.format("Rect.new(%g, %g, %g, %g)", arg.Min.X, arg.Min.Y, arg.Max.X, arg.Max.Y)
+        elseif t == "NumberRange" then return string.format("NumberRange.new(%.14g, %.14g)", arg.Min, arg.Max)
+        elseif t == "TweenInfo" then return string.format("TweenInfo.new(%.14g, Enum.EasingStyle.%s, Enum.EasingDirection.%s, %d, %s, %.14g)", arg.Time, arg.EasingStyle.Name, arg.EasingDirection.Name, arg.RepeatCount, tostring(arg.Reverses), arg.DelayTime)
+        elseif t == "Rect" then return string.format("Rect.new(%.14g, %.14g, %.14g, %.14g)", arg.Min.X, arg.Min.Y, arg.Max.X, arg.Max.Y)
         elseif t == "NumberSequence" then
             local kp = {}
-            for _, k in arg.Keypoints do kp[#kp + 1] = string.format("NumberSequenceKeypoint.new(%g, %g, %g)", k.Time, k.Value, k.Envelope) end
+            for _, k in arg.Keypoints do kp[#kp + 1] = string.format("NumberSequenceKeypoint.new(%.14g, %.14g, %.14g)", k.Time, k.Value, k.Envelope) end
             return "NumberSequence.new({ " .. table.concat(kp, ", ") .. " })"
         elseif t == "ColorSequence" then
             local kp = {}
-            for _, k in arg.Keypoints do kp[#kp + 1] = string.format("ColorSequenceKeypoint.new(%g, Color3.new(%g, %g, %g))", k.Time, k.Value.R, k.Value.G, k.Value.B) end
+            for _, k in arg.Keypoints do kp[#kp + 1] = string.format("ColorSequenceKeypoint.new(%.14g, Color3.new(%.14g, %.14g, %.14g))", k.Time, k.Value.R, k.Value.G, k.Value.B) end
             return "ColorSequence.new({ " .. table.concat(kp, ", ") .. " })"
-        elseif t == "NumberSequenceKeypoint" then return string.format("NumberSequenceKeypoint.new(%g, %g, %g)", arg.Time, arg.Value, arg.Envelope)
-        elseif t == "ColorSequenceKeypoint" then return string.format("ColorSequenceKeypoint.new(%g, Color3.new(%g, %g, %g))", arg.Time, arg.Value.R, arg.Value.G, arg.Value.B)
-        elseif t == "PhysicalProperties" then return string.format("PhysicalProperties.new(%g, %g, %g, %g, %g)", arg.Density, arg.Friction, arg.Elasticity, arg.FrictionWeight, arg.ElasticityWeight)
+        elseif t == "NumberSequenceKeypoint" then return string.format("NumberSequenceKeypoint.new(%.14g, %.14g, %.14g)", arg.Time, arg.Value, arg.Envelope)
+        elseif t == "ColorSequenceKeypoint" then return string.format("ColorSequenceKeypoint.new(%.14g, Color3.new(%.14g, %.14g, %.14g))", arg.Time, arg.Value.R, arg.Value.G, arg.Value.B)
+        elseif t == "PhysicalProperties" then return string.format("PhysicalProperties.new(%.14g, %.14g, %.14g, %.14g, %.14g)", arg.Density, arg.Friction, arg.Elasticity, arg.FrictionWeight, arg.ElasticityWeight)
         elseif t == "Region3" then
             local c, s = arg.CFrame.Position, arg.Size
-            return string.format("Region3.new(Vector3.new(%g, %g, %g), Vector3.new(%g, %g, %g))", c.X - s.X / 2, c.Y - s.Y / 2, c.Z - s.Z / 2, c.X + s.X / 2, c.Y + s.Y / 2, c.Z + s.Z / 2)
+            return string.format("Region3.new(Vector3.new(%.14g, %.14g, %.14g), Vector3.new(%.14g, %.14g, %.14g))", c.X - s.X / 2, c.Y - s.Y / 2, c.Z - s.Z / 2, c.X + s.X / 2, c.Y + s.Y / 2, c.Z + s.Z / 2)
         elseif t == "Region3int16" then return string.format("Region3int16.new(Vector3int16.new(%d, %d, %d), Vector3int16.new(%d, %d, %d))", arg.Min.X, arg.Min.Y, arg.Min.Z, arg.Max.X, arg.Max.Y, arg.Max.Z)
         elseif t == "Axes" then
             local ax = {}
@@ -446,6 +446,7 @@ do
             for i = 1, #s1 do if string.byte(s1, i) ~= 0 then zero = false; break end end
             -- reuse the corrected normalize() so byte escaping is consistent (3-digit, backslash-safe)
             return (zero and ("buffer.create(" .. #s1 .. ")") or ("buffer.fromstring(\"" .. normalizeBin(s1) .. "\")")) .. " --[[ len " .. #s1 .. " ]]"
+        elseif t == "vector" then return string.format("Vector3.new(%.14g, %.14g, %.14g)", arg.x, arg.y, arg.z)
         elseif t == "Instance" then return getPath(arg)
         elseif t == "table" then return tostr(arg, indent)
         else
@@ -1801,6 +1802,12 @@ local function createView(page, cfg)
         local idx = math.clamp(view.callIdx or n, 1, n)
         return (e.history[idx] and e.history[idx].packed) or e.packed
     end
+    local function pickedGot(e)
+        local n = e.history and #e.history or 0
+        if n == 0 then return e.got end
+        local idx = math.clamp(view.callIdx or n, 1, n)
+        return (e.history[idx] and e.history[idx].got) or e.got
+    end
     function view.refreshCallPicker(e)
         local n = math.max(1, (e and e.history and #e.history) or 1)
         callBtn.Visible = n > 1
@@ -1838,10 +1845,10 @@ local function createView(page, cfg)
         end
         -- captured RemoteFunction return value(s), shown WITHOUT re-invoking (no side effects).
         -- got shape: invoke -> { [1] = table.pack(returns) };  spoof -> the packed values directly.
-        local g = e.got
+        local g = pickedGot(e)
         local rets = (type(g) == "table") and ((type(g[1]) == "table" and g[1].n ~= nil and g[1]) or (g.n ~= nil and g) or nil) or nil
         if rets and (rets.n or #rets) > 0 then
-            make("TextLabel", { Parent = argsArea, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "RETURN  ·  server reply (latest call)", TextColor3 = "@Good", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 18), LayoutOrder = 500 })
+            make("TextLabel", { Parent = argsArea, BackgroundTransparency = 1, Font = FONT_BOLD, Text = "RETURN  ·  server reply", TextColor3 = "@Good", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, 0, 0, 18), LayoutOrder = 500 })
             for i = 1, (rets.n or #rets) do
                 local val = rets[i]
                 local ok, s = pcall(function() ToString.SetCompress(nil); return ToString.ToString(val, 1) end)
@@ -1932,7 +1939,7 @@ local function createView(page, cfg)
             existing.count += 1; existing.packed = packed; existing.got = got; existing.remote = remote; existing.clk = clk; existing.time = os.date("%H:%M:%S")
             existing.sizeSum = (existing.sizeSum or existing.size or 0) + estimateSize(packed)   -- running total for avg payload size
             existing.history = existing.history or {}
-            existing.history[#existing.history + 1] = { packed = packed, time = existing.time, n = existing.count }  -- n = TRUE call number
+            existing.history[#existing.history + 1] = { packed = packed, got = got, time = existing.time, n = existing.count }  -- n = TRUE call number
             if #existing.search < 3000 then local ok2, ap = pcall(ToString.ArgPreview, packed); if ok2 and ap then existing.search = existing.search .. " " .. ap:lower() end end   -- index later payloads too, bounded
             if #existing.history > math.max(Settings.Calls_per_remote, 5) then
                 table.remove(existing.history, 1)
@@ -1975,7 +1982,7 @@ local function createView(page, cfg)
                 argPrev = table.concat(parts, " ")
             end
             e.search = (nm .. " " .. fwk .. " " .. full .. " " .. argPrev .. " " .. (e.callerName or "")):lower()   -- also searchable by calling script
-            e.history = { { packed = packed, time = e.time, n = 1 } }
+            e.history = { { packed = packed, got = got, time = e.time, n = 1 } }
             view.entries[#view.entries + 1] = e
             view.byId[e.id] = e
             if Settings.Group_calls then view.groupMap[gkey] = e end
@@ -2132,7 +2139,10 @@ local function createView(page, cfg)
     local function doExport()
         if not writefileFn then Notify("Export", "writefile unavailable.", "Bad"); return end
         local parts = {}
-        for _, e in view.visible do parts[#parts + 1] = cfg.codegen("Readable", e, { framework = e.framework, size = e.size, time = e.time }) end
+        for _, e in view.visible do
+            local hist = (e.history and #e.history > 0) and e.history or { { packed = e.packed, time = e.time } }
+            for _, h in hist do parts[#parts + 1] = cfg.codegen("Readable", { remote = e.remote, incoming = e.incoming, packed = h.packed }, { framework = e.framework, size = e.size, time = h.time or e.time }) end
+        end
         if #parts == 0 then Notify("Export", "Nothing to export (list is empty or filtered out).", "Warn"); return end
         local fname = CFG_DIR .. "/Rebirth_" .. (cfg.kind or "log") .. "_" .. os.date("%H%M%S") .. ".txt"
         local ok = pcall(function() ensureDir(); writefileFn(fname, table.concat(parts, "\n\n-- ──────────\n\n")) end)
@@ -2545,7 +2555,7 @@ task.spawn(function()
     while task.wait(1) do
         if not ScreenGui.Parent then break end   -- stop the per-second loop once the GUI is torn down
         table.remove(Stats.history, 1); Stats.history[60] = Stats.sec; Stats.perSec = Stats.sec; Stats.sec = 0
-        if remotesView and not remotesView.paused then statusLbl.Text = "Capturing" end
+        do local anyP = false; for _, v in AllViews do if v.paused then anyP = true; break end end; if not anyP then statusLbl.Text = "Capturing" end end   -- do not force "Capturing" while ANY spy view is paused
         if Window.Visible then   -- topbar clock/FPS/ping only matters when the GUI is shown
             local okp, ping = pcall(function() return LocalPlayer:GetNetworkPing() * 1000 end)
             tsMeta.Text = os.date("%H:%M:%S") .. "   ·   " .. frameCount .. " FPS   ·   " .. ((okp and ping) and (math.floor(ping) .. " ms") or "— ms")
