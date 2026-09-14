@@ -366,6 +366,7 @@ task.spawn(function()
         end
 
     elseif result.status == "cooldown" then
+        pcall(function() Tabs.Key:Show() end) --[[CDKEYTAB]]
         local remaining = tonumber(result.remaining) or 0
         safeSet(statusLabel, "대기 중")
         safeSet(hintLabel, "11시간 키를 받거나 대기 시간이 끝날 때까지 기다리세요.")
