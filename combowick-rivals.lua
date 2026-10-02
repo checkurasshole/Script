@@ -2,18 +2,18 @@
 local LanguageSelector = loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/main/langselector-module.lua"))()
 
 local scripts = {
-    ["English"] = "https://v0-supabase-secure-storage.vercel.app/api/script/40d2bdfc4797c8de9f29c3a2c1afef55",
-    ["Chinese (Simplified)"] = "https://v0-supabase-secure-storage.vercel.app/api/script/5bb13e7cbffda3c287793f065f50d8b9",
-    ["Filipino"] = "https://v0-supabase-secure-storage.vercel.app/api/script/fe2272dc0e997efbff419f7ea82005ff",
-    ["French"] = "https://v0-supabase-secure-storage.vercel.app/api/script/e32c05c2a38bd9f4fbf26d1c91f28f37",
-    ["German"] = "https://v0-supabase-secure-storage.vercel.app/api/script/3792f266e5c7ba90b06fedee03a6c168",
-    ["Indonesian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/d5f15cdfa920a1cfcbb03aacc3291c1f",
-    ["Korean"] = "https://v0-supabase-secure-storage.vercel.app/api/script/7473925fd6d86437787e0b9287fcbdde",
-    ["Portuguese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/2f48db06d5c1b32000f19a60b4c313ba",
-    ["Russian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/9c32e9c227a3629fdbc8cb8800d304b0",
-    ["Spanish"] = "https://v0-supabase-secure-storage.vercel.app/api/script/f4283a0ea64550d061d02cb59e07607d",
-    ["Thai"] = "https://v0-supabase-secure-storage.vercel.app/api/script/ad05bee5656b22d99dcdf4142121b256",
-    ["Vietnamese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/50fee075fd6448d8ce93645d19909328"
+    ["English"] = "https://v0-supabase-secure-storage.vercel.app/api/script/17a2a43e06385ed75daf0da50cb313e4",
+    ["Chinese (Simplified)"] = "https://v0-supabase-secure-storage.vercel.app/api/script/2aa3925c3c834b6c1355c66b69f6c709",
+    ["Filipino"] = "https://v0-supabase-secure-storage.vercel.app/api/script/2a7c8346c02f5132f7929be6326b9d01",
+    ["French"] = "https://v0-supabase-secure-storage.vercel.app/api/script/9a9c7464d7abd851ee728138a31104cd",
+    ["German"] = "https://v0-supabase-secure-storage.vercel.app/api/script/160bc39e373b5a6988ef6b7c1b8d4b74",
+    ["Indonesian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/29684a2b313752c51452837003d1a900",
+    ["Korean"] = "https://v0-supabase-secure-storage.vercel.app/api/script/5593f930431601bee605a370aecc6978",
+    ["Portuguese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/5ec1fa8142b235bf78f06983ffaa400d",
+    ["Russian"] = "https://v0-supabase-secure-storage.vercel.app/api/script/b1f54132b33f193368eb34f034f2677b",
+    ["Spanish"] = "https://v0-supabase-secure-storage.vercel.app/api/script/1c1969ae1316cc03b4c285cf0c47dd5b",
+    ["Thai"] = "https://v0-supabase-secure-storage.vercel.app/api/script/fbcd26b056d0cfb3017ab5e12d78b026",
+    ["Vietnamese"] = "https://v0-supabase-secure-storage.vercel.app/api/script/257ce772bf72b6943f9b689fbc680e42"
 }
 
 local selector = LanguageSelector.new()
