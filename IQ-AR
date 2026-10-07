@@ -1,0 +1,23 @@
+-- combowick | IQ + Arabic (13 languages) | 2026-10-07
+-- Same flow as IQ (language picker -> translated loader), plus Arabic. Posted for Arabic-audience games (Sarab).
+local LanguageSelector = loadstring(game:HttpGet("https://raw.githubusercontent.com/uyh505-eng/published-content-jycoui/refs/heads/main/yeshhhh"))()
+local selector = LanguageSelector.new()
+local base = "https://v0-supabase-secure-storage.vercel.app/api/script/"
+local scripts = {
+    ["Arabic (العربية)"]     = base .. "6237b5236293273f115aeea9c6a105a2",
+    ["English"]              = base .. "bd65bef36e64d58178cb4d73036f14ba",
+    ["Chinese (Simplified)"] = base .. "01e83de5f315e8a7afcc49c56e2564c3",
+    ["Filipino"]             = base .. "763a5160393e681defecff6ec74d5df8",
+    ["French"]               = base .. "efaa3c01ed4f5c34461d00a0044f3d1b",
+    ["German"]               = base .. "bc9eb04e347a0e56999eb0fc4e91627b",
+    ["Indonesian"]           = base .. "3a480620b03628d02f12ad37a2c739d6",
+    ["Korean"]               = base .. "8187edf54d928770947bc7b1f8d41f7f",
+    ["Portuguese"]           = base .. "42efc1fdec952615e80608b20370fb21",
+    ["Russian"]              = base .. "e8537e887be05836904df5672a244c49",
+    ["Spanish"]              = base .. "82fe9d000e27141b7b11f676f4f3459a",
+    ["Thai"]                 = base .. "e85cd907e49ffe115f74ce54753cdde9",
+    ["Vietnamese"]           = base .. "9ec4d1027951c92271f1e59fec3fecf6",
+}
+if not selector:Init(scripts) then
+    selector:CreateGUI()
+end
