@@ -1,5 +1,5 @@
 -- Main Script - Language Selector
-local LanguageSelector = loadstring(game:HttpGet("https://raw.githubusercontent.com/uyh505-eng/published-content-jycoui/refs/heads/main/yeshhhh"))()
+local LanguageSelector = loadstring(game:HttpGet("https://raw.githubusercontent.com/checkurasshole/Script/main/langselector-module.lua"))()
 
 -- Script links for each language
 local scripts = {
