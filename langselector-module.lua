@@ -1,1103 +1,743 @@
--- Language Selector Module
+-- COMBO_WICK Language Selector v2. Live copies: checkurasshole/combowick-loader/lang_selector.lua (IQ) and
+-- checkurasshole/Script/langselector-module.lua (the game-script wrappers). Edit lang-selector-v2/selector_v2.lua.
+-- Same API as v1 so IQ keeps working: LanguageSelector.new(), sel:Init(scripts) -> true if it handled loading,
+-- sel:CreateGUI(), and sel.generateScriptsHash can still be overridden (IQ pins it).
+-- In a game script (loaded after IQ already picked): no 2nd picker / 2nd countdown — the IQ language loads right
+-- away, and if the game doesn't have it, English loads with a "not in this game · change" note (the saved
+-- choice stays, so the key menu and other games keep the player's language).
+-- Fixes vs v1: scrolling never picks (tap-only + select-then-continue), suggested language from the player's
+-- Roblox locale, one saved choice for every game (old per-game saves migrate), "change" opens the picker BEFORE
+-- anything loads, X continues instead of loading nothing, "remember" is respected.
+-- Look: COMBO_WICK hub style (Code font, thin gold edge with a running gold streak, flag tiles).
+-- Mobile: no blur, edge animated at 30 fps, fewer dust specks (tween-driven), flags cached on disk, all loops stop on close.
+
 local LanguageSelector = {}
 LanguageSelector.__index = LanguageSelector
 
--- Detection-safe references: cloneref hides our instance handles from GC scans / ref comparisons.
--- No-op fallback on executors that lack cloneref, so behaviour is unchanged there.
-local cloneref = cloneref or (getgenv and getgenv().cloneref) or function(o) return o end
-local gethui = gethui or (getgenv and getgenv().gethui)
-local game = cloneref(game)
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
-local Players = cloneref(game:GetService("Players"))
-local TweenService = cloneref(game:GetService("TweenService"))
-local HttpService = cloneref(game:GetService("HttpService"))
-local RunService = cloneref(game:GetService("RunService"))
-local UserInputService = cloneref(game:GetService("UserInputService"))
+local player = Players.LocalPlayer
+local SAVE_FILE = "COMBOWICK_Language.json" -- one choice for every game
+local AUTOLOAD_SECONDS = 3
+-- touch without a mouse = phone/tablet (some Android phones report a keyboard, so don't rely on KeyboardEnabled)
+local MOBILE = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+local FONT = Enum.Font.Code -- same as the COMBO_WICK hub (Obsidian)
+local DISCORD_INVITE = "https://discord.gg/ufrz9Zaqs8"
+local LOGO_URL = "https://cdn.discordapp.com/icons/934631259861319733/a_3c6b0ba4deedbc36b995e33a02d0948c.png?size=64"
 
-local player = cloneref(Players.LocalPlayer)
-local playerGui = cloneref(player:WaitForChild("PlayerGui"))
-
--- Universal English translations for all languages
-local translations = {
-    notAvailable = " not available",
-    defaultedTo = "Defaulted to ",
-    manualSelect = "💡 You can manually select a different language",
-    resetQuestion = "🔄 Reset language preference?",
-    resetInfo = "This will reset for this instance",
-    yes = "Yes",
-    no = "No",
-    loading = "▄︻デ══━一💥 Loading ",
-    loadingInfo = "✨ This language will be saved for this instance"
+local C = {
+    bg = Color3.fromRGB(15, 15, 18),
+    tile = Color3.fromRGB(22, 22, 26),
+    tileOn = Color3.fromRGB(30, 27, 19),
+    gold = Color3.fromRGB(245, 183, 0),
+    goldSoft = Color3.fromRGB(245, 197, 66),
+    goldHot = Color3.fromRGB(255, 205, 60),
+    text = Color3.fromRGB(235, 235, 240),
+    sub = Color3.fromRGB(140, 140, 155),
 }
 
+-- key in IQ's map -> { native name, english name }
+local DISPLAY = {
+    ["English"] = { "English", "English" },
+    ["Spanish"] = { "Español", "Spanish" },
+    ["Portuguese"] = { "Português", "Portuguese" },
+    ["Indonesian"] = { "Indonesia", "Indonesian" },
+    ["Filipino"] = { "Filipino", "Filipino" },
+    ["Vietnamese"] = { "Tiếng Việt", "Vietnamese" },
+    ["Thai"] = { "ไทย", "Thai" },
+    ["Russian"] = { "Русский", "Russian" },
+    ["German"] = { "Deutsch", "German" },
+    ["French"] = { "Français", "French" },
+    ["Korean"] = { "한국어", "Korean" },
+    ["Chinese (Simplified)"] = { "简体中文", "Chinese" },
+    ["Arabic (العربية)"] = { "العربية", "Arabic" },
+}
+-- most-used first (Arabic/Chinese are no longer the first tiles thumbs land on)
+local ORDER = { "English", "Spanish", "Portuguese", "Indonesian", "Filipino", "Vietnamese", "Thai", "Russian", "German", "French", "Korean", "Chinese (Simplified)", "Arabic (العربية)" }
+local LOCALE = {
+    en = "English", es = "Spanish", pt = "Portuguese", id = "Indonesian", ms = "Indonesian", fil = "Filipino", tl = "Filipino",
+    vi = "Vietnamese", th = "Thai", ru = "Russian", uk = "Russian", de = "German", fr = "French", ko = "Korean",
+    zh = "Chinese (Simplified)", ar = "Arabic (العربية)",
+}
+local FLAG = {
+    ["English"] = "us", ["Spanish"] = "es", ["Portuguese"] = "br", ["Indonesian"] = "id", ["Filipino"] = "ph",
+    ["Vietnamese"] = "vn", ["Thai"] = "th", ["Russian"] = "ru", ["German"] = "de", ["French"] = "fr",
+    ["Korean"] = "kr", ["Chinese (Simplified)"] = "cn", ["Arabic (العربية)"] = "sa",
+}
+-- the window's own words switch to the language you pick (players see right away that it works)
+local UI = {
+    ["English"] = { "language", "remember", "continue", "detected", "loading", "change" },
+    ["Spanish"] = { "idioma", "recordar", "continuar", "detectado", "cargando", "cambiar" },
+    ["Portuguese"] = { "idioma", "lembrar", "continuar", "detectado", "carregando", "mudar" },
+    ["Indonesian"] = { "bahasa", "ingat", "lanjut", "terdeteksi", "memuat", "ganti" },
+    ["Filipino"] = { "wika", "tandaan", "magpatuloy", "natukoy", "naglo-load", "palitan" },
+    ["Vietnamese"] = { "ngôn ngữ", "ghi nhớ", "tiếp tục", "phát hiện", "đang tải", "đổi" },
+    ["Thai"] = { "ภาษา", "จดจำ", "ต่อไป", "ตรวจพบ", "กำลังโหลด", "เปลี่ยน" },
+    ["Russian"] = { "язык", "запомнить", "продолжить", "определён", "загрузка", "сменить" },
+    ["German"] = { "sprache", "merken", "weiter", "erkannt", "lädt", "ändern" },
+    ["French"] = { "langue", "retenir", "continuer", "détecté", "chargement", "changer" },
+    ["Korean"] = { "언어", "기억하기", "계속", "감지됨", "로딩 중", "변경" },
+    ["Chinese (Simplified)"] = { "语言", "记住", "继续", "检测到", "加载中", "更改" },
+    ["Arabic (العربية)"] = { "اللغة", "تذكر", "متابعة", "تم الاكتشاف", "جارٍ التحميل", "تغيير" },
+}
+-- "<language> isn't in this game · using <fallback>" (shown in the player's own language)
+local NOT_HERE = {
+    ["English"] = "isn't in this game · using",
+    ["Spanish"] = "no está en este juego · usando",
+    ["Portuguese"] = "não tem neste jogo · usando",
+    ["Indonesian"] = "tidak ada di game ini · memakai",
+    ["Filipino"] = "wala sa larong ito · gamit ang",
+    ["Vietnamese"] = "không có trong game này · dùng",
+    ["Thai"] = "ไม่มีในเกมนี้ · ใช้",
+    ["Russian"] = "нет в этой игре · используем",
+    ["German"] = "gibt es in diesem Spiel nicht · nutze",
+    ["French"] = "pas dispo dans ce jeu · on utilise",
+    ["Korean"] = "이 게임에는 없어요 · 사용:",
+    ["Chinese (Simplified)"] = "此游戏暂不支持 · 使用",
+    ["Arabic (العربية)"] = "غير متوفرة في هذه اللعبة · نستخدم",
+}
+-- other spellings game wrappers use for the same language
+local ALIAS = {
+    ["Arabic"] = "Arabic (العربية)", ["العربية"] = "Arabic (العربية)",
+    ["Chinese"] = "Chinese (Simplified)", ["Chinese Simplified"] = "Chinese (Simplified)",
+    ["Tagalog"] = "Filipino", ["Bahasa Indonesia"] = "Indonesian",
+}
+local function ui(lang, i) return ((UI[lang] or UI["English"])[i]) end
+local function native(lang) return (DISPLAY[lang] or { lang })[1] end
+
+-- ---------- small helpers ----------
+local function guiParent()
+    local ok, h = pcall(function() return gethui and gethui() end)
+    if ok and h then return h end
+    local ok2, cg = pcall(function() return game:GetService("CoreGui") end)
+    if ok2 and cg then return cg end
+    return player:WaitForChild("PlayerGui")
+end
+local function canFile() return typeof(writefile) == "function" and typeof(readfile) == "function" and typeof(isfile) == "function" end
+local function corner(p, r) local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r or 6); c.Parent = p; return c end
+local function stroke(p, col, th, tr) local s = Instance.new("UIStroke"); s.Color = col; s.Thickness = th or 1; s.Transparency = tr or 0; s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border; s.Parent = p; return s end
+local function tween(o, t, props, style) local tw = TweenService:Create(o, TweenInfo.new(t, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props); tw:Play(); return tw end
+local function txt(p, s, size, col, xa)
+    local l = Instance.new("TextLabel")
+    l.BackgroundTransparency = 1; l.Text = s; l.TextSize = size; l.TextColor3 = col or C.text
+    l.Font = FONT; l.TextXAlignment = xa or Enum.TextXAlignment.Left; l.TextYAlignment = Enum.TextYAlignment.Center
+    l.TextTruncate = Enum.TextTruncate.AtEnd; l.Parent = p
+    return l
+end
+-- non-Latin scripts read better in Gotham than in the monospace hub font
+local function fitFont(l) l.Font = tostring(l.Text):match("[\128-\255]") and Enum.Font.GothamMedium or FONT end
+
+-- one shared click sound, reused across runs (no new Sound per execution)
+local function click()
+    pcall(function()
+        local ss = game:GetService("SoundService")
+        local s = ss:FindFirstChild("CW_LangClick")
+        if not s then
+            s = Instance.new("Sound"); s.Name = "CW_LangClick"; s.SoundId = "rbxasset://sounds/electronicpingshort.wav"; s.Volume = 0.25; s.Parent = ss
+        end
+        s:Play()
+    end)
+end
+
+-- A real TAP: down and up on the same thing without moving (scrolling never counts).
+local function onTap(btn, fn)
+    local downPos, downAt
+    btn.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            downPos, downAt = Vector2.new(i.Position.X, i.Position.Y), os.clock()
+        end
+    end)
+    btn.InputEnded:Connect(function(i)
+        if not downPos then return end
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            local moved = (Vector2.new(i.Position.X, i.Position.Y) - downPos).Magnitude
+            local held = os.clock() - downAt
+            downPos = nil
+            -- a cancelled touch (scroll/another GUI took it) never counts; slow taps from kids still do
+            if i.UserInputState == Enum.UserInputState.End and moved <= 10 and held <= 1.5 then fn() end
+        end
+    end)
+end
+
+-- images (flags, logo): downloaded once to the executor workspace and shown with getcustomasset;
+-- whatever is behind them (2-letter badge) stays visible if anything fails
+-- one download at a time (13 parallel HttpGets can freeze executors where HttpGet blocks)
+local imgQueue, imgBusy = {}, false
+local function runQueue()
+    if imgBusy then return end
+    imgBusy = true
+    task.spawn(function()
+        while #imgQueue > 0 do pcall(table.remove(imgQueue, 1)) end
+        imgBusy = false
+    end)
+end
+local function webImage(img, url, file, onShown)
+    if not (typeof(getcustomasset) == "function" and canFile()) then return end
+    table.insert(imgQueue, function()
+        local path = "combowick_flags/" .. file
+        local ok = pcall(function()
+            if not isfile(path) then
+                pcall(function() if makefolder and not (isfolder and isfolder("combowick_flags")) then makefolder("combowick_flags") end end)
+                local data = game:HttpGet(url)
+                if type(data) ~= "string" or #data < 100 or data:sub(2, 4) ~= "PNG" then error("bad png") end
+                writefile(path, data)
+            elseif #readfile(path) < 100 then -- a half-written file from a crash: re-download next time
+                delfile(path); error("partial file")
+            end
+            local id = getcustomasset(path)
+            if type(id) ~= "string" or id == "" then error("no asset id") end -- some mobile executors return ""
+            if img.Parent then img.Image = id; img.ImageTransparency = 0; if onShown then onShown() end end
+        end)
+        if not ok then pcall(function() if isfile(path) and delfile then delfile(path) end end) end
+    end)
+    runQueue()
+end
+local function setFlag(img, badge, key)
+    local cc = FLAG[key]
+    badge.Text = cc and cc:upper() or "?"
+    if cc then webImage(img, "https://flagcdn.com/w80/" .. cc .. ".png", cc .. ".png", function() badge.Visible = false end) end
+end
+
+-- ---------- object ----------
 function LanguageSelector.new()
     local self = setmetatable({}, LanguageSelector)
-    
     self.scripts = {}
-    self.activeNotifications = {}
-    self.autoSaveEnabled = true
+    self.remember = true
     self.savedLanguage = nil
-    self.currentScale = 1
-    self.minScale = 0.5
-    self.maxScale = 2
-    self.resetNotificationShown = false
     self.SCRIPT_ID = nil
-    self.SAVE_KEY = nil
-    self.screenGui = nil
-    self.strokeConnection = nil
-    
+    self.conns = {}
+    self.gui = nil
+    self.alive = 0 -- bumps on every cleanup so old loops stop
     return self
 end
 
-function LanguageSelector:getGuiParent()
-    if gethui then
-        local okHui, hui = pcall(gethui)
-        if okHui and hui then return hui end
-    end
-    local success, coreGui = pcall(function()
-        return cloneref(game:GetService("CoreGui"))
-    end)
-    if success then
-        return coreGui
-    else
-        return playerGui
-    end
-end
-
+-- kept for IQ (it overrides this to pin the old save key); v2 uses it only to find old per-game saves
 function LanguageSelector:generateScriptsHash()
-    local hashString = ""
-    local sortedKeys = {}
-    for key in pairs(self.scripts) do
-        table.insert(sortedKeys, key)
-    end
-    table.sort(sortedKeys)
-    
-    for _, key in ipairs(sortedKeys) do
-        local scriptId = self.scripts[key]:match("/script/([^/]+)$")
-        if scriptId then
-            hashString = hashString .. scriptId
-        end
-    end
-    
-    local hash = 0
-    for i = 1, #hashString do
-        hash = (hash * 31 + string.byte(hashString, i)) % 1000000000
-    end
-    return tostring(hash)
+    local keys = {}
+    for k in pairs(self.scripts) do table.insert(keys, k) end
+    table.sort(keys)
+    local s = ""
+    for _, k in ipairs(keys) do local id = tostring(self.scripts[k]):match("/script/([^/]+)$"); if id then s = s .. id end end
+    local h = 0
+    for i = 1, #s do h = (h * 31 + string.byte(s, i)) % 1000000000 end
+    return tostring(h)
 end
 
-function LanguageSelector:getNextNotificationYPosition()
-    local yPos = 20
-    for _, notif in ipairs(self.activeNotifications) do
-        if notif and notif.Parent then
-            yPos = yPos + notif.AbsoluteSize.Y + 10
+function LanguageSelector:track(c) table.insert(self.conns, c); return c end
+function LanguageSelector:cleanup()
+    self.alive = self.alive + 1
+    for _, c in ipairs(self.conns) do pcall(function() c:Disconnect() end) end
+    self.conns = {}
+    if self.gui then pcall(function() self.gui:Destroy() end); self.gui = nil end
+    if self.blur then local bl = self.blur; self.blur = nil; pcall(function() tween(bl, 0.25, { Size = 0 }).Completed:Connect(function() bl:Destroy() end) end) end
+end
+
+function LanguageSelector:suggested()
+    local codes = {}
+    pcall(function() table.insert(codes, player.LocaleId) end)
+    pcall(function() table.insert(codes, game:GetService("LocalizationService").RobloxLocaleId) end)
+    pcall(function() table.insert(codes, game:GetService("LocalizationService").SystemLocaleId) end)
+    -- first non-English match wins (Roblox often reports en-us by default while the device is es-mx etc.)
+    local english
+    for _, code in ipairs(codes) do
+        local key = LOCALE[(tostring(code or ""):lower()):match("^(%a+)") or ""]
+        if key and self.scripts[key] then
+            if key ~= "English" then return key end
+            english = key
         end
     end
-    return yPos
+    return english or (self.scripts["English"] and "English") or self:orderedKeys()[1]
 end
 
-function LanguageSelector:updateNotificationPositions()
-    local currentY = 20
-    for i, notif in ipairs(self.activeNotifications) do
-        if notif and notif.Parent then
-            local targetPos = UDim2.new(1, -notif.AbsoluteSize.X - 20, 0, currentY)
-            TweenService:Create(notif, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
-            currentY = currentY + notif.AbsoluteSize.Y + 10
-        end
+function LanguageSelector:orderedKeys()
+    local out, seen = {}, {}
+    for _, k in ipairs(ORDER) do if self.scripts[k] then table.insert(out, k); seen[k] = true end end
+    local rest = {}
+    for k in pairs(self.scripts) do if not seen[k] then table.insert(rest, k) end end
+    table.sort(rest)
+    for _, k in ipairs(rest) do table.insert(out, k) end
+    return out
+end
+
+function LanguageSelector:readSave()
+    if not canFile() then return nil end
+    local function read(f)
+        if not isfile(f) then return nil end
+        local ok, d = pcall(function() return HttpService:JSONDecode(readfile(f)) end)
+        return ok and type(d) == "table" and d or nil
     end
-end
-
-function LanguageSelector:removeNotification(notif)
-    for i, n in ipairs(self.activeNotifications) do
-        if n == notif then
-            table.remove(self.activeNotifications, i)
-            break
-        end
-    end
-    self:updateNotificationPositions()
-end
-
-function LanguageSelector:showLanguageUnavailableNotification(requestedLang, fallbackLang)
-    local notificationGui = Instance.new("ScreenGui")
-    notificationGui.Name = "LanguageUnavailableGUI"
-    notificationGui.Parent = self:getGuiParent()
-    notificationGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    pcall(function()
-        notificationGui.IgnoreGuiInset = true
-    end)
-    
-    local notificationWidth = 340
-    local notificationHeight = 90
-    
-    local notificationFrame = Instance.new("Frame")
-    notificationFrame.Name = "NotificationFrame"
-    notificationFrame.Size = UDim2.new(0, notificationWidth, 0, notificationHeight)
-    notificationFrame.Position = UDim2.new(1, 20, 0, self:getNextNotificationYPosition())
-    notificationFrame.BackgroundColor3 = Color3.fromRGB(35, 30, 25)
-    notificationFrame.BackgroundTransparency = 0.05
-    notificationFrame.BorderSizePixel = 0
-    notificationFrame.Parent = notificationGui
-    
-    table.insert(self.activeNotifications, notificationFrame)
-    
-    local notificationCorner = Instance.new("UICorner")
-    notificationCorner.CornerRadius = UDim.new(0, 12)
-    notificationCorner.Parent = notificationFrame
-    
-    local notificationShadow = Instance.new("Frame")
-    notificationShadow.Name = "NotificationShadow"
-    notificationShadow.Size = UDim2.new(1, 20, 1, 20)
-    notificationShadow.Position = UDim2.new(0, -10, 0, -8)
-    notificationShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    notificationShadow.BackgroundTransparency = 0.7
-    notificationShadow.ZIndex = notificationFrame.ZIndex - 1
-    notificationShadow.BorderSizePixel = 0
-    notificationShadow.Parent = notificationFrame
-    
-    local shadowCorner = Instance.new("UICorner")
-    shadowCorner.CornerRadius = UDim.new(0, 16)
-    shadowCorner.Parent = notificationShadow
-    
-    local notificationGradient = Instance.new("UIGradient")
-    notificationGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(70, 50, 30)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(80, 60, 40)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 45, 30))
-    }
-    notificationGradient.Rotation = 45
-    notificationGradient.Parent = notificationFrame
-    
-    local notificationStroke = Instance.new("UIStroke")
-    notificationStroke.Color = Color3.fromRGB(255, 180, 100)
-    notificationStroke.Transparency = 0.3
-    notificationStroke.Thickness = 1.5
-    notificationStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    notificationStroke.Parent = notificationFrame
-    
-    local warningIcon = Instance.new("TextLabel")
-    warningIcon.Name = "WarningIcon"
-    warningIcon.Size = UDim2.new(0, 30, 0, 30)
-    warningIcon.Position = UDim2.new(0, 10, 0, 10)
-    warningIcon.BackgroundTransparency = 1
-    warningIcon.Text = "⚠️"
-    warningIcon.TextColor3 = Color3.fromRGB(255, 200, 100)
-    warningIcon.TextSize = 24
-    warningIcon.Font = Enum.Font.SourceSansBold
-    warningIcon.Parent = notificationFrame
-    
-    local messageText = Instance.new("TextLabel")
-    messageText.Name = "MessageText"
-    messageText.Size = UDim2.new(1, -50, 0, 28)
-    messageText.Position = UDim2.new(0, 45, 0, 8)
-    messageText.BackgroundTransparency = 1
-    messageText.Text = requestedLang .. translations.notAvailable
-    messageText.TextColor3 = Color3.fromRGB(255, 220, 180)
-    messageText.TextSize = 13
-    messageText.Font = Enum.Font.SourceSansBold
-    messageText.TextScaled = true
-    messageText.TextXAlignment = Enum.TextXAlignment.Left
-    messageText.Parent = notificationFrame
-    
-    local messageStroke = Instance.new("UIStroke")
-    messageStroke.Color = Color3.fromRGB(255, 200, 150)
-    messageStroke.Thickness = 0.8
-    messageStroke.Transparency = 0.5
-    messageStroke.Parent = messageText
-    
-    local infoText = Instance.new("TextLabel")
-    infoText.Name = "InfoText"
-    infoText.Size = UDim2.new(1, -50, 0, 20)
-    infoText.Position = UDim2.new(0, 45, 0, 38)
-    infoText.BackgroundTransparency = 1
-    infoText.Text = translations.defaultedTo .. fallbackLang
-    infoText.TextColor3 = Color3.fromRGB(200, 180, 140)
-    infoText.TextSize = 10
-    infoText.Font = Enum.Font.SourceSansItalic
-    infoText.TextScaled = true
-    infoText.TextXAlignment = Enum.TextXAlignment.Left
-    infoText.Parent = notificationFrame
-    
-    local actionText = Instance.new("TextLabel")
-    actionText.Name = "ActionText"
-    actionText.Size = UDim2.new(1, -20, 0, 18)
-    actionText.Position = UDim2.new(0, 10, 1, -26)
-    actionText.BackgroundTransparency = 1
-    actionText.Text = translations.manualSelect
-    actionText.TextColor3 = Color3.fromRGB(150, 200, 255)
-    actionText.TextSize = 9
-    actionText.Font = Enum.Font.SourceSans
-    actionText.TextScaled = true
-    actionText.Parent = notificationFrame
-    
-    local timerBar = Instance.new("Frame")
-    timerBar.Name = "TimerBar"
-    timerBar.Size = UDim2.new(1, 0, 0, 2)
-    timerBar.Position = UDim2.new(0, 0, 1, -2)
-    timerBar.BackgroundColor3 = Color3.fromRGB(255, 180, 100)
-    timerBar.BorderSizePixel = 0
-    timerBar.Parent = notificationFrame
-    
-    local timerCorner = Instance.new("UICorner")
-    timerCorner.CornerRadius = UDim.new(0, 1)
-    timerCorner.Parent = timerBar
-    
-    local slideInTween = TweenService:Create(notificationFrame,
-        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {Position = UDim2.new(1, -notificationWidth - 20, 0, notificationFrame.Position.Y.Offset)}
-    )
-    slideInTween:Play()
-    
-    local timerTween = TweenService:Create(timerBar,
-        TweenInfo.new(7, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
-        {Size = UDim2.new(0, 0, 0, 2)}
-    )
-    timerTween:Play()
-    
-    local function closeNotification()
-        local slideOutTween = TweenService:Create(notificationFrame,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
-            {Position = UDim2.new(1, 20, 0, notificationFrame.Position.Y.Offset)}
-        )
-        slideOutTween:Play()
-        
-        slideOutTween.Completed:Connect(function()
-            self:removeNotification(notificationFrame)
-            notificationGui:Destroy()
-        end)
-    end
-    
-    timerTween.Completed:Connect(function()
-        closeNotification()
-    end)
-    
-    notificationFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            closeNotification()
-        end
-    end)
-end
-
-function LanguageSelector:saveLanguage(language)
-    local data = {
-        language = language,
-        timestamp = os.time(),
-        gameId = game.GameId,
-        scriptId = self.SCRIPT_ID
-    }
-    writefile(self.SAVE_KEY .. ".json", HttpService:JSONEncode(data))
-    
-    _G["SelectedLanguage_" .. self.SCRIPT_ID] = language
-    _G["LanguagePreference_" .. self.SCRIPT_ID] = language
-end
-
-function LanguageSelector:loadLanguage()
-    if isfile(self.SAVE_KEY .. ".json") then
-        local success, data = pcall(function()
-            return HttpService:JSONDecode(readfile(self.SAVE_KEY .. ".json"))
-        end)
-        if success and data and data.language then
-            if self.scripts[data.language] then
-                _G["SelectedLanguage_" .. self.SCRIPT_ID] = data.language
-                _G["LanguagePreference_" .. self.SCRIPT_ID] = data.language
-                return data.language
-            else
-                local fallbackLang = "English"
-                _G["SelectedLanguage_" .. self.SCRIPT_ID] = fallbackLang
-                _G["LanguagePreference_" .. self.SCRIPT_ID] = fallbackLang
-                
-                spawn(function()
-                    wait(0.5)
-                    self:showLanguageUnavailableNotification(data.language, fallbackLang)
-                end)
-                
-                return fallbackLang
-            end
-        end
+    if isfile(SAVE_FILE) then return read(SAVE_FILE) end -- (a corrupt global save must NOT bring back an old v1 language)
+    -- migrate a v1 per-game save (LanguageSelector_<GameId>_<hash>_SavedSettings.json)
+    local old = read("LanguageSelector_" .. tostring(game.GameId) .. "_" .. tostring(self.SCRIPT_ID) .. "_SavedSettings.json")
+    if old and old.language then
+        local m = { language = old.language, remember = true, v = 2 }
+        pcall(writefile, SAVE_FILE, HttpService:JSONEncode(m))
+        return m
     end
     return nil
 end
 
-function LanguageSelector:showResetNotification()
-    if self.resetNotificationShown then
-        return
+-- a language that failed to load must not stay saved (or every run would auto-load the broken one)
+function LanguageSelector:forgetLanguage(lang)
+    if not canFile() then return end
+    local d = self:readSave()
+    if d and d.language == lang then pcall(writefile, SAVE_FILE, HttpService:JSONEncode({ remember = self.remember, v = 2 })) end
+    if self.savedLanguage == lang then self.savedLanguage = nil end
+end
+
+function LanguageSelector:writeSave(lang)
+    if not canFile() then return end
+    if self.remember and lang then
+        pcall(writefile, SAVE_FILE, HttpService:JSONEncode({ language = lang, remember = true, v = 2, time = os.time() }))
+    else
+        pcall(writefile, SAVE_FILE, HttpService:JSONEncode({ remember = false, v = 2 }))
     end
-    self.resetNotificationShown = true
-    
-    local notificationGui = Instance.new("ScreenGui")
-    notificationGui.Name = "ResetNotificationGUI"
-    notificationGui.Parent = self:getGuiParent()
-    notificationGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    pcall(function()
-        notificationGui.IgnoreGuiInset = true
-    end)
-    
-    local notificationWidth = 320
-    local notificationHeight = 100
-    
-    local notificationFrame = Instance.new("Frame")
-    notificationFrame.Name = "NotificationFrame"
-    notificationFrame.Size = UDim2.new(0, notificationWidth, 0, notificationHeight)
-    notificationFrame.Position = UDim2.new(1, 20, 0, self:getNextNotificationYPosition())
-    notificationFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
-    notificationFrame.BackgroundTransparency = 0.05
-    notificationFrame.BorderSizePixel = 0
-    notificationFrame.Parent = notificationGui
-    
-    table.insert(self.activeNotifications, notificationFrame)
-    
-    local notificationCorner = Instance.new("UICorner")
-    notificationCorner.CornerRadius = UDim.new(0, 12)
-    notificationCorner.Parent = notificationFrame
-    
-    local notificationShadow = Instance.new("Frame")
-    notificationShadow.Name = "NotificationShadow"
-    notificationShadow.Size = UDim2.new(1, 20, 1, 20)
-    notificationShadow.Position = UDim2.new(0, -10, 0, -8)
-    notificationShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    notificationShadow.BackgroundTransparency = 0.7
-    notificationShadow.ZIndex = notificationFrame.ZIndex - 1
-    notificationShadow.BorderSizePixel = 0
-    notificationShadow.Parent = notificationFrame
-    
-    local shadowCorner = Instance.new("UICorner")
-    shadowCorner.CornerRadius = UDim.new(0, 16)
-    shadowCorner.Parent = notificationShadow
-    
-    local notificationGradient = Instance.new("UIGradient")
-    notificationGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 50, 70)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50, 40, 80)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 60, 90))
-    }
-    notificationGradient.Rotation = 45
-    notificationGradient.Parent = notificationFrame
-    
-    local notificationStroke = Instance.new("UIStroke")
-    notificationStroke.Color = Color3.fromRGB(120, 140, 255)
-    notificationStroke.Transparency = 0.3
-    notificationStroke.Thickness = 1.5
-    notificationStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    notificationStroke.Parent = notificationFrame
-    
-    local questionText = Instance.new("TextLabel")
-    questionText.Name = "QuestionText"
-    questionText.Size = UDim2.new(1, -20, 0, 35)
-    questionText.Position = UDim2.new(0, 10, 0, 8)
-    questionText.BackgroundTransparency = 1
-    questionText.Text = translations.resetQuestion
-    questionText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    questionText.TextSize = 13
-    questionText.Font = Enum.Font.SourceSansBold
-    questionText.TextScaled = true
-    questionText.Parent = notificationFrame
-    
-    local questionStroke = Instance.new("UIStroke")
-    questionStroke.Color = Color3.fromRGB(180, 200, 255)
-    questionStroke.Thickness = 0.8
-    questionStroke.Transparency = 0.4
-    questionStroke.Parent = questionText
-    
-    local infoText = Instance.new("TextLabel")
-    infoText.Name = "InfoText"
-    infoText.Size = UDim2.new(1, -20, 0, 20)
-    infoText.Position = UDim2.new(0, 10, 0, 40)
-    infoText.BackgroundTransparency = 1
-    infoText.Text = translations.resetInfo
-    infoText.TextColor3 = Color3.fromRGB(180, 200, 255)
-    infoText.TextSize = 9
-    infoText.Font = Enum.Font.SourceSansItalic
-    infoText.TextScaled = true
-    infoText.Parent = notificationFrame
-    
-    local buttonFrame = Instance.new("Frame")
-    buttonFrame.Name = "ButtonFrame"
-    buttonFrame.Size = UDim2.new(1, -20, 0, 28)
-    buttonFrame.Position = UDim2.new(0, 10, 1, -36)
-    buttonFrame.BackgroundTransparency = 1
-    buttonFrame.Parent = notificationFrame
-    
-    local yesButton = Instance.new("TextButton")
-    yesButton.Name = "YesButton"
-    yesButton.Size = UDim2.new(0, 70, 1, 0)
-    yesButton.Position = UDim2.new(0, 0, 0, 0)
-    yesButton.BackgroundColor3 = Color3.fromRGB(100, 220, 120)
-    yesButton.BackgroundTransparency = 0.1
-    yesButton.BorderSizePixel = 0
-    yesButton.Text = translations.yes
-    yesButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    yesButton.TextSize = 11
-    yesButton.Font = Enum.Font.SourceSansBold
-    yesButton.Parent = buttonFrame
-    
-    local yesCorner = Instance.new("UICorner")
-    yesCorner.CornerRadius = UDim.new(0, 8)
-    yesCorner.Parent = yesButton
-    
-    local yesStroke = Instance.new("UIStroke")
-    yesStroke.Color = Color3.fromRGB(140, 240, 160)
-    yesStroke.Thickness = 1
-    yesStroke.Transparency = 0.3
-    yesStroke.Parent = yesButton
-    
-    local noButton = Instance.new("TextButton")
-    noButton.Name = "NoButton"
-    noButton.Size = UDim2.new(0, 70, 1, 0)
-    noButton.Position = UDim2.new(0, 80, 0, 0)
-    noButton.BackgroundColor3 = Color3.fromRGB(255, 100, 120)
-    noButton.BackgroundTransparency = 0.1
-    noButton.BorderSizePixel = 0
-    noButton.Text = translations.no
-    noButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    noButton.TextSize = 11
-    noButton.Font = Enum.Font.SourceSansBold
-    noButton.Parent = buttonFrame
-    
-    local noCorner = Instance.new("UICorner")
-    noCorner.CornerRadius = UDim.new(0, 8)
-    noCorner.Parent = noButton
-    
-    local noStroke = Instance.new("UIStroke")
-    noStroke.Color = Color3.fromRGB(255, 140, 160)
-    noStroke.Thickness = 1
-    noStroke.Transparency = 0.3
-    noStroke.Parent = noButton
-    
-    local timerBar = Instance.new("Frame")
-    timerBar.Name = "TimerBar"
-    timerBar.Size = UDim2.new(1, 0, 0, 2)
-    timerBar.Position = UDim2.new(0, 0, 1, -2)
-    timerBar.BackgroundColor3 = Color3.fromRGB(120, 200, 255)
-    timerBar.BorderSizePixel = 0
-    timerBar.Parent = notificationFrame
-    
-    local timerCorner = Instance.new("UICorner")
-    timerCorner.CornerRadius = UDim.new(0, 1)
-    timerCorner.Parent = timerBar
-    
-    local slideInTween = TweenService:Create(notificationFrame,
-        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {Position = UDim2.new(1, -notificationWidth - 20, 0, notificationFrame.Position.Y.Offset)}
-    )
-    slideInTween:Play()
-    
-    local timerTween = TweenService:Create(timerBar,
-        TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
-        {Size = UDim2.new(0, 0, 0, 2)}
-    )
-    timerTween:Play()
-    
-    local function closeNotification()
-        local slideOutTween = TweenService:Create(notificationFrame,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
-            {Position = UDim2.new(1, 20, 0, notificationFrame.Position.Y.Offset)}
-        )
-        slideOutTween:Play()
-        
-        slideOutTween.Completed:Connect(function()
-            self:removeNotification(notificationFrame)
-            notificationGui:Destroy()
-        end)
-    end
-    
-    yesButton.MouseEnter:Connect(function()
-        TweenService:Create(yesButton, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), 
-            {BackgroundTransparency = 0.05, TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-    end)
-    
-    yesButton.MouseLeave:Connect(function()
-        TweenService:Create(yesButton, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), 
-            {BackgroundTransparency = 0.1, TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-    end)
-    
-    noButton.MouseEnter:Connect(function()
-        TweenService:Create(noButton, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), 
-            {BackgroundTransparency = 0.05, TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-    end)
-    
-    noButton.MouseLeave:Connect(function()
-        TweenService:Create(noButton, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), 
-            {BackgroundTransparency = 0.1, TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-    end)
-    
-    yesButton.MouseButton1Click:Connect(function()
-        self.savedLanguage = nil
-        _G["SelectedLanguage_" .. self.SCRIPT_ID] = nil
-        _G["LanguagePreference_" .. self.SCRIPT_ID] = nil
-        if isfile(self.SAVE_KEY .. ".json") then
-            delfile(self.SAVE_KEY .. ".json")
+end
+
+-- the real load (overridable for tests)
+function LanguageSelector:loadScript(lang)
+    local url = self.scripts[lang]
+    if not url then return end
+    _G["SelectedLanguage_" .. tostring(self.SCRIPT_ID)] = lang
+    _G["LanguagePreference_" .. tostring(self.SCRIPT_ID)] = lang
+    task.spawn(function()
+        -- download (one retry), then compile, then run — a failure shows "couldn't load · retry" instead of nothing
+        local src
+        for attempt = 1, 2 do
+            local ok, res = pcall(function() return game:HttpGet(url) end)
+            if ok and type(res) == "string" and #res > 0 then src = res; break end
+            if attempt == 1 then task.wait(1.5) end
         end
-        closeNotification()
-    end)
-    
-    noButton.MouseButton1Click:Connect(function()
-        closeNotification()
-    end)
-    
-    timerTween.Completed:Connect(function()
-        closeNotification()
-    end)
-end
-
-function LanguageSelector:saveSettings()
-    if self.autoSaveEnabled and self.savedLanguage then
-        local data = {
-            language = self.savedLanguage,
-            autoSave = self.autoSaveEnabled,
-            scale = self.currentScale
-        }
-        writefile(self.SAVE_KEY .. ".json", HttpService:JSONEncode(data))
-    end
-end
-
-function LanguageSelector:loadSettings()
-    if isfile(self.SAVE_KEY .. ".json") then
-        local success, data = pcall(function()
-            return HttpService:JSONDecode(readfile(self.SAVE_KEY .. ".json"))
-        end)
-        if success and data then
-            self.savedLanguage = data.language
-            self.autoSaveEnabled = data.autoSave or true
-            self.currentScale = data.scale or 1
-            return data
-        end
-    end
-    return nil
-end
-
-function LanguageSelector:Init(scripts)
-    self.scripts = scripts
-    self.SCRIPT_ID = self:generateScriptsHash()
-    self.SAVE_KEY = "LanguageSelector_" .. game.GameId .. "_" .. self.SCRIPT_ID .. "_SavedSettings"
-    
-    self:loadSettings()
-    
-    local lang = self:loadLanguage()
-    if self.autoSaveEnabled and lang and self.scripts[lang] then
-        self.savedLanguage = lang
-        _G["SelectedLanguage_" .. self.SCRIPT_ID] = lang
-        _G["LanguagePreference_" .. self.SCRIPT_ID] = lang
-        
-        self:showResetNotification()
-        
-        spawn(function()
-            wait(0.1)
+        if not src then warn("[COMBO_WICK] couldn't download the " .. lang .. " script"); self:forgetLanguage(lang); self:showLoadError(lang); return end
+        local fn, cerr = loadstring(src)
+        if not fn then warn("[COMBO_WICK] " .. lang .. " script didn't compile: " .. tostring(cerr)); self:forgetLanguage(lang); self:showLoadError(lang); return end
+        -- switching language: close the menu the previous language opened (scripts expose getgenv().Library)
+        if self.loadedLanguage and self.loadedLanguage ~= lang then
             pcall(function()
-                loadstring(game:HttpGet(self.scripts[self.savedLanguage]))()
+                local L = getgenv and getgenv().Library
+                if type(L) == "table" and type(L.Unload) == "function" then L:Unload() end
             end)
-        end)
+        end
+        self.loadedLanguage = lang
+        local ok, err = pcall(fn)
+        if not ok then warn("[COMBO_WICK] " .. lang .. " script error: " .. tostring(err)) end
+    end)
+end
+
+function LanguageSelector:showLoadError(lang)
+    local g = self:newGui("CW_LanguageError")
+    local gen = self.alive
+    local f = Instance.new("Frame")
+    f.AnchorPoint = Vector2.new(0.5, 0); f.Size = UDim2.fromOffset(330, 52); f.Position = UDim2.new(0.5, 0, 0, -70)
+    f.BackgroundColor3 = C.bg; f.Parent = g
+    corner(f, 6); self:runningEdge(f, 1.6)
+    local brand = txt(f, "COMBO_WICK", 12, C.gold); brand.Position = UDim2.fromOffset(14, 7); brand.Size = UDim2.fromOffset(120, 14)
+    local t = txt(f, "couldn't load " .. native(lang), 14, Color3.fromRGB(255, 120, 120)); t.Position = UDim2.fromOffset(14, 22); t.Size = UDim2.new(1, -130, 0, 22); fitFont(t)
+    local b = Instance.new("TextButton")
+    b.AnchorPoint = Vector2.new(1, 0.5); b.Size = UDim2.fromOffset(96, 30); b.Position = UDim2.new(1, -11, 0.5, 0); b.BackgroundColor3 = C.gold; b.AutoButtonColor = false
+    b.Text = "retry"; b.TextColor3 = C.bg; b.Font = FONT; b.TextSize = 14; b.Parent = f
+    corner(b, 4)
+    tween(f, 0.35, { Position = UDim2.new(0.5, 0, 0, 16) }, Enum.EasingStyle.Quint)
+    local done = false
+    onTap(b, function() if done or self.alive ~= gen then return end; done = true; click(); self:cleanup(); self:loadScript(lang) end)
+end
+
+function LanguageSelector:pick(lang)
+    if not (lang and self.scripts[lang]) then return end
+    self.savedLanguage = lang
+    self:writeSave(lang)
+    self:cleanup()
+    local gen = self.alive -- a newer screen / re-executed IQ bumps this and cancels the toast below
+    self:loadScript(lang)
+    task.delay(1.5, function() if self.alive == gen then self:showChangeToast(lang) end end)
+end
+
+-- continue/close from the picker: the language that is ALREADY loaded just closes (no hub reload)
+function LanguageSelector:continueWith(lang)
+    if self.loadedLanguage and lang == self.loadedLanguage then self:cleanup() else self:pick(lang) end
+end
+
+-- ---------- Init (same contract as v1) ----------
+function LanguageSelector:Init(scripts)
+    self.scripts = scripts or {}
+    self.SCRIPT_ID = self:generateScriptsHash() -- from the wrapper's own keys (finds old v1 saves)
+    -- one spelling per language from here on ("Arabic" in some wrappers = "Arabic (العربية)" in IQ)
+    local norm = {}
+    for k, v in pairs(self.scripts) do norm[ALIAS[k] or k] = v end
+    self.scripts = norm
+    -- a selector that already loaded something this session (IQ -> the hub) = we're the game script's picker
+    local prev
+    pcall(function() prev = getgenv and getgenv().__CW_LANG_SEL end)
+    local nested = type(prev) == "table" and prev ~= self and prev.loadedLanguage ~= nil and prev.SCRIPT_ID ~= self.SCRIPT_ID
+    pcall(function() if prev then prev:cleanup() end end)
+    pcall(function() if getgenv then getgenv().__CW_LANG_SEL = self end end)
+    local save = self:readSave()
+    if save then self.remember = save.remember ~= false end
+    local lang = (self.remember and save and save.language) or (nested and prev.loadedLanguage) or nil
+    lang = lang and (ALIAS[lang] or lang)
+    if not lang then return false end
+    if self.scripts[lang] then
+        self.savedLanguage = lang
+        if nested then self:quickLoad(lang) else self:showAutoLoad(lang) end
         return true
     end
-    return false
+    -- this game doesn't have the player's language: English (else the closest one), WITHOUT overwriting the save
+    local fb = (self.scripts["English"] and "English") or self:suggested()
+    if not fb then return false end
+    self:quickLoad(fb, lang)
+    return true
 end
 
-function LanguageSelector:CreateGUI()
-    self.screenGui = Instance.new("ScreenGui")
-    self.screenGui.Name = "LanguageSelectorGUI"
-    self.screenGui.Parent = self:getGuiParent()
-    self.screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
+-- load now (no countdown), then the small "change" toast — or the "not in this game" note when it's a fallback
+function LanguageSelector:quickLoad(lang, missing)
+    self:cleanup()
+    local gen = self.alive
+    self:loadScript(lang)
+    task.delay(1.5, function()
+        if self.alive ~= gen then return end
+        if missing then self:showFallbackToast(missing, lang) else self:showChangeToast(lang) end
+    end)
+end
+
+-- ---------- shared visuals ----------
+function LanguageSelector:newGui(name)
+    self:cleanup()
+    -- sweep leftovers from older runs/versions (no getgenv, or a v1/v2 picker still open)
     pcall(function()
-        self.screenGui.IgnoreGuiInset = true
-    end)
-    
-    local frameWidth = 280
-    local frameHeight = 400
-    
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, frameWidth, 0, frameHeight)
-    mainFrame.Position = UDim2.new(0.5, -frameWidth/2, 0.5, -frameHeight/2)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-    mainFrame.BackgroundTransparency = 0.02
-    mainFrame.BorderSizePixel = 0
-    mainFrame.Parent = self.screenGui
-    
-    local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 18)
-    mainCorner.Parent = mainFrame
-    
-    local shadowFrame = Instance.new("Frame")
-    shadowFrame.Name = "ShadowFrame"
-    shadowFrame.Size = UDim2.new(1, 40, 1, 40)
-    shadowFrame.Position = UDim2.new(0, -20, 0, -15)
-    shadowFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    shadowFrame.BackgroundTransparency = 0.7
-    shadowFrame.ZIndex = mainFrame.ZIndex - 1
-    shadowFrame.BorderSizePixel = 0
-    shadowFrame.Parent = mainFrame
-    
-    local shadowCorner = Instance.new("UICorner")
-    shadowCorner.CornerRadius = UDim.new(0, 23)
-    shadowCorner.Parent = shadowFrame
-    
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 30, 90)),
-        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(30, 45, 80)),
-        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(45, 30, 85)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 60, 95))
-    }
-    gradient.Rotation = 135
-    gradient.Parent = mainFrame
-    
-    local innerStroke = Instance.new("UIStroke")
-    innerStroke.Color = Color3.fromRGB(120, 140, 255)
-    innerStroke.Transparency = 0.2
-    innerStroke.Thickness = 2
-    innerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    innerStroke.Parent = mainFrame
-    
-    local strokeGradient = Instance.new("UIGradient")
-    strokeGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 100, 200)),
-        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(100, 200, 255)),
-        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(200, 255, 100)),
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(255, 200, 100)),
-        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(150, 100, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
-    }
-    strokeGradient.Parent = innerStroke
-    
-    local time = 0
-    self.strokeConnection = RunService.Heartbeat:Connect(function(dt)
-        time = time + dt
-        strokeGradient.Rotation = (time * 60) % 360
-        innerStroke.Transparency = 0.2 + math.sin(time * 3) * 0.1
-    end)
-    
-    -- Dragging functionality
-    local dragToggle, dragStart, startPos
-    mainFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragToggle = true
-            dragStart = input.Position
-            startPos = mainFrame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragToggle = false
-                end
-            end)
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and dragToggle then
-            local delta = input.Position - dragStart
-            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-    
-    local title = Instance.new("TextLabel")
-    title.Name = "Title"
-    title.Size = UDim2.new(1, -60, 0, 30)
-    title.Position = UDim2.new(0, 15, 0, 10)
-    title.BackgroundTransparency = 1
-    title.Text = "🌍 SELECT LANGUAGE"
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.TextSize = 16
-    title.Font = Enum.Font.SourceSansBold
-    title.TextScaled = true
-    title.Parent = mainFrame
-    
-    local titleStroke = Instance.new("UIStroke")
-    titleStroke.Color = Color3.fromRGB(120, 200, 255)
-    titleStroke.Thickness = 1
-    titleStroke.Transparency = 0.5
-    titleStroke.Parent = title
-    
-    local subtitle = Instance.new("TextLabel")
-    subtitle.Name = "Subtitle"
-    subtitle.Size = UDim2.new(1, -30, 0, 18)
-    subtitle.Position = UDim2.new(0, 15, 0, 42)
-    subtitle.BackgroundTransparency = 1
-    subtitle.Text = "Saved per instance • Drag to move"
-    subtitle.TextColor3 = Color3.fromRGB(180, 200, 255)
-    subtitle.TextSize = 9
-    subtitle.Font = Enum.Font.SourceSansItalic
-    subtitle.TextScaled = true
-    subtitle.Parent = mainFrame
-    
-    local closeButton = Instance.new("TextButton")
-    closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(0, 25, 0, 25)
-    closeButton.Position = UDim2.new(1, -32, 0, 8)
-    closeButton.BackgroundColor3 = Color3.fromRGB(255, 60, 80)
-    closeButton.BackgroundTransparency = 0.1
-    closeButton.BorderSizePixel = 0
-    closeButton.Text = "✕"
-    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeButton.TextSize = 12
-    closeButton.Font = Enum.Font.GothamBold
-    closeButton.Parent = mainFrame
-    
-    local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 12)
-    closeCorner.Parent = closeButton
-    
-    local closeStroke = Instance.new("UIStroke")
-    closeStroke.Color = Color3.fromRGB(255, 100, 120)
-    closeStroke.Thickness = 1
-    closeStroke.Transparency = 0.3
-    closeStroke.Parent = closeButton
-    
-    local autoSaveFrame = Instance.new("Frame")
-    autoSaveFrame.Name = "AutoSaveFrame"
-    autoSaveFrame.Size = UDim2.new(1, -30, 0, 32)
-    autoSaveFrame.Position = UDim2.new(0, 15, 0, 68)
-    autoSaveFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    autoSaveFrame.BackgroundTransparency = 0.92
-    autoSaveFrame.BorderSizePixel = 0
-    autoSaveFrame.Parent = mainFrame
-    
-    local autoSaveCorner = Instance.new("UICorner")
-    autoSaveCorner.CornerRadius = UDim.new(0, 8)
-    autoSaveCorner.Parent = autoSaveFrame
-    
-    local autoSaveStroke = Instance.new("UIStroke")
-    autoSaveStroke.Color = Color3.fromRGB(200, 220, 255)
-    autoSaveStroke.Transparency = 0.6
-    autoSaveStroke.Thickness = 1
-    autoSaveStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    autoSaveStroke.Parent = autoSaveFrame
-    
-    local autoSaveLabel = Instance.new("TextLabel")
-    autoSaveLabel.Name = "AutoSaveLabel"
-    autoSaveLabel.Size = UDim2.new(1, -45, 1, 0)
-    autoSaveLabel.Position = UDim2.new(0, 10, 0, 0)
-    autoSaveLabel.BackgroundTransparency = 1
-    autoSaveLabel.Text = "💾 Remember Choice"
-    autoSaveLabel.TextColor3 = Color3.fromRGB(220, 230, 255)
-    autoSaveLabel.TextSize = 10
-    autoSaveLabel.Font = Enum.Font.SourceSans
-    autoSaveLabel.TextXAlignment = Enum.TextXAlignment.Left
-    autoSaveLabel.TextScaled = true
-    autoSaveLabel.Parent = autoSaveFrame
-    
-    local autoSaveToggle = Instance.new("TextButton")
-    autoSaveToggle.Name = "AutoSaveToggle"
-    autoSaveToggle.Size = UDim2.new(0, 35, 0, 16)
-    autoSaveToggle.Position = UDim2.new(1, -40, 0.5, -8)
-    autoSaveToggle.BackgroundColor3 = self.autoSaveEnabled and Color3.fromRGB(100, 220, 120) or Color3.fromRGB(120, 120, 140)
-    autoSaveToggle.BorderSizePixel = 0
-    autoSaveToggle.Text = ""
-    autoSaveToggle.Parent = autoSaveFrame
-    
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 8)
-    toggleCorner.Parent = autoSaveToggle
-    
-    local toggleStroke = Instance.new("UIStroke")
-    toggleStroke.Color = self.autoSaveEnabled and Color3.fromRGB(140, 240, 160) or Color3.fromRGB(160, 160, 180)
-    toggleStroke.Thickness = 1
-    toggleStroke.Transparency = 0.4
-    toggleStroke.Parent = autoSaveToggle
-    
-    local toggleIndicator = Instance.new("Frame")
-    toggleIndicator.Name = "Indicator"
-    toggleIndicator.Size = UDim2.new(0, 12, 0, 12)
-    toggleIndicator.Position = self.autoSaveEnabled and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
-    toggleIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    toggleIndicator.BorderSizePixel = 0
-    toggleIndicator.Parent = autoSaveToggle
-    
-    local indicatorCorner = Instance.new("UICorner")
-    indicatorCorner.CornerRadius = UDim.new(0, 6)
-    indicatorCorner.Parent = toggleIndicator
-    
-    local indicatorStroke = Instance.new("UIStroke")
-    indicatorStroke.Color = Color3.fromRGB(200, 200, 220)
-    indicatorStroke.Thickness = 1
-    indicatorStroke.Transparency = 0.3
-    indicatorStroke.Parent = toggleIndicator
-    
-    autoSaveToggle.MouseButton1Click:Connect(function()
-        self.autoSaveEnabled = not self.autoSaveEnabled
-        
-        TweenService:Create(autoSaveToggle, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {BackgroundColor3 = self.autoSaveEnabled and Color3.fromRGB(100, 220, 120) or Color3.fromRGB(120, 120, 140)}):Play()
-        
-        TweenService:Create(toggleStroke, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {Color = self.autoSaveEnabled and Color3.fromRGB(140, 240, 160) or Color3.fromRGB(160, 160, 180)}):Play()
-        
-        TweenService:Create(toggleIndicator, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {Position = self.autoSaveEnabled and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)}):Play()
-        
-        if self.autoSaveEnabled then
-            self:saveSettings()
-        else
-            if isfile(self.SAVE_KEY .. ".json") then
-                delfile(self.SAVE_KEY .. ".json")
+        for _, r in ipairs({ guiParent(), game:GetService("CoreGui") }) do
+            for _, c in ipairs(r:GetChildren()) do
+                if c:IsA("ScreenGui") and (c.Name:sub(1, 11) == "CW_Language" or c.Name == "LanguageSelectorGUI" or c.Name == "ResetNotificationGUI") then c:Destroy() end
             end
         end
+        local lb = game:GetService("Lighting"):FindFirstChild("CW_LangBlur"); if lb then lb:Destroy() end
     end)
-    
-    local scrollFrame = Instance.new("ScrollingFrame")
-    scrollFrame.Name = "LanguageScroll"
-    scrollFrame.Size = UDim2.new(1, -30, 1, -120)
-    scrollFrame.Position = UDim2.new(0, 15, 0, 110)
-    scrollFrame.BackgroundTransparency = 1
-    scrollFrame.BorderSizePixel = 0
-    scrollFrame.ScrollBarThickness = 6
-    scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 170, 255)
-    scrollFrame.ScrollBarImageTransparency = 0.2
-    scrollFrame.Parent = mainFrame
-    
-    local gridLayout = Instance.new("UIGridLayout")
-    gridLayout.CellSize = UDim2.new(0, 240, 0, 40)
-    gridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
-    gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    gridLayout.SortOrder = Enum.SortOrder.Name
-    gridLayout.Parent = scrollFrame
-    
-    -- Create language buttons
-    for languageName, scriptUrl in pairs(self.scripts) do
-        self:createLanguageButton(scrollFrame, gridLayout, mainFrame, languageName, scriptUrl)
+    local g = Instance.new("ScreenGui")
+    g.Name = name; g.ResetOnSpawn = false; g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; g.DisplayOrder = 999
+    pcall(function() g.IgnoreGuiInset = true end)
+    -- low-identity executors can't parent to CoreGui: fall back to PlayerGui instead of erroring (= no picker at all)
+    if not pcall(function() g.Parent = guiParent() end) then g.Parent = player:WaitForChild("PlayerGui") end
+    self.gui = g
+    local sc = Instance.new("UIScale"); sc.Parent = g
+    local camConn
+    local function fit()
+        local cam = workspace.CurrentCamera
+        local vp = cam and cam.ViewportSize or Vector2.new(1280, 720)
+        sc.Scale = math.clamp(math.min(vp.X / 500, vp.Y / 420), 0.55, 1)
     end
-    
-    local function updateCanvasSize()
-        local contentSize = gridLayout.AbsoluteContentSize
-        scrollFrame.CanvasSize = UDim2.new(0, contentSize.X, 0, contentSize.Y + 20)
+    local function hook()
+        if camConn then camConn:Disconnect() end
+        if workspace.CurrentCamera then camConn = self:track(workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(fit)) end
+        fit()
     end
-    
-    gridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvasSize)
-    updateCanvasSize()
-    
-    mainFrame.Position = UDim2.new(0.5, -frameWidth/2, 1.2, 0)
-    local entranceTween = TweenService:Create(mainFrame,
-        TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {Position = UDim2.new(0.5, -frameWidth/2, 0.5, -frameHeight/2)}
-    )
-    entranceTween:Play()
-    
-    closeButton.MouseButton1Click:Connect(function()
-        local exitTween = TweenService:Create(mainFrame,
-            TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-            {Position = UDim2.new(0.5, -frameWidth/2, 1.2, 0)}
-        )
-        exitTween:Play()
-        
-        exitTween.Completed:Connect(function()
-            if self.strokeConnection then
-                self.strokeConnection:Disconnect()
+    hook()
+    self:track(workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(hook)) -- autoexec: camera may not exist yet
+    return g
+end
+
+-- thin gold edge + a bright gold streak running around it (30 fps on phones)
+function LanguageSelector:runningEdge(frame, thickness)
+    stroke(frame, C.gold, 1, 0.72)
+    local glow = Instance.new("UIStroke")
+    glow.Thickness = thickness or 1.6; glow.Color = Color3.new(1, 1, 1); glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border; glow.Parent = frame
+    local gr = Instance.new("UIGradient")
+    gr.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, C.gold), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 240, 180)), ColorSequenceKeypoint.new(1, C.gold) })
+    gr.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.40, 1), NumberSequenceKeypoint.new(0.48, 0.15),
+        NumberSequenceKeypoint.new(0.50, 0), NumberSequenceKeypoint.new(0.52, 0.15), NumberSequenceKeypoint.new(0.60, 1), NumberSequenceKeypoint.new(1, 1),
+    })
+    gr.Parent = glow
+    local rot, acc, step = 0, 0, MOBILE and (1 / 30) or 0
+    self:track(RunService.Heartbeat:Connect(function(dt)
+        rot = (rot + dt * 110) % 360
+        acc = acc + dt
+        if acc >= step then acc = 0; gr.Rotation = rot end
+    end))
+end
+
+-- faint gold dust drifting up behind the content (tween-driven, no per-frame script work)
+function LanguageSelector:dust(frame)
+    local gen = self.alive
+    local layer = Instance.new("Frame"); layer.Size = UDim2.fromScale(1, 1); layer.BackgroundTransparency = 1; layer.ClipsDescendants = true; layer.ZIndex = 0; layer.Parent = frame
+    for _ = 1, (MOBILE and 5 or 10) do
+        local d = Instance.new("Frame"); local s = math.random(2, 3)
+        d.Size = UDim2.fromOffset(s, s); d.BorderSizePixel = 0; d.BackgroundColor3 = C.goldSoft; d.BackgroundTransparency = 1; d.ZIndex = 0; d.Parent = layer
+        corner(d, s)
+        task.spawn(function()
+            task.wait(math.random() * 3)
+            while d.Parent and self.alive == gen do
+                local x = math.random()
+                d.Position = UDim2.new(x, 0, 1, 4); d.BackgroundTransparency = 0.55 + math.random() * 0.3
+                local t = 6 + math.random() * 5
+                local tw = TweenService:Create(d, TweenInfo.new(t, Enum.EasingStyle.Linear), { Position = UDim2.new(math.clamp(x + (math.random() - 0.5) * 0.15, 0, 1), 0, 0, -6), BackgroundTransparency = 1 })
+                tw:Play(); tw.Completed:Wait()
             end
-            self.screenGui:Destroy()
         end)
+    end
+end
+
+-- ---------- "loading: X · change" (players can switch BEFORE anything loads) ----------
+function LanguageSelector:showAutoLoad(lang)
+    local g = self:newGui("CW_LanguageAutoLoad")
+    local f = Instance.new("Frame")
+    f.AnchorPoint = Vector2.new(0.5, 0); f.Size = UDim2.fromOffset(330, 52); f.Position = UDim2.new(0.5, 0, 0, -70)
+    f.BackgroundColor3 = C.bg; f.Parent = g
+    corner(f, 6); self:runningEdge(f, 1.6)
+    local brand = txt(f, "COMBO_WICK", 12, C.gold); brand.Position = UDim2.fromOffset(14, 7); brand.Size = UDim2.fromOffset(120, 14)
+    local t = txt(f, ui(lang, 5) .. ": " .. native(lang), 14, C.text); t.Position = UDim2.fromOffset(14, 22); t.Size = UDim2.new(1, -130, 0, 22); fitFont(t)
+    local b = Instance.new("TextButton")
+    b.AnchorPoint = Vector2.new(1, 0.5); b.Size = UDim2.fromOffset(96, 30); b.Position = UDim2.new(1, -11, 0.5, 0); b.BackgroundColor3 = C.gold; b.AutoButtonColor = false
+    b.Text = ui(lang, 6); b.TextColor3 = C.bg; b.Font = FONT; b.TextSize = 14; b.Parent = f; fitFont(b)
+    corner(b, 4)
+    local bar = Instance.new("Frame"); bar.Size = UDim2.new(1, -12, 0, 2); bar.Position = UDim2.new(0, 6, 1, -4); bar.BackgroundColor3 = C.gold; bar.BorderSizePixel = 0; bar.Parent = f
+    tween(f, 0.35, { Position = UDim2.new(0.5, 0, 0, 16) }, Enum.EasingStyle.Quint)
+    tween(bar, AUTOLOAD_SECONDS, { Size = UDim2.new(0, 0, 0, 2) }, Enum.EasingStyle.Linear)
+    local decided = false
+    local gen = self.alive -- re-executing IQ (or opening the picker) bumps this → the countdown below never fires a 2nd load
+    onTap(b, function() if decided or self.alive ~= gen then return end; decided = true; click(); self:CreateGUI() end)
+    task.delay(AUTOLOAD_SECONDS, function()
+        if decided or self.alive ~= gen then return end
+        decided = true
+        self:cleanup()
+        self:loadScript(lang)
     end)
 end
 
-function LanguageSelector:createLanguageButton(scrollFrame, gridLayout, mainFrame, languageName, scriptUrl)
-    local button = Instance.new("TextButton")
-    button.Name = languageName
-    button.Size = gridLayout.CellSize
-    button.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
-    button.BackgroundTransparency = (self.savedLanguage == languageName) and 0.2 or 0.6
-    button.BorderSizePixel = 0
-    button.Text = languageName
-    button.TextColor3 = (self.savedLanguage == languageName) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(220, 220, 255)
-    button.TextSize = 14
-    button.Font = Enum.Font.SourceSansBold
-    button.TextScaled = true
-    button.Parent = scrollFrame
-    
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 10)
-    buttonCorner.Parent = button
-    
-    local buttonShadow = Instance.new("Frame")
-    buttonShadow.Name = "ButtonShadow"
-    buttonShadow.Size = UDim2.new(1, 6, 1, 6)
-    buttonShadow.Position = UDim2.new(0, -3, 0, -2)
-    buttonShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    buttonShadow.BackgroundTransparency = 0.8
-    buttonShadow.ZIndex = button.ZIndex - 1
-    buttonShadow.BorderSizePixel = 0
-    buttonShadow.Parent = button
-    
-    local shadowCorner = Instance.new("UICorner")
-    shadowCorner.CornerRadius = UDim.new(0, 12)
-    shadowCorner.Parent = buttonShadow
-    
-    local buttonStroke = Instance.new("UIStroke")
-    buttonStroke.Color = (self.savedLanguage == languageName) and Color3.fromRGB(120, 200, 255) or Color3.fromRGB(100, 120, 200)
-    buttonStroke.Transparency = (self.savedLanguage == languageName) and 0.2 or 0.5
-    buttonStroke.Thickness = (self.savedLanguage == languageName) and 2 or 1
-    buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    buttonStroke.Parent = button
-    
-    local glowStroke = Instance.new("UIStroke")
-    glowStroke.Color = Color3.fromRGB(0, 220, 255)
-    glowStroke.Transparency = 1
-    glowStroke.Thickness = 4
-    glowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    glowStroke.Parent = button
-    
-    local glowGradient = Instance.new("UIGradient")
-    glowGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 100, 200)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 200, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 255, 100))
-    }
-    glowGradient.Parent = glowStroke
-    
-    local originalSize = button.Size
-    local hoverSize = UDim2.new(originalSize.X.Scale * 1.1, originalSize.X.Offset * 1.1, originalSize.Y.Scale * 1.1, originalSize.Y.Offset * 1.1)
-    
-    button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {BackgroundTransparency = 0.1, TextColor3 = Color3.fromRGB(255, 255, 255), Size = hoverSize}):Play()
-        
-        TweenService:Create(buttonStroke, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {Transparency = 0.05, Thickness = 3, Color = Color3.fromRGB(180, 240, 255)}):Play()
-        
-        TweenService:Create(glowStroke, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {Transparency = 0.1, Thickness = 8}):Play()
-        
-        TweenService:Create(buttonShadow, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {BackgroundTransparency = 0.5, Size = UDim2.new(1, 12, 1, 12), Position = UDim2.new(0, -6, 0, -3)}):Play()
-        
-        spawn(function()
-            for i = 1, 20 do
-                glowGradient.Rotation = (i * 18) % 360
-                wait(0.02)
-            end
+-- ---------- small "language: X · change" after loading (the new language's loader unloads the old menu itself) ----------
+function LanguageSelector:showChangeToast(lang)
+    if self.gui then return end
+    local g = self:newGui("CW_LanguageToast")
+    local f = Instance.new("Frame")
+    -- phones: top-center (bottom-right is where the jump button is); PC: bottom-right
+    local shownPos = MOBILE and UDim2.new(0.5, 0, 0, 16) or UDim2.new(1, -16, 1, -16)
+    local hiddenPos = MOBILE and UDim2.new(0.5, 0, 0, -70) or UDim2.new(1, 280, 1, -16)
+    f.AnchorPoint = MOBILE and Vector2.new(0.5, 0) or Vector2.new(1, 1); f.Size = UDim2.fromOffset(250, 42); f.Position = hiddenPos
+    f.BackgroundColor3 = C.bg; f.Parent = g
+    corner(f, 6); self:runningEdge(f, 1.4)
+    local t = txt(f, ui(lang, 1) .. ": " .. native(lang), 13, C.text); t.Position = UDim2.fromOffset(12, 0); t.Size = UDim2.new(1, -100, 1, 0); fitFont(t)
+    local b = Instance.new("TextButton")
+    b.AnchorPoint = Vector2.new(1, 0.5); b.Size = UDim2.fromOffset(78, 26); b.Position = UDim2.new(1, -8, 0.5, 0); b.BackgroundColor3 = C.tile; b.AutoButtonColor = false
+    b.Text = ui(lang, 6); b.TextColor3 = C.goldSoft; b.Font = FONT; b.TextSize = 13; b.Parent = f; fitFont(b)
+    corner(b, 4); stroke(b, C.gold, 1, 0.5)
+    tween(f, 0.35, { Position = shownPos }, Enum.EasingStyle.Quint)
+    local done = false
+    local gen = self.alive
+    onTap(b, function() if not done and self.alive == gen then done = true; click(); self:CreateGUI() end end)
+    task.delay(8, function()
+        if done or not f.Parent or self.alive ~= gen then return end
+        done = true
+        local tw = tween(f, 0.3, { Position = hiddenPos })
+        tw.Completed:Connect(function() if self.gui == g then self:cleanup() end end)
+    end)
+end
+
+-- ---------- "Arabic isn't in this game · using English  [change]" ----------
+function LanguageSelector:showFallbackToast(missing, used)
+    if self.gui then return end
+    local g = self:newGui("CW_LanguageToast")
+    local f = Instance.new("Frame")
+    local shownPos = MOBILE and UDim2.new(0.5, 0, 0, 16) or UDim2.new(1, -16, 1, -16)
+    local hiddenPos = MOBILE and UDim2.new(0.5, 0, 0, -80) or UDim2.new(1, 400, 1, -16)
+    f.AnchorPoint = MOBILE and Vector2.new(0.5, 0) or Vector2.new(1, 1); f.Size = UDim2.fromOffset(350, 54); f.Position = hiddenPos
+    f.BackgroundColor3 = C.bg; f.Parent = g
+    corner(f, 6); self:runningEdge(f, 1.4)
+    local brand = txt(f, "COMBO_WICK", 11, C.gold); brand.Position = UDim2.fromOffset(12, 5); brand.Size = UDim2.fromOffset(120, 13)
+    local t = txt(f, native(missing) .. " " .. (NOT_HERE[missing] or NOT_HERE["English"]) .. " " .. native(used), 13, C.text)
+    t.Position = UDim2.fromOffset(12, 18); t.Size = UDim2.new(1, -110, 0, 32); t.TextWrapped = true; t.TextTruncate = Enum.TextTruncate.None
+    t.TextScaled = true; fitFont(t)
+    local tsc = Instance.new("UITextSizeConstraint"); tsc.MaxTextSize = 13; tsc.MinTextSize = 9; tsc.Parent = t
+    local b = Instance.new("TextButton")
+    b.AnchorPoint = Vector2.new(1, 0.5); b.Size = UDim2.fromOffset(84, 28); b.Position = UDim2.new(1, -9, 0.5, 0); b.BackgroundColor3 = C.tile; b.AutoButtonColor = false
+    b.Text = ui(missing, 6); b.TextColor3 = C.goldSoft; b.Font = FONT; b.TextSize = 13; b.Parent = f; fitFont(b)
+    corner(b, 4); stroke(b, C.gold, 1, 0.5)
+    tween(f, 0.35, { Position = shownPos }, Enum.EasingStyle.Quint)
+    local done = false
+    local gen = self.alive
+    onTap(b, function() if not done and self.alive == gen then done = true; click(); self:CreateGUI() end end)
+    task.delay(10, function()
+        if done or not f.Parent or self.alive ~= gen then return end
+        done = true
+        local tw = tween(f, 0.3, { Position = hiddenPos })
+        tw.Completed:Connect(function() if self.gui == g then self:cleanup() end end)
+    end)
+end
+
+-- ---------- the picker ----------
+function LanguageSelector:CreateGUI()
+    local g = self:newGui("CW_LanguageSelector")
+    local sug = self:suggested()
+    local selected = (self.savedLanguage and self.scripts[self.savedLanguage]) and self.savedLanguage or sug
+
+    local dim = Instance.new("Frame")
+    dim.Size = UDim2.fromScale(1, 1); dim.BackgroundColor3 = Color3.new(0, 0, 0); dim.BackgroundTransparency = 1; dim.BorderSizePixel = 0; dim.Parent = g
+    tween(dim, 0.3, { BackgroundTransparency = MOBILE and 0.4 or 0.5 })
+    if not MOBILE then -- blur is the heaviest effect on weak phones
+        pcall(function()
+            local blur = Instance.new("BlurEffect"); blur.Size = 0; blur.Name = "CW_LangBlur"; blur.Parent = game:GetService("Lighting")
+            self.blur = blur; tween(blur, 0.3, { Size = 12 })
         end)
+    end
+
+    local W, H = 470, 382
+    local win = Instance.new("Frame")
+    win.AnchorPoint = Vector2.new(0.5, 0.5); win.Size = UDim2.fromOffset(W, H); win.Position = UDim2.fromScale(0.5, 0.53)
+    win.BackgroundColor3 = C.bg; win.BackgroundTransparency = 1; win.Parent = g
+    corner(win, 6)
+    self:runningEdge(win, 1.8)
+    self:dust(win)
+    local wsc = Instance.new("UIScale"); wsc.Scale = 0.96; wsc.Parent = win
+    tween(win, 0.3, { BackgroundTransparency = 0, Position = UDim2.fromScale(0.5, 0.5) }, Enum.EasingStyle.Quint)
+    tween(wsc, 0.3, { Scale = 1 }, Enum.EasingStyle.Quint)
+
+    -- top bar (drag handle)
+    local top = Instance.new("Frame"); top.Size = UDim2.new(1, 0, 0, 34); top.BackgroundTransparency = 1; top.ZIndex = 2; top.Parent = win
+    -- server logo (falls back to a plain gold ring if it can't download)
+    local logo = Instance.new("ImageLabel"); logo.Size = UDim2.fromOffset(22, 22); logo.Position = UDim2.new(0, 12, 0.5, -11)
+    logo.BackgroundColor3 = C.tile; logo.ImageTransparency = 1; logo.ScaleType = Enum.ScaleType.Crop; logo.Parent = top
+    corner(logo, 11); stroke(logo, C.gold, 1, 0.4)
+    webImage(logo, LOGO_URL, "cw_logo.png")
+    local brand = txt(top, "COMBO_WICK", 15, C.gold); brand.Position = UDim2.fromOffset(42, 0); brand.Size = UDim2.fromOffset(100, 34); brand.TextTruncate = Enum.TextTruncate.None
+    local crumb = txt(top, "/  language", 14, C.sub); crumb.Position = UDim2.fromOffset(140, 0); crumb.Size = UDim2.fromOffset(150, 34)
+    -- discord: copies the invite (free promo every time someone picks a language)
+    local dc = Instance.new("TextButton")
+    dc.AnchorPoint = Vector2.new(1, 0.5); dc.Size = UDim2.fromOffset(84, 22); dc.Position = UDim2.new(1, -42, 0.5, 0)
+    dc.BackgroundColor3 = C.tile; dc.AutoButtonColor = false; dc.Text = "discord"; dc.TextColor3 = C.goldSoft; dc.Font = FONT; dc.TextSize = 13; dc.Parent = top
+    corner(dc, 4); stroke(dc, C.gold, 1, 0.55)
+    onTap(dc, function()
+        click()
+        local ok = pcall(function() (setclipboard or toclipboard)(DISCORD_INVITE) end)
+        dc.Text = ok and "copied!" or "ufrz9Zaqs8"
+        task.delay(2.5, function() if dc.Parent then dc.Text = "discord" end end)
     end)
-    
-    button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            BackgroundTransparency = (self.savedLanguage == languageName) and 0.2 or 0.6,
-            TextColor3 = (self.savedLanguage == languageName) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(220, 220, 255),
-            Size = originalSize
-        }):Play()
-        
-        TweenService:Create(buttonStroke, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Transparency = (self.savedLanguage == languageName) and 0.2 or 0.5,
-            Thickness = (self.savedLanguage == languageName) and 2 or 1,
-            Color = (self.savedLanguage == languageName) and Color3.fromRGB(120, 200, 255) or Color3.fromRGB(100, 120, 200)
-        }):Play()
-        
-        TweenService:Create(glowStroke, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {Transparency = 1, Thickness = 4}):Play()
-        
-        TweenService:Create(buttonShadow, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {BackgroundTransparency = 0.8, Size = UDim2.new(1, 6, 1, 6), Position = UDim2.new(0, -3, 0, -2)}):Play()
-    end)
-    
-    button.MouseButton1Click:Connect(function()
-        self.savedLanguage = languageName
-        self:saveSettings()
-        self:saveLanguage(languageName)
-        
-        local loadingFrame = Instance.new("Frame")
-        loadingFrame.Name = "LoadingFrame"
-        loadingFrame.Size = UDim2.new(1, 0, 1, 0)
-        loadingFrame.Position = UDim2.new(0, 0, 0, 0)
-        loadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        loadingFrame.BackgroundTransparency = 0.1
-        loadingFrame.Parent = mainFrame
-        
-        local loadingCorner = Instance.new("UICorner")
-        loadingCorner.CornerRadius = UDim.new(0, 18)
-        loadingCorner.Parent = loadingFrame
-        
-        local loadingGradient = Instance.new("UIGradient")
-        loadingGradient.Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 40)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 20, 60)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 40, 80))
-        }
-        loadingGradient.Rotation = 45
-        loadingGradient.Parent = loadingFrame
-        
-        local loadingText = Instance.new("TextLabel")
-        loadingText.Size = UDim2.new(1, -30, 0, 40)
-        loadingText.Position = UDim2.new(0, 15, 0.4, -20)
-        loadingText.BackgroundTransparency = 1
-        loadingText.Text = translations.loading .. languageName .. "..."
-        loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
-        loadingText.TextSize = 15
-        loadingText.Font = Enum.Font.SourceSansBold
-        loadingText.TextScaled = true
-        loadingText.Parent = loadingFrame
-        
-        local loadingStroke = Instance.new("UIStroke")
-        loadingStroke.Color = Color3.fromRGB(120, 200, 255)
-        loadingStroke.Thickness = 1
-        loadingStroke.Transparency = 0.3
-        loadingStroke.Parent = loadingText
-        
-        local infoText = Instance.new("TextLabel")
-        infoText.Size = UDim2.new(1, -30, 0, 25)
-        infoText.Position = UDim2.new(0, 15, 0.55, 0)
-        infoText.BackgroundTransparency = 1
-        infoText.Text = translations.loadingInfo
-        infoText.TextColor3 = Color3.fromRGB(180, 200, 255)
-        infoText.TextSize = 10
-        infoText.Font = Enum.Font.SourceSansItalic
-        infoText.TextScaled = true
-        infoText.Parent = loadingFrame
-        
-        local loadingBar = Instance.new("Frame")
-        loadingBar.Name = "LoadingBar"
-        loadingBar.Size = UDim2.new(0.7, 0, 0, 4)
-        loadingBar.Position = UDim2.new(0.15, 0, 0.7, 0)
-        loadingBar.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-        loadingBar.BorderSizePixel = 0
-        loadingBar.Parent = loadingFrame
-        
-        local barCorner = Instance.new("UICorner")
-        barCorner.CornerRadius = UDim.new(0, 2)
-        barCorner.Parent = loadingBar
-        
-        local loadingProgress = Instance.new("Frame")
-        loadingProgress.Name = "LoadingProgress"
-        loadingProgress.Size = UDim2.new(0, 0, 1, 0)
-        loadingProgress.Position = UDim2.new(0, 0, 0, 0)
-        loadingProgress.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
-        loadingProgress.BorderSizePixel = 0
-        loadingProgress.Parent = loadingBar
-        
-        local progressCorner = Instance.new("UICorner")
-        progressCorner.CornerRadius = UDim.new(0, 2)
-        progressCorner.Parent = loadingProgress
-        
-        local progressGradient = Instance.new("UIGradient")
-        progressGradient.Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 200, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 220, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 240, 255))
-        }
-        progressGradient.Parent = loadingProgress
-        
-        local pulse = TweenService:Create(loadingText,
-            TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-            {TextTransparency = 0.3}
-        )
-        pulse:Play()
-        
-        local progressTween = TweenService:Create(loadingProgress,
-            TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-            {Size = UDim2.new(1, 0, 1, 0)}
-        )
-        progressTween:Play()
-        
-        spawn(function()
-            wait(0.6)
-            pcall(function()
-                loadstring(game:HttpGet(scriptUrl))()
-            end)
-            
-            if self.strokeConnection then
-                self.strokeConnection:Disconnect()
+    local close = Instance.new("TextButton")
+    close.Size = UDim2.fromOffset(34, 34); close.Position = UDim2.new(1, -38, 0, 0); close.BackgroundTransparency = 1
+    close.Text = "x"; close.TextColor3 = C.sub; close.Font = FONT; close.TextSize = 16; close.AutoButtonColor = false; close.Parent = top
+    self:track(close.MouseEnter:Connect(function() close.TextColor3 = C.gold end))
+    self:track(close.MouseLeave:Connect(function() close.TextColor3 = C.sub end))
+    local div = Instance.new("Frame"); div.Size = UDim2.new(1, 0, 0, 1); div.Position = UDim2.new(0, 0, 1, 0); div.BorderSizePixel = 0
+    div.BackgroundColor3 = C.gold; div.BackgroundTransparency = 0.82; div.Parent = top
+    do
+        -- follow only the finger/mouse that grabbed the bar (a 2nd finger on the joystick/camera must not move it)
+        local dragInput, startPos, startAt
+        self:track(top.InputBegan:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragInput, startAt, startPos = i, i.Position, win.Position end
+        end))
+        self:track(UserInputService.InputChanged:Connect(function(i)
+            if not dragInput then return end
+            local mine = (dragInput.UserInputType == Enum.UserInputType.Touch and i == dragInput)
+                or (dragInput.UserInputType == Enum.UserInputType.MouseButton1 and i.UserInputType == Enum.UserInputType.MouseMovement)
+            if mine then
+                local d = i.Position - startAt
+                win.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
             end
-            self.screenGui:Destroy()
-            
-            wait(0.5)
-            self:showResetNotification()
-        end)
-    end)
+        end))
+        self:track(UserInputService.InputEnded:Connect(function(i)
+            if i == dragInput or (dragInput and i.UserInputType == Enum.UserInputType.MouseButton1 and dragInput.UserInputType == Enum.UserInputType.MouseButton1) then dragInput = nil end
+        end))
+    end
+
+    -- flag tiles
+    local grid = Instance.new("ScrollingFrame")
+    grid.Position = UDim2.fromOffset(12, 44); grid.Size = UDim2.new(1, -24, 1, -44 - 52); grid.ZIndex = 2
+    grid.BackgroundTransparency = 1; grid.BorderSizePixel = 0; grid.ScrollBarThickness = 2; grid.ScrollBarImageColor3 = C.gold; grid.ScrollBarImageTransparency = 0.3
+    grid.CanvasSize = UDim2.new(); grid.AutomaticCanvasSize = Enum.AutomaticSize.Y; grid.ScrollingDirection = Enum.ScrollingDirection.Y; grid.Parent = win
+    local gl = Instance.new("UIGridLayout"); gl.CellSize = UDim2.new(1 / 3, -7, 0, 48); gl.CellPadding = UDim2.fromOffset(6, 6); gl.SortOrder = Enum.SortOrder.LayoutOrder; gl.Parent = grid
+    local gp = Instance.new("UIPadding"); gp.PaddingRight = UDim.new(0, 6); gp.PaddingTop = UDim.new(0, 3); gp.PaddingBottom = UDim.new(0, 3); gp.Parent = grid
+
+    local tiles, order, cont, rem, det = {}, {}, nil, nil, nil
+    local function words()
+        crumb.Text = "/  " .. ui(selected, 1); fitFont(crumb)
+        if rem then rem.Text = ui(selected, 2); fitFont(rem) end
+        if det then det.Text = ui(selected, 4) .. ": " .. native(sug); fitFont(det) end
+        if cont then cont.Text = ui(selected, 3) .. "  >"; fitFont(cont) end
+    end
+    local function paint(pop)
+        for key, t in pairs(tiles) do
+            local on = key == selected
+            t.tile.BackgroundColor3 = on and C.tileOn or C.tile
+            t.st.Transparency = on and 0.05 or 0.88
+            t.name.TextColor3 = on and C.goldSoft or C.text
+            tween(t.bar, 0.18, { Size = on and UDim2.new(1, -16, 0, 2) or UDim2.new(0, 0, 0, 2) })
+            if on and pop then t.flagScale.Scale = 1.25; tween(t.flagScale, 0.25, { Scale = 1 }, Enum.EasingStyle.Back) end
+        end
+        words()
+    end
+    local function choose(key) if not key or key == selected then return end; selected = key; click(); paint(true) end
+
+    local keys = { sug }
+    for _, k in ipairs(self:orderedKeys()) do if k ~= sug then table.insert(keys, k) end end
+    for i, key in ipairs(keys) do
+        local d = DISPLAY[key] or { key, "" }
+        local tile = Instance.new("TextButton")
+        tile.Name = key; tile.LayoutOrder = i; tile.AutoButtonColor = false; tile.Text = ""; tile.BackgroundColor3 = C.tile; tile.ZIndex = 2; tile.Parent = grid
+        corner(tile, 4)
+        local st = stroke(tile, C.gold, 1, 0.88)
+        local holder = Instance.new("Frame"); holder.Size = UDim2.fromOffset(22, 22); holder.Position = UDim2.new(0, 10, 0.5, -11)
+        holder.BackgroundColor3 = Color3.fromRGB(45, 44, 50); holder.Parent = tile; corner(holder, 11)
+        local flagScale = Instance.new("UIScale"); flagScale.Parent = holder
+        local badge = txt(holder, "", 9, C.goldSoft, Enum.TextXAlignment.Center); badge.Size = UDim2.fromScale(1, 1)
+        local img = Instance.new("ImageLabel"); img.Size = UDim2.fromScale(1, 1); img.BackgroundTransparency = 1; img.ScaleType = Enum.ScaleType.Crop
+        img.ImageTransparency = 1; img.Parent = holder; corner(img, 11)
+        setFlag(img, badge, key)
+        local hasSub = d[2] ~= "" and d[2] ~= d[1]
+        local nm = txt(tile, d[1], 14, C.text); nm.Position = UDim2.fromOffset(40, hasSub and 6 or 0); nm.Size = UDim2.new(1, -46, 0, hasSub and 20 or 48)
+        if d[1]:match("[\128-\255]") then nm.Font = Enum.Font.GothamMedium; nm.TextSize = 13 end
+        if hasSub then local en = txt(tile, d[2]:lower(), 11, C.sub); en.Position = UDim2.fromOffset(40, 25); en.Size = UDim2.new(1, -46, 0, 16) end
+        if key == sug then local star = txt(tile, "*", 14, C.gold, Enum.TextXAlignment.Center); star.Size = UDim2.fromOffset(14, 14); star.Position = UDim2.new(1, -16, 0, 3) end
+        local bar = Instance.new("Frame"); bar.AnchorPoint = Vector2.new(0.5, 1); bar.Position = UDim2.new(0.5, 0, 1, 0); bar.Size = UDim2.new(0, 0, 0, 2)
+        bar.BorderSizePixel = 0; bar.BackgroundColor3 = C.gold; bar.Parent = tile
+        tiles[key] = { tile = tile, st = st, name = nm, bar = bar, flagScale = flagScale }
+        order[i] = key
+        if not MOBILE then
+            self:track(tile.MouseEnter:Connect(function() if key ~= selected then st.Transparency = 0.55; tile.BackgroundColor3 = Color3.fromRGB(27, 27, 32) end end))
+            self:track(tile.MouseLeave:Connect(function() if key ~= selected then st.Transparency = 0.88; tile.BackgroundColor3 = C.tile end end))
+        end
+        onTap(tile, function() choose(key) end) -- selecting never loads; continue does
+    end
+
+    -- bottom bar
+    local bot = Instance.new("Frame"); bot.Size = UDim2.new(1, -24, 0, 40); bot.Position = UDim2.new(0, 12, 1, -46); bot.BackgroundTransparency = 1; bot.ZIndex = 2; bot.Parent = win
+    local bdiv = Instance.new("Frame"); bdiv.Size = UDim2.new(1, 24, 0, 1); bdiv.Position = UDim2.new(0, -12, 0, -4); bdiv.BorderSizePixel = 0
+    bdiv.BackgroundColor3 = C.gold; bdiv.BackgroundTransparency = 0.82; bdiv.Parent = bot
+    local remB = Instance.new("TextButton"); remB.Size = UDim2.fromOffset(130, 40); remB.BackgroundTransparency = 1; remB.Text = ""; remB.Parent = bot
+    local box = Instance.new("Frame"); box.Size = UDim2.fromOffset(14, 14); box.Position = UDim2.new(0, 2, 0.5, -7); box.Parent = remB; corner(box, 3)
+    stroke(box, C.gold, 1, 0.3)
+    local tick = txt(box, "", 12, C.bg, Enum.TextXAlignment.Center); tick.Size = UDim2.fromScale(1, 1)
+    rem = txt(remB, "remember", 13, C.text); rem.Position = UDim2.fromOffset(24, 0); rem.Size = UDim2.new(1, -24, 1, 0)
+    local function paintBox() box.BackgroundColor3 = self.remember and C.gold or C.tile; tick.Text = self.remember and "v" or "" end
+    paintBox()
+    onTap(remB, function() self.remember = not self.remember; click(); paintBox(); if not self.remember then self:writeSave(nil) end end)
+    det = txt(bot, "", 12, C.sub, Enum.TextXAlignment.Center); det.Size = UDim2.new(1, -290, 1, 0); det.Position = UDim2.fromOffset(136, 0)
+    cont = Instance.new("TextButton")
+    cont.AnchorPoint = Vector2.new(1, 0.5); cont.Size = UDim2.fromOffset(140, 30); cont.Position = UDim2.new(1, 0, 0.5, 0)
+    cont.BackgroundColor3 = C.gold; cont.AutoButtonColor = false; cont.TextColor3 = C.bg; cont.Font = FONT; cont.TextSize = 15; cont.Parent = bot
+    corner(cont, 4)
+    if not MOBILE then
+        self:track(cont.MouseEnter:Connect(function() tween(cont, 0.12, { BackgroundColor3 = C.goldHot }) end))
+        self:track(cont.MouseLeave:Connect(function() tween(cont, 0.12, { BackgroundColor3 = C.gold }) end))
+    end
+    local function go() click(); self:continueWith(selected) end
+    onTap(cont, go)
+    onTap(close, go) -- closing continues with the selected language (v1 loaded nothing)
+
+    -- keyboard (PC): arrows move, Enter continues, Esc closes (= continue)
+    self:track(UserInputService.InputBegan:Connect(function(i, processed)
+        if processed then return end
+        local idx = table.find(order, selected) or 1
+        local k = i.KeyCode
+        if k == Enum.KeyCode.Right then choose(order[math.min(#order, idx + 1)])
+        elseif k == Enum.KeyCode.Left then choose(order[math.max(1, idx - 1)])
+        elseif k == Enum.KeyCode.Down then choose(order[math.min(#order, idx + 3)])
+        elseif k == Enum.KeyCode.Up then choose(order[math.max(1, idx - 3)])
+        elseif k == Enum.KeyCode.Return or k == Enum.KeyCode.KeypadEnter then go()
+        elseif k == Enum.KeyCode.Escape and self.loadedLanguage then self:cleanup() end
+    end))
+
+    paint(false)
+    return g
 end
 
 return LanguageSelector
