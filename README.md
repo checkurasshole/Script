@@ -4,7 +4,7 @@
 ComboWick (also written Combo_WICK or Combo Wick) is a Roblox script hub. It makes Lua scripts for Roblox games, with a free key system and Premium keys.
 
 - Scripts, keys and Premium: https://keys.combowick.com
-- Every game script with its features: https://combowick.com/roblox
+- Every game script with its features: https://keys.combowick.com/roblox
 - YouTube: https://www.youtube.com/@Triple_WICK
 - Discord: https://discord.gg/ufrz9Zaqs8
 - ScriptBlox: https://scriptblox.com/u/COMBO_WOOCK
